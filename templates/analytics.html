@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block title %}Analytics - Form{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <aside class="sidebar">
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('dashboard') }}">Overview</a>
+            <a href="{{ url_for('vpn_dashboard') }}">VPN</a>
+            <a href="{{ url_for('speed_sharing_dashboard') }}">Speed Sharing</a>
+            <a href="{{ url_for('analytics_dashboard') }}" class="active">Analytics</a>
+            <a href="{{ url_for('settings_dashboard') }}">Settings</a>
+        </nav>
+    </aside>
+    
+    <main class="dashboard-content">
+        <h1>Network Analytics</h1>
+        
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <h3>Latency</h3>
+                <div class="metric-value">{{ metrics.get('latency_ms', 0) }}<span class="unit">ms</span></div>
+            </div>
+            <div class="metric-card">
+                <h3>Jitter</h3>
+                <div class="metric-value">{{ metrics.get('jitter_ms', 0) }}<span class="unit">ms</span></div>
+            </div>
+            <div class="metric-card">
+                <h3>Packet Loss</h3>
+                <div class="metric-value">{{ metrics.get('packet_loss_percent', 0) }}<span class="unit">%</span></div>
+            </div>
+            <div class="metric-card">
+                <h3>Signal Strength</h3>
+                <div class="metric-value">{{ metrics.get('signal_strength', 0) }}<span class="unit">dBm</span></div>
+            </div>
+        </div>
+        
+        <div class="bandwidth-section">
+            <h2>Bandwidth</h2>
+            <div class="bandwidth-bars">
+                <div class="bandwidth-bar">
+                    <label>Download</label>
+                    <div class="bar-container">
+                        <div class="bar download" style="width: {{ (metrics.get('download_mbps', 0) / 100 * 100)|int }}%"></div>
+                    </div>
+                    <span>{{ metrics.get('download_mbps', 0) }} Mbps</span>
+                </div>
+                <div class="bandwidth-bar">
+                    <label>Upload</label>
+                    <div class="bar-container">
+                        <div class="bar upload" style="width: {{ (metrics.get('upload_mbps', 0) / 100 * 100)|int }}%"></div>
+                    </div>
+                    <span>{{ metrics.get('upload_mbps', 0) }} Mbps</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="history-section">
+            <h2>Recent History</h2>
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Latency (ms)</th>
+                        <th>Download (Mbps)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in history %}
+                    <tr>
+                        <td>{{ entry.timestamp }}</td>
+                        <td>{{ entry.latency_ms }}</td>
+                        <td>{{ entry.download_mbps }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </main>
+</div>
+{% endblock %}

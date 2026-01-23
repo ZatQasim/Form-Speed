@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block title %}Form - Secure Network{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div class="hero-content">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="Form Logo" class="hero-logo">
+        <h1>Form Network</h1>
+        <p class="hero-subtitle">Secure VPN, Speed Sharing, and Premium Connectivity</p>
+        <div class="hero-features">
+            <div class="feature">
+                <h3>VPN Access</h3>
+                <p>Secure encrypted connections worldwide</p>
+            </div>
+            <div class="feature">
+                <h3>Speed Sharing</h3>
+                <p>Share bandwidth with trusted peers</p>
+            </div>
+            <div class="feature">
+                <h3>Mesh Network</h3>
+                <p>Decentralized routing for reliability</p>
+            </div>
+        </div>
+        <div class="hero-cta">
+            <a href="{{ url_for('signup') }}" class="btn btn-primary btn-large">Start Free Trial</a>
+            <p class="trial-info">7-day free trial, then $5/month</p>
+        </div>
+    </div>
+</section>
+
+<section class="pricing">
+    <h2>Simple Pricing</h2>
+    <div class="price-card">
+        <h3>Form Pro</h3>
+        <div class="price">$5<span>/month</span></div>
+        <ul class="features-list">
+            <li>VPN Access to All Servers</li>
+            <li>Speed Sharing with Peers</li>
+            <li>Mesh Network Access</li>
+            <li>Priority Routing</li>
+            <li>Advanced Analytics</li>
+            <li>24/7 Support</li>
+        </ul>
+        <a href="{{ url_for('signup') }}" class="btn btn-primary">Start 7-Day Free Trial</a>
+    </div>
+</section>
+{% endblock %}

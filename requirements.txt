@@ -1,0 +1,9 @@
+
+flask
+flask-login
+flask-sqlalchemy
+matplotlib
+psycopg2-binary
+python-dotenv
+stripe
+werkzeug

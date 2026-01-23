@@ -1,0 +1,19 @@
+{
+  "pro_users": [
+    "admin@form.net",
+    "Abdi123"
+  ],
+  "subscription": {
+    "price_usd": 5,
+    "trial_days": 7,
+    "features": [
+      "VPN Access",
+      "Speed Sharing",
+      "Mesh Network",
+      "Priority Routing",
+      "Advanced Analytics",
+      "24/7 Support"
+    ]
+  },
+  "stripe_price_id": "price_form_pro_monthly"
+}

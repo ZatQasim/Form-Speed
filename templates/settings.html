@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block title %}Settings - Form{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <aside class="sidebar">
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('dashboard') }}">Overview</a>
+            <a href="{{ url_for('vpn_dashboard') }}">VPN</a>
+            <a href="{{ url_for('speed_sharing_dashboard') }}">Speed Sharing</a>
+            <a href="{{ url_for('analytics_dashboard') }}">Analytics</a>
+            <a href="{{ url_for('settings_dashboard') }}" class="active">Settings</a>
+        </nav>
+    </aside>
+    
+    <main class="dashboard-content">
+        <h1>Settings</h1>
+        
+        <div class="settings-section">
+            <h2>Account</h2>
+            <div class="settings-card">
+                <div class="setting-row">
+                    <label>Username</label>
+                    <span>{{ current_user.username }}</span>
+                </div>
+                <div class="setting-row">
+                    <label>Email</label>
+                    <span>{{ current_user.email }}</span>
+                </div>
+                <div class="setting-row">
+                    <label>Member Since</label>
+                    <span>{{ current_user.created_at.strftime('%B %d, %Y') }}</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="settings-section">
+            <h2>Subscription</h2>
+            <div class="settings-card">
+                <div class="setting-row">
+                    <label>Status</label>
+                    <span class="{% if current_user.has_active_subscription() %}status-active{% else %}status-inactive{% endif %}">
+                        {{ 'Active' if current_user.has_active_subscription() else 'Inactive' }}
+                    </span>
+                </div>
+                {% if current_user.trial_end %}
+                <div class="setting-row">
+                    <label>Trial Ends</label>
+                    <span>{{ current_user.trial_end.strftime('%B %d, %Y') }}</span>
+                </div>
+                {% endif %}
+                {% if not current_user.has_active_subscription() %}
+                <a href="{{ url_for('subscribe') }}" class="btn btn-primary">Upgrade to Pro</a>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="settings-section">
+            <h2>Preferences</h2>
+            <div class="settings-card">
+                <div class="setting-row">
+                    <label>Auto-connect VPN</label>
+                    <label class="switch">
+                        <input type="checkbox">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="setting-row">
+                    <label>Enable Speed Sharing</label>
+                    <label class="switch">
+                        <input type="checkbox">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="setting-row">
+                    <label>Notifications</label>
+                    <label class="switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        
+        <div class="settings-section danger-zone">
+            <h2>Danger Zone</h2>
+            <div class="settings-card">
+                <p>Permanently delete your account and all data.</p>
+                <button class="btn btn-danger">Delete Account</button>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}

@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block title %}VPN - Form{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <aside class="sidebar">
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('dashboard') }}">Overview</a>
+            <a href="{{ url_for('vpn_dashboard') }}" class="active">VPN</a>
+            <a href="{{ url_for('speed_sharing_dashboard') }}">Speed Sharing</a>
+            <a href="{{ url_for('analytics_dashboard') }}">Analytics</a>
+            <a href="{{ url_for('settings_dashboard') }}">Settings</a>
+        </nav>
+    </aside>
+    
+    <main class="dashboard-content">
+        <h1>VPN</h1>
+        
+        <div class="vpn-status-card">
+            <div class="vpn-status disconnected" id="vpn-status">
+                <div class="status-indicator"></div>
+                <span>Disconnected</span>
+            </div>
+            <button class="btn btn-primary btn-large" id="vpn-toggle">Connect</button>
+        </div>
+        
+        <h2>Available Servers</h2>
+        <div class="servers-list" id="servers-list">
+            <div class="loading">Loading servers...</div>
+        </div>
+    </main>
+</div>
+
+<script>
+let connected = false;
+let selectedServer = null;
+
+async function loadServers() {
+    try {
+        const response = await fetch('/api/vpn/status');
+        const data = await response.json();
+        
+        const serversList = document.getElementById('servers-list');
+        serversList.innerHTML = data.servers.map(server => `
+            <div class="server-card" data-server="${server.name}">
+                <div class="server-info">
+                    <h3>${server.name}</h3>
+                    <p>${server.location}</p>
+                </div>
+                <div class="server-latency">${server.latency}ms</div>
+            </div>
+        `).join('');
+        
+        document.querySelectorAll('.server-card').forEach(card => {
+            card.addEventListener('click', () => {
+                document.querySelectorAll('.server-card').forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+                selectedServer = card.dataset.server;
+            });
+        });
+    } catch (error) {
+        document.getElementById('servers-list').innerHTML = '<p>Error loading servers</p>';
+    }
+}
+
+document.getElementById('vpn-toggle').addEventListener('click', function() {
+    if (!selectedServer && !connected) {
+        alert('Please select a server first');
+        return;
+    }
+    
+    connected = !connected;
+    const statusEl = document.getElementById('vpn-status');
+    
+    if (connected) {
+        statusEl.className = 'vpn-status connected';
+        statusEl.querySelector('span').textContent = `Connected to ${selectedServer}`;
+        this.textContent = 'Disconnect';
+        this.classList.remove('btn-primary');
+        this.classList.add('btn-danger');
+    } else {
+        statusEl.className = 'vpn-status disconnected';
+        statusEl.querySelector('span').textContent = 'Disconnected';
+        this.textContent = 'Connect';
+        this.classList.add('btn-primary');
+        this.classList.remove('btn-danger');
+    }
+});
+
+loadServers();
+</script>
+{% endblock %}

@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Form{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <aside class="sidebar">
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('dashboard') }}" class="active">Overview</a>
+            <a href="{{ url_for('vpn_dashboard') }}" {% if not is_pro %}class="locked"{% endif %}>VPN</a>
+            <a href="{{ url_for('speed_sharing_dashboard') }}" {% if not is_pro %}class="locked"{% endif %}>Speed Sharing</a>
+            <a href="{{ url_for('analytics_dashboard') }}">Analytics</a>
+            <a href="{{ url_for('settings_dashboard') }}">Settings</a>
+        </nav>
+        {% if not is_pro %}
+        <div class="upgrade-prompt">
+            <p>Unlock all features</p>
+            <a href="{{ url_for('subscribe') }}" class="btn btn-primary btn-small">Upgrade to Pro</a>
+        </div>
+        {% endif %}
+    </aside>
+    
+    <main class="dashboard-content">
+        <h1>Welcome, {{ current_user.username }}</h1>
+        
+        {% if is_pro %}
+        <div class="pro-status">
+            <span class="pro-badge-large">PRO</span>
+            <span>All features unlocked</span>
+        </div>
+        {% endif %}
+        
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <h3>Latency</h3>
+                <div class="metric-value">{{ metrics.get('latency_ms', 0) }}<span class="unit">ms</span></div>
+            </div>
+            <div class="metric-card">
+                <h3>Download</h3>
+                <div class="metric-value">{{ metrics.get('download_mbps', 0) }}<span class="unit">Mbps</span></div>
+            </div>
+            <div class="metric-card">
+                <h3>Upload</h3>
+                <div class="metric-value">{{ metrics.get('upload_mbps', 0) }}<span class="unit">Mbps</span></div>
+            </div>
+            <div class="metric-card">
+                <h3>Network</h3>
+                <div class="metric-value metric-text">{{ metrics.get('network_type', 'N/A') }}</div>
+            </div>
+        </div>
+        
+        <div class="quick-actions">
+            <h2>Quick Actions</h2>
+            <div class="actions-grid">
+                {% if is_pro %}
+                <a href="{{ url_for('vpn_dashboard') }}" class="action-card">
+                    <h3>Connect VPN</h3>
+                    <p>Secure your connection</p>
+                </a>
+                <a href="{{ url_for('speed_sharing_dashboard') }}" class="action-card">
+                    <h3>Speed Sharing</h3>
+                    <p>Share bandwidth with peers</p>
+                </a>
+                {% else %}
+                <div class="action-card locked">
+                    <h3>Connect VPN</h3>
+                    <p>Pro feature</p>
+                </div>
+                <div class="action-card locked">
+                    <h3>Speed Sharing</h3>
+                    <p>Pro feature</p>
+                </div>
+                {% endif %}
+                <a href="{{ url_for('analytics_dashboard') }}" class="action-card">
+                    <h3>View Analytics</h3>
+                    <p>Network performance</p>
+                </a>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}

@@ -1,3 +1,44 @@
 modules = ["nodejs-20", "python-3.11"]
 [agent]
 expertMode = true
+
+[nix]
+channel = "stable-25_05"
+packages = ["cairo", "ffmpeg-full", "freetype", "ghostscript", "gobject-introspection", "gtk3", "pkg-config", "qhull", "tcl", "tk"]
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Run"
+mode = "sequential"
+author = 47286943
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python shared_libs/ai_helpers.py"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Form Network"
+
+[[workflows.workflow]]
+name = "Form Network"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python app.py"
+waitForPort = 5000
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[[ports]]
+localPort = 5000
+externalPort = 80
