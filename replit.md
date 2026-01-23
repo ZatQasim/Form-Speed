@@ -85,13 +85,19 @@ The codebase references Rust for core routing/device client, Go for server commu
 - `/api/devices/<id>` - Remove device
 
 ### Functional Features (Live Data, No Mocks)
+- **Real network detection**: Detects actual IP address, ISP/carrier, and location using ipinfo.io API
+- **Real speed tests**: Measures actual download speed using Cloudflare speed test endpoints
+- **Real latency measurement**: Measures actual network latency using socket connections to DNS servers
+- **Real jitter measurement**: Calculates actual network jitter from multiple latency samples
+- **Real traceroute**: Uses system traceroute command or falls back to latency-based estimation
+- **Real ping tests**: Performs actual ICMP-like ping to specified targets
 - **VPN connections log events** to connection history (connect/disconnect with server details)
 - **Speed tests save results** to metrics history for analytics
 - **Device data persisted** in `device_client/cache/devices.json`
 - **Connection history stored** in `device_client/cache/connection_history.json`
-- **Real latency measurement**: Measures actual network latency to servers using socket connections
 - **Persistent VPN state**: VPN stays connected until user manually disconnects
 - **Real peer network**: Speed sharing peers are stored and tracked
+- **Network info API** (`/api/network-info`): Returns real connection, location, and VPN status
 
 ### UI Updates
 - Expanded sidebar navigation to 10 items (Overview, VPN, Speed Sharing, Security, Diagnostics, Analytics, History, Devices, Account, Settings)

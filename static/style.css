@@ -2739,3 +2739,34 @@ footer {
     border-top: 1px solid var(--border-light);
 }
 
+
+/* Network Info Banner */
+.network-info-banner {
+    display: flex;
+    gap: 2rem;
+    padding: 1.25rem 1.5rem;
+    background: linear-gradient(135deg, rgba(26, 115, 232, 0.08), rgba(52, 168, 83, 0.08));
+    border-radius: var(--radius-md);
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.network-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.network-detail .label {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.network-detail .value {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+

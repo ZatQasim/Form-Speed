@@ -77,6 +77,21 @@
         </div>
         {% endif %}
         
+        <div class="network-info-banner">
+            <div class="network-detail">
+                <span class="label">Your IP</span>
+                <span class="value" id="user-ip">{{ metrics.get('ip_address', 'Detecting...') }}</span>
+            </div>
+            <div class="network-detail">
+                <span class="label">ISP/Carrier</span>
+                <span class="value" id="user-isp">{{ metrics.get('isp', 'Detecting...') }}</span>
+            </div>
+            <div class="network-detail">
+                <span class="label">Location</span>
+                <span class="value" id="user-location">{{ metrics.get('city', '') }}{% if metrics.get('city') and metrics.get('country') %}, {% endif %}{{ metrics.get('country', 'Detecting...') }}</span>
+            </div>
+        </div>
+        
         <div class="metrics-grid">
             <div class="metric-card" id="latency-card">
                 <h3>Latency</h3>
@@ -90,12 +105,12 @@
                 <div class="metric-value metric-text">{{ metrics.get('connection_status', 'N/A') }}</div>
             </div>
             <div class="metric-card">
-                <h3>Network</h3>
+                <h3>Network Type</h3>
                 <div class="metric-value metric-text">{{ metrics.get('network_type', 'N/A') }}</div>
             </div>
             <div class="metric-card">
-                <h3>Last Updated</h3>
-                <div class="metric-value metric-text" id="last-updated">Just now</div>
+                <h3>Interface</h3>
+                <div class="metric-value metric-text">{{ metrics.get('interface', 'N/A') }}</div>
             </div>
         </div>
         
