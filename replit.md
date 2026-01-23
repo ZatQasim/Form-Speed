@@ -68,6 +68,20 @@ The codebase references Rust for core routing/device client, Go for server commu
 
 ## Recent Changes (January 23, 2026)
 
+### UI Redesign - Modern Google/AT&T Style
+- Complete CSS overhaul with clean, minimalist design
+- Light theme with white backgrounds, subtle shadows, and professional typography
+- Google Sans font family for consistent modern look
+- CSS variables for consistent theming (primary blue #1a73e8, secondary green #34a853)
+- Rounded corners, subtle borders, and smooth transitions throughout
+
+### Cancel Subscription Feature
+- New Cancel Subscription page at `/cancel-subscription`
+- Backend route `/process-cancellation` handles Stripe subscription cancellation
+- Whitelist users (pro.json) cannot cancel through self-service
+- Form collects cancellation reason for feedback
+
+### Previous Changes
 - Created main Flask web application (`app.py`) with full authentication and dashboard
 - Added `pro.json` configuration for Pro user management and Stripe settings
 - Implemented Signup/Login pages with password hashing
