@@ -9,6 +9,7 @@
             <a href="{{ url_for('dashboard') }}">Overview</a>
             <a href="{{ url_for('vpn_dashboard') }}">VPN</a>
             <a href="{{ url_for('speed_sharing_dashboard') }}">Speed Sharing</a>
+            <a href="{{ url_for('security_dashboard') }}">Security</a>
             <a href="{{ url_for('analytics_dashboard') }}" class="active">Analytics</a>
             <a href="{{ url_for('settings_dashboard') }}">Settings</a>
         </nav>
@@ -17,10 +18,20 @@
     <main class="dashboard-content">
         <h1>Network Analytics</h1>
         
+        {% if user_state.route_optimization_enabled %}
+        <div class="optimization-banner">
+            <span class="opt-icon">🚀</span>
+            <span>Route optimization is active - Your connection is optimized for best performance</span>
+        </div>
+        {% endif %}
+        
         <div class="metrics-grid">
             <div class="metric-card">
                 <h3>Latency</h3>
                 <div class="metric-value">{{ metrics.get('latency_ms', 0) }}<span class="unit">ms</span></div>
+                {% if user_state.route_optimization_enabled %}
+                <span class="optimized-badge">Optimized</span>
+                {% endif %}
             </div>
             <div class="metric-card">
                 <h3>Jitter</h3>
@@ -56,6 +67,24 @@
             </div>
         </div>
         
+        <div class="network-info-section">
+            <h2>Network Information</h2>
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="label">Network Type</span>
+                    <span class="value">{{ metrics.get('network_type', 'Unknown') }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Signal Strength</span>
+                    <span class="value">{{ metrics.get('signal_strength', 0) }} dBm</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Connection Quality</span>
+                    <span class="value quality-good">{% if metrics.get('latency_ms', 100) < 50 %}Excellent{% elif metrics.get('latency_ms', 100) < 100 %}Good{% else %}Fair{% endif %}</span>
+                </div>
+            </div>
+        </div>
+        
         <div class="history-section">
             <h2>Recent History</h2>
             <table class="history-table">
@@ -72,6 +101,10 @@
                         <td>{{ entry.timestamp }}</td>
                         <td>{{ entry.latency_ms }}</td>
                         <td>{{ entry.download_mbps }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="3">No history data available</td>
                     </tr>
                     {% endfor %}
                 </tbody>

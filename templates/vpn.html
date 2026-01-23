@@ -9,85 +9,248 @@
             <a href="{{ url_for('dashboard') }}">Overview</a>
             <a href="{{ url_for('vpn_dashboard') }}" class="active">VPN</a>
             <a href="{{ url_for('speed_sharing_dashboard') }}">Speed Sharing</a>
+            <a href="{{ url_for('security_dashboard') }}">Security</a>
             <a href="{{ url_for('analytics_dashboard') }}">Analytics</a>
             <a href="{{ url_for('settings_dashboard') }}">Settings</a>
         </nav>
     </aside>
     
     <main class="dashboard-content">
-        <h1>VPN</h1>
+        <h1>VPN Protection</h1>
         
         <div class="vpn-status-card">
-            <div class="vpn-status disconnected" id="vpn-status">
+            <div class="vpn-status {% if user_state.vpn_enabled %}connected{% else %}disconnected{% endif %}" id="vpn-status">
                 <div class="status-indicator"></div>
-                <span>Disconnected</span>
+                <div class="status-text">
+                    <span id="status-label">{% if user_state.vpn_enabled %}Connected{% else %}Disconnected{% endif %}</span>
+                    {% if user_state.vpn_enabled and user_state.vpn_server %}
+                    <span class="server-info" id="server-info">{{ user_state.vpn_server.name }} - {{ user_state.vpn_server.location }}</span>
+                    {% endif %}
+                </div>
             </div>
-            <button class="btn btn-primary btn-large" id="vpn-toggle">Connect</button>
+            <div class="vpn-controls">
+                <button class="btn {% if user_state.vpn_enabled %}btn-danger{% else %}btn-primary{% endif %} btn-large" id="vpn-toggle">
+                    {% if user_state.vpn_enabled %}Disconnect{% else %}Connect{% endif %}
+                </button>
+            </div>
         </div>
         
+        {% if user_state.vpn_enabled %}
+        <div class="active-connection">
+            <h2>Active Connection</h2>
+            <div class="connection-details">
+                <div class="detail-card">
+                    <h4>Server</h4>
+                    <p>{{ user_state.vpn_server.name if user_state.vpn_server else 'N/A' }}</p>
+                </div>
+                <div class="detail-card">
+                    <h4>Protocol</h4>
+                    <p>WireGuard</p>
+                </div>
+                <div class="detail-card">
+                    <h4>Encryption</h4>
+                    <p>AES-256-GCM</p>
+                </div>
+                <div class="detail-card">
+                    <h4>Route Optimized</h4>
+                    <p class="{% if user_state.route_optimization_enabled %}status-active{% else %}status-inactive{% endif %}">
+                        {% if user_state.route_optimization_enabled %}Yes{% else %}No{% endif %}
+                    </p>
+                </div>
+            </div>
+            
+            <div class="optimization-section">
+                <h3>Network Optimization</h3>
+                <p>Find the fastest route to speed up your connection</p>
+                <button class="btn btn-primary" id="optimize-btn">Optimize Route</button>
+                <div id="optimization-result" class="optimization-result hidden"></div>
+            </div>
+        </div>
+        {% endif %}
+        
         <h2>Available Servers</h2>
+        <p class="server-instruction">{% if user_state.vpn_enabled %}You're connected. Disconnect first to switch servers.{% else %}Select a server to connect{% endif %}</p>
+        
         <div class="servers-list" id="servers-list">
-            <div class="loading">Loading servers...</div>
+            {% for server in servers %}
+            <div class="server-card {% if user_state.vpn_enabled and user_state.vpn_server and user_state.vpn_server.id == server.id %}selected connected{% endif %}" 
+                 data-server-id="{{ server.id }}" 
+                 data-server-name="{{ server.name }}">
+                <div class="server-info">
+                    <h3>{{ server.name }}</h3>
+                    <p>{{ server.location }}</p>
+                    <span class="protocols">{{ server.protocols | join(', ') }}</span>
+                </div>
+                <div class="server-stats">
+                    <div class="capacity">
+                        <span class="label">Capacity</span>
+                        <div class="capacity-bar">
+                            <div class="capacity-fill" style="width: {{ server.capacity }}%"></div>
+                        </div>
+                    </div>
+                    <div class="server-latency" id="latency-{{ server.id }}">--ms</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="vpn-features">
+            <h2>VPN Features</h2>
+            <div class="features-grid">
+                <div class="feature-item active">
+                    <span class="feature-icon">🔒</span>
+                    <span>AES-256 Encryption</span>
+                </div>
+                <div class="feature-item active">
+                    <span class="feature-icon">🌐</span>
+                    <span>DNS Leak Protection</span>
+                </div>
+                <div class="feature-item active">
+                    <span class="feature-icon">🚀</span>
+                    <span>Route Optimization</span>
+                </div>
+                <div class="feature-item active">
+                    <span class="feature-icon">🛡️</span>
+                    <span>Kill Switch</span>
+                </div>
+            </div>
         </div>
     </main>
 </div>
 
 <script>
-let connected = false;
-let selectedServer = null;
+let isConnected = {{ 'true' if user_state.vpn_enabled else 'false' }};
+let selectedServerId = '{{ user_state.vpn_server.id if user_state.vpn_enabled and user_state.vpn_server else "" }}';
 
-async function loadServers() {
+async function loadServerLatencies() {
     try {
         const response = await fetch('/api/vpn/status');
         const data = await response.json();
         
-        const serversList = document.getElementById('servers-list');
-        serversList.innerHTML = data.servers.map(server => `
-            <div class="server-card" data-server="${server.name}">
-                <div class="server-info">
-                    <h3>${server.name}</h3>
-                    <p>${server.location}</p>
-                </div>
-                <div class="server-latency">${server.latency}ms</div>
-            </div>
-        `).join('');
-        
-        document.querySelectorAll('.server-card').forEach(card => {
-            card.addEventListener('click', () => {
-                document.querySelectorAll('.server-card').forEach(c => c.classList.remove('selected'));
-                card.classList.add('selected');
-                selectedServer = card.dataset.server;
-            });
+        data.servers.forEach(server => {
+            const latencyEl = document.getElementById(`latency-${server.id}`);
+            if (latencyEl) {
+                latencyEl.textContent = `${server.latency}ms`;
+                if (server.latency < 50) latencyEl.classList.add('low-latency');
+                else if (server.latency > 100) latencyEl.classList.add('high-latency');
+            }
         });
     } catch (error) {
-        document.getElementById('servers-list').innerHTML = '<p>Error loading servers</p>';
+        console.error('Error loading latencies:', error);
     }
 }
 
-document.getElementById('vpn-toggle').addEventListener('click', function() {
-    if (!selectedServer && !connected) {
-        alert('Please select a server first');
-        return;
-    }
-    
-    connected = !connected;
-    const statusEl = document.getElementById('vpn-status');
-    
-    if (connected) {
-        statusEl.className = 'vpn-status connected';
-        statusEl.querySelector('span').textContent = `Connected to ${selectedServer}`;
-        this.textContent = 'Disconnect';
-        this.classList.remove('btn-primary');
-        this.classList.add('btn-danger');
+document.querySelectorAll('.server-card').forEach(card => {
+    card.addEventListener('click', () => {
+        if (isConnected) return;
+        
+        document.querySelectorAll('.server-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        selectedServerId = card.dataset.serverId;
+    });
+});
+
+document.getElementById('vpn-toggle').addEventListener('click', async function() {
+    if (isConnected) {
+        this.disabled = true;
+        this.textContent = 'Disconnecting...';
+        
+        try {
+            const response = await fetch('/api/vpn/disconnect', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'}
+            });
+            const data = await response.json();
+            
+            if (data.success) {
+                location.reload();
+            }
+        } catch (error) {
+            alert('Error disconnecting: ' + error.message);
+            this.disabled = false;
+            this.textContent = 'Disconnect';
+        }
     } else {
-        statusEl.className = 'vpn-status disconnected';
-        statusEl.querySelector('span').textContent = 'Disconnected';
-        this.textContent = 'Connect';
-        this.classList.add('btn-primary');
-        this.classList.remove('btn-danger');
+        if (!selectedServerId) {
+            alert('Please select a server first');
+            return;
+        }
+        
+        this.disabled = true;
+        this.textContent = 'Connecting...';
+        
+        try {
+            const response = await fetch('/api/vpn/connect', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ server_id: selectedServerId })
+            });
+            const data = await response.json();
+            
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error: ' + data.error);
+                this.disabled = false;
+                this.textContent = 'Connect';
+            }
+        } catch (error) {
+            alert('Error connecting: ' + error.message);
+            this.disabled = false;
+            this.textContent = 'Connect';
+        }
     }
 });
 
-loadServers();
+const optimizeBtn = document.getElementById('optimize-btn');
+if (optimizeBtn) {
+    optimizeBtn.addEventListener('click', async function() {
+        this.disabled = true;
+        this.textContent = 'Optimizing...';
+        
+        try {
+            const response = await fetch('/api/vpn/optimize-route', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'}
+            });
+            const data = await response.json();
+            
+            const resultDiv = document.getElementById('optimization-result');
+            if (data.success) {
+                resultDiv.innerHTML = `
+                    <h4>Route Optimized!</h4>
+                    <div class="improvements">
+                        <div class="improvement">
+                            <span>Latency</span>
+                            <span class="value">${data.improvements.latency.before}ms → ${data.improvements.latency.after}ms</span>
+                            <span class="change positive">${data.improvements.latency.improvement}</span>
+                        </div>
+                        <div class="improvement">
+                            <span>Speed</span>
+                            <span class="value">${data.improvements.speed.before} → ${data.improvements.speed.after} Mbps</span>
+                            <span class="change positive">${data.improvements.speed.improvement}</span>
+                        </div>
+                    </div>
+                    <div class="route-path">
+                        <h5>Optimized Route:</h5>
+                        <p>${data.route_path.join(' → ')}</p>
+                    </div>
+                `;
+                resultDiv.classList.remove('hidden');
+                this.textContent = 'Re-optimize';
+            } else {
+                alert('Error: ' + data.error);
+                this.textContent = 'Optimize Route';
+            }
+        } catch (error) {
+            alert('Error optimizing: ' + error.message);
+            this.textContent = 'Optimize Route';
+        }
+        this.disabled = false;
+    });
+}
+
+loadServerLatencies();
+setInterval(loadServerLatencies, 30000);
 </script>
 {% endblock %}

@@ -9,6 +9,7 @@
             <a href="{{ url_for('dashboard') }}" class="active">Overview</a>
             <a href="{{ url_for('vpn_dashboard') }}" {% if not is_pro %}class="locked"{% endif %}>VPN</a>
             <a href="{{ url_for('speed_sharing_dashboard') }}" {% if not is_pro %}class="locked"{% endif %}>Speed Sharing</a>
+            <a href="{{ url_for('security_dashboard') }}" {% if not is_pro %}class="locked"{% endif %}>Security</a>
             <a href="{{ url_for('analytics_dashboard') }}">Analytics</a>
             <a href="{{ url_for('settings_dashboard') }}">Settings</a>
         </nav>
@@ -28,12 +29,51 @@
             <span class="pro-badge-large">PRO</span>
             <span>All features unlocked</span>
         </div>
+        
+        <div class="active-services">
+            <h2>Active Services</h2>
+            <div class="services-grid">
+                <div class="service-card {% if user_state.vpn_enabled %}active{% endif %}">
+                    <div class="service-icon">🔐</div>
+                    <div class="service-info">
+                        <h3>VPN</h3>
+                        <span class="service-status">{% if user_state.vpn_enabled %}Connected{% else %}Disconnected{% endif %}</span>
+                    </div>
+                    <a href="{{ url_for('vpn_dashboard') }}" class="btn btn-small {% if user_state.vpn_enabled %}btn-outline{% else %}btn-primary{% endif %}">
+                        {% if user_state.vpn_enabled %}Manage{% else %}Connect{% endif %}
+                    </a>
+                </div>
+                <div class="service-card {% if user_state.speed_sharing_enabled %}active{% endif %}">
+                    <div class="service-icon">🚀</div>
+                    <div class="service-info">
+                        <h3>Speed Sharing</h3>
+                        <span class="service-status">{% if user_state.speed_sharing_enabled %}Sharing {{ user_state.shared_bandwidth_mbps }} Mbps{% else %}Disabled{% endif %}</span>
+                    </div>
+                    <a href="{{ url_for('speed_sharing_dashboard') }}" class="btn btn-small {% if user_state.speed_sharing_enabled %}btn-outline{% else %}btn-primary{% endif %}">
+                        {% if user_state.speed_sharing_enabled %}Manage{% else %}Enable{% endif %}
+                    </a>
+                </div>
+                <div class="service-card {% if user_state.security_enabled %}active{% endif %}">
+                    <div class="service-icon">🛡️</div>
+                    <div class="service-info">
+                        <h3>Security</h3>
+                        <span class="service-status">{% if user_state.security_enabled %}Protected{% else %}Unprotected{% endif %}</span>
+                    </div>
+                    <a href="{{ url_for('security_dashboard') }}" class="btn btn-small {% if user_state.security_enabled %}btn-outline{% else %}btn-primary{% endif %}">
+                        {% if user_state.security_enabled %}Manage{% else %}Enable{% endif %}
+                    </a>
+                </div>
+            </div>
+        </div>
         {% endif %}
         
         <div class="metrics-grid">
             <div class="metric-card">
                 <h3>Latency</h3>
                 <div class="metric-value">{{ metrics.get('latency_ms', 0) }}<span class="unit">ms</span></div>
+                {% if user_state.route_optimization_enabled %}
+                <span class="optimized-badge">Optimized</span>
+                {% endif %}
             </div>
             <div class="metric-card">
                 <h3>Download</h3>
@@ -49,17 +89,34 @@
             </div>
         </div>
         
+        {% if is_pro and user_state.security_enabled %}
+        <div class="security-summary">
+            <h2>Security Status</h2>
+            <div class="security-summary-card">
+                <div class="security-icon-large">🛡️</div>
+                <div class="security-details">
+                    <h3>Your device is protected</h3>
+                    <p>{{ user_state.threats_blocked or 0 }} threats blocked</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
         <div class="quick-actions">
             <h2>Quick Actions</h2>
             <div class="actions-grid">
                 {% if is_pro %}
                 <a href="{{ url_for('vpn_dashboard') }}" class="action-card">
-                    <h3>Connect VPN</h3>
-                    <p>Secure your connection</p>
+                    <h3>{% if user_state.vpn_enabled %}Manage VPN{% else %}Connect VPN{% endif %}</h3>
+                    <p>{% if user_state.vpn_enabled %}Currently connected{% else %}Secure your connection{% endif %}</p>
                 </a>
                 <a href="{{ url_for('speed_sharing_dashboard') }}" class="action-card">
                     <h3>Speed Sharing</h3>
-                    <p>Share bandwidth with peers</p>
+                    <p>{% if user_state.speed_sharing_enabled %}Contributing to network{% else %}Share bandwidth with peers{% endif %}</p>
+                </a>
+                <a href="{{ url_for('security_dashboard') }}" class="action-card">
+                    <h3>Security</h3>
+                    <p>{% if user_state.security_enabled %}Protection active{% else %}Enable protection{% endif %}</p>
                 </a>
                 {% else %}
                 <div class="action-card locked">
@@ -68,6 +125,10 @@
                 </div>
                 <div class="action-card locked">
                     <h3>Speed Sharing</h3>
+                    <p>Pro feature</p>
+                </div>
+                <div class="action-card locked">
+                    <h3>Security</h3>
                     <p>Pro feature</p>
                 </div>
                 {% endif %}

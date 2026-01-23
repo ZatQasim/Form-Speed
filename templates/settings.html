@@ -9,6 +9,7 @@
             <a href="{{ url_for('dashboard') }}">Overview</a>
             <a href="{{ url_for('vpn_dashboard') }}">VPN</a>
             <a href="{{ url_for('speed_sharing_dashboard') }}">Speed Sharing</a>
+            <a href="{{ url_for('security_dashboard') }}">Security</a>
             <a href="{{ url_for('analytics_dashboard') }}">Analytics</a>
             <a href="{{ url_for('settings_dashboard') }}" class="active">Settings</a>
         </nav>
@@ -50,9 +51,52 @@
                     <span>{{ current_user.trial_end.strftime('%B %d, %Y') }}</span>
                 </div>
                 {% endif %}
-                {% if not current_user.has_active_subscription() %}
+                
+                {% if current_user.has_active_subscription() %}
+                <div class="benefits-section">
+                    <h3>Your Benefits</h3>
+                    <div class="benefits-list">
+                        {% if benefits.vpn_access %}<div class="benefit-item active">VPN Access</div>{% endif %}
+                        {% if benefits.speed_sharing %}<div class="benefit-item active">Speed Sharing</div>{% endif %}
+                        {% if benefits.security_protection %}<div class="benefit-item active">Security Protection</div>{% endif %}
+                        {% if benefits.route_optimization %}<div class="benefit-item active">Route Optimization</div>{% endif %}
+                        {% if benefits.advanced_analytics %}<div class="benefit-item active">Advanced Analytics</div>{% endif %}
+                        {% if benefits.mesh_network %}<div class="benefit-item active">Mesh Network</div>{% endif %}
+                    </div>
+                </div>
+                {% else %}
                 <a href="{{ url_for('subscribe') }}" class="btn btn-primary">Upgrade to Pro</a>
                 {% endif %}
+            </div>
+        </div>
+        
+        <div class="settings-section">
+            <h2>Active Services Status</h2>
+            <div class="settings-card">
+                <div class="setting-row">
+                    <label>VPN</label>
+                    <span class="{% if user_state.vpn_enabled %}status-active{% else %}status-inactive{% endif %}">
+                        {% if user_state.vpn_enabled %}Connected{% else %}Disconnected{% endif %}
+                    </span>
+                </div>
+                <div class="setting-row">
+                    <label>Speed Sharing</label>
+                    <span class="{% if user_state.speed_sharing_enabled %}status-active{% else %}status-inactive{% endif %}">
+                        {% if user_state.speed_sharing_enabled %}Enabled ({{ user_state.shared_bandwidth_mbps }} Mbps){% else %}Disabled{% endif %}
+                    </span>
+                </div>
+                <div class="setting-row">
+                    <label>Security Protection</label>
+                    <span class="{% if user_state.security_enabled %}status-active{% else %}status-inactive{% endif %}">
+                        {% if user_state.security_enabled %}Protected{% else %}Not Protected{% endif %}
+                    </span>
+                </div>
+                <div class="setting-row">
+                    <label>Route Optimization</label>
+                    <span class="{% if user_state.route_optimization_enabled %}status-active{% else %}status-inactive{% endif %}">
+                        {% if user_state.route_optimization_enabled %}Optimized{% else %}Standard{% endif %}
+                    </span>
+                </div>
             </div>
         </div>
         
@@ -60,16 +104,23 @@
             <h2>Preferences</h2>
             <div class="settings-card">
                 <div class="setting-row">
-                    <label>Auto-connect VPN</label>
+                    <label>Auto-connect VPN on startup</label>
                     <label class="switch">
-                        <input type="checkbox">
+                        <input type="checkbox" {% if user_state.vpn_enabled %}checked{% endif %}>
                         <span class="slider"></span>
                     </label>
                 </div>
                 <div class="setting-row">
-                    <label>Enable Speed Sharing</label>
+                    <label>Auto-enable Speed Sharing</label>
                     <label class="switch">
-                        <input type="checkbox">
+                        <input type="checkbox" {% if user_state.speed_sharing_enabled %}checked{% endif %}>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="setting-row">
+                    <label>Always-on Security Protection</label>
+                    <label class="switch">
+                        <input type="checkbox" {% if user_state.security_enabled %}checked{% endif %}>
                         <span class="slider"></span>
                     </label>
                 </div>

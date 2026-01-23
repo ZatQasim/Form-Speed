@@ -9,6 +9,7 @@
             <a href="{{ url_for('dashboard') }}">Overview</a>
             <a href="{{ url_for('vpn_dashboard') }}">VPN</a>
             <a href="{{ url_for('speed_sharing_dashboard') }}" class="active">Speed Sharing</a>
+            <a href="{{ url_for('security_dashboard') }}">Security</a>
             <a href="{{ url_for('analytics_dashboard') }}">Analytics</a>
             <a href="{{ url_for('settings_dashboard') }}">Settings</a>
         </nav>
@@ -16,9 +17,10 @@
     
     <main class="dashboard-content">
         <h1>Speed Sharing</h1>
+        <p class="page-description">Share your carrier bandwidth with trusted peers and benefit from the network</p>
         
         <div class="speed-sharing-status">
-            <div class="sharing-card">
+            <div class="sharing-card main-card">
                 <h3>Your Bandwidth</h3>
                 <div class="bandwidth-display">
                     <div class="bandwidth-stat">
@@ -30,18 +32,59 @@
                         <span class="label">Upload Mbps</span>
                     </div>
                 </div>
+                <div class="carrier-info">
+                    <span class="carrier-label">Network Type:</span>
+                    <span class="carrier-value">{{ metrics.get('network_type', 'Unknown') }}</span>
+                </div>
             </div>
             
             <div class="sharing-card">
                 <h3>Sharing Status</h3>
-                <div class="sharing-toggle">
-                    <label class="switch">
-                        <input type="checkbox" id="sharing-toggle">
+                <div class="sharing-toggle-large">
+                    <label class="switch large">
+                        <input type="checkbox" id="sharing-toggle" {% if user_state.speed_sharing_enabled %}checked{% endif %}>
                         <span class="slider"></span>
                     </label>
-                    <span id="sharing-status-text">Sharing Disabled</span>
+                    <div class="toggle-info">
+                        <span id="sharing-status-text">
+                            {% if user_state.speed_sharing_enabled %}Sharing Enabled{% else %}Sharing Disabled{% endif %}
+                        </span>
+                        <span class="sharing-amount" id="sharing-amount">
+                            {% if user_state.speed_sharing_enabled %}
+                            Contributing {{ user_state.shared_bandwidth_mbps }} Mbps
+                            {% else %}
+                            Enable to contribute
+                            {% endif %}
+                        </span>
+                    </div>
                 </div>
-                <p class="sharing-note">Share up to 30% of your bandwidth with trusted peers</p>
+                <div class="sharing-info">
+                    <p>Share up to 30% of your upload bandwidth with trusted Form peers</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="network-benefits">
+            <h2>Network Benefits</h2>
+            <div class="benefits-grid">
+                <div class="benefit-card">
+                    <div class="benefit-icon">🚀</div>
+                    <h3>Speed Boost</h3>
+                    <p id="speed-boost">+0 Mbps</p>
+                    <span class="benefit-desc">From peer contributions</span>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon">👥</div>
+                    <h3>Active Peers</h3>
+                    <p id="active-peers">0</p>
+                    <span class="benefit-desc">Connected to you</span>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon">📊</div>
+                    <h3>Total Shared</h3>
+                    <p id="total-shared">0 Mbps</p>
+                    <span class="benefit-desc">Network-wide</span>
+                </div>
             </div>
         </div>
         
@@ -50,40 +93,88 @@
             <div class="loading">Loading peers...</div>
         </div>
         
-        <div class="total-shared" id="total-shared"></div>
+        <div class="how-it-works">
+            <h2>How Speed Sharing Works</h2>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h3>Enable Sharing</h3>
+                    <p>Toggle speed sharing to contribute part of your bandwidth</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h3>Connect to Peers</h3>
+                    <p>Form automatically connects you with trusted peers</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h3>Boost Your Speed</h3>
+                    <p>Receive bandwidth from peers when you need extra speed</p>
+                </div>
+            </div>
+        </div>
     </main>
 </div>
 
 <script>
-document.getElementById('sharing-toggle').addEventListener('change', function() {
-    const statusText = document.getElementById('sharing-status-text');
-    statusText.textContent = this.checked ? 'Sharing Enabled' : 'Sharing Disabled';
+document.getElementById('sharing-toggle').addEventListener('change', async function() {
+    const enabled = this.checked;
+    
+    try {
+        const response = await fetch('/api/speed-sharing/toggle', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ enabled })
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('sharing-status-text').textContent = 
+                enabled ? 'Sharing Enabled' : 'Sharing Disabled';
+            document.getElementById('sharing-amount').textContent = 
+                enabled ? `Contributing ${data.shared_bandwidth_mbps} Mbps` : 'Enable to contribute';
+            loadPeers();
+        }
+    } catch (error) {
+        alert('Error toggling speed sharing: ' + error.message);
+        this.checked = !enabled;
+    }
 });
 
 async function loadPeers() {
     try {
-        const response = await fetch('/api/speed-sharing/peers');
+        const response = await fetch('/api/speed-sharing/status');
         const data = await response.json();
         
-        const peersList = document.getElementById('peers-list');
-        peersList.innerHTML = data.peers.map(peer => `
-            <div class="peer-card ${peer.status}">
-                <div class="peer-info">
-                    <h3>${peer.device_id}</h3>
-                    <span class="peer-status">${peer.status}</span>
-                </div>
-                <div class="peer-bandwidth">${peer.shared_bandwidth_mbps.toFixed(1)} Mbps</div>
-            </div>
-        `).join('');
+        document.getElementById('speed-boost').textContent = `+${data.network_boost} Mbps`;
+        document.getElementById('active-peers').textContent = data.peers.filter(p => p.status === 'active').length;
+        document.getElementById('total-shared').textContent = `${data.total_shared} Mbps`;
         
-        document.getElementById('total-shared').innerHTML = `
-            <p>Total Shared Bandwidth: <strong>${data.total_shared.toFixed(1)} Mbps</strong></p>
-        `;
+        const peersList = document.getElementById('peers-list');
+        if (data.peers && data.peers.length > 0) {
+            peersList.innerHTML = data.peers.map(peer => `
+                <div class="peer-card ${peer.status}">
+                    <div class="peer-info">
+                        <h3>${peer.device_id}</h3>
+                        <span class="peer-carrier">${peer.carrier}</span>
+                        <span class="peer-status ${peer.status}">${peer.status}</span>
+                    </div>
+                    <div class="peer-stats">
+                        <div class="peer-bandwidth">${peer.shared_bandwidth_mbps.toFixed(1)} Mbps</div>
+                        <div class="peer-contribution">Contributing ${peer.contribution}%</div>
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            peersList.innerHTML = '<p class="no-peers">No peers connected yet. Enable sharing to connect!</p>';
+        }
     } catch (error) {
+        console.error('Error loading peers:', error);
         document.getElementById('peers-list').innerHTML = '<p>Error loading peers</p>';
     }
 }
 
 loadPeers();
+setInterval(loadPeers, 15000);
 </script>
 {% endblock %}
