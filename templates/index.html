@@ -7,30 +7,30 @@
     <div class="hero-content">
         <img src="{{ url_for('static', filename='logo.png') }}" alt="Form Logo" class="hero-logo">
         <h1>Form Network</h1>
-        <p class="hero-subtitle">Secure VPN, Speed Sharing, and Premium Connectivity</p>
+        <p class="hero-subtitle">Enterprise-grade security. Consumer-simple experience.</p>
         <div class="hero-features">
             <div class="feature">
-                <h3>VPN Access</h3>
-                <p>Secure encrypted connections worldwide</p>
+                <h3>VPN Protection</h3>
+                <p>Military-grade encryption with servers in 6+ locations worldwide</p>
             </div>
             <div class="feature">
                 <h3>Speed Sharing</h3>
-                <p>Share bandwidth with trusted peers</p>
+                <p>Peer-to-peer bandwidth optimization for faster connections</p>
             </div>
             <div class="feature">
                 <h3>Mesh Network</h3>
-                <p>Decentralized routing for reliability</p>
+                <p>Decentralized routing for reliability and redundancy</p>
             </div>
         </div>
         <div class="hero-cta">
             <a href="{{ url_for('signup') }}" class="btn btn-primary btn-large">Start Free Trial</a>
-            <p class="trial-info">7-day free trial, then $5/month</p>
+            <p class="trial-info">7-day free trial, then $5/month. Cancel anytime.</p>
         </div>
     </div>
 </section>
 
 <section class="pricing">
-    <h2>Simple Pricing</h2>
+    <h2>Simple, transparent pricing</h2>
     <div class="price-card">
         <h3>Form Pro</h3>
         <div class="price">$5<span>/month</span></div>
@@ -42,7 +42,7 @@
             <li>Advanced Analytics</li>
             <li>24/7 Support</li>
         </ul>
-        <a href="{{ url_for('signup') }}" class="btn btn-primary">Start 7-Day Free Trial</a>
+        <a href="{{ url_for('signup') }}" class="btn btn-primary btn-large btn-full">Start 7-Day Free Trial</a>
     </div>
 </section>
 {% endblock %}

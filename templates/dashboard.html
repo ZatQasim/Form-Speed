@@ -22,44 +22,50 @@
     </aside>
     
     <main class="dashboard-content">
-        <h1>Welcome, {{ current_user.username }}</h1>
+        <h1>Welcome back, {{ current_user.username }}</h1>
         
         {% if is_pro %}
         <div class="pro-status">
             <span class="pro-badge-large">PRO</span>
-            <span>All features unlocked</span>
+            <span>All premium features unlocked</span>
         </div>
         
         <div class="active-services">
             <h2>Active Services</h2>
             <div class="services-grid">
                 <div class="service-card {% if user_state.vpn_enabled %}active{% endif %}">
-                    <div class="service-icon">🔐</div>
+                    <div class="service-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    </div>
                     <div class="service-info">
                         <h3>VPN</h3>
-                        <span class="service-status">{% if user_state.vpn_enabled %}Connected{% else %}Disconnected{% endif %}</span>
+                        <span class="service-status">{% if user_state.vpn_enabled %}Connected to {{ user_state.vpn_server.name if user_state.vpn_server else 'Server' }}{% else %}Disconnected{% endif %}</span>
                     </div>
-                    <a href="{{ url_for('vpn_dashboard') }}" class="btn btn-small {% if user_state.vpn_enabled %}btn-outline{% else %}btn-primary{% endif %}">
+                    <a href="{{ url_for('vpn_dashboard') }}" class="btn btn-small {% if user_state.vpn_enabled %}btn-secondary{% else %}btn-primary{% endif %}">
                         {% if user_state.vpn_enabled %}Manage{% else %}Connect{% endif %}
                     </a>
                 </div>
                 <div class="service-card {% if user_state.speed_sharing_enabled %}active{% endif %}">
-                    <div class="service-icon">🚀</div>
+                    <div class="service-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                    </div>
                     <div class="service-info">
                         <h3>Speed Sharing</h3>
                         <span class="service-status">{% if user_state.speed_sharing_enabled %}Sharing {{ user_state.shared_bandwidth_mbps }} Mbps{% else %}Disabled{% endif %}</span>
                     </div>
-                    <a href="{{ url_for('speed_sharing_dashboard') }}" class="btn btn-small {% if user_state.speed_sharing_enabled %}btn-outline{% else %}btn-primary{% endif %}">
+                    <a href="{{ url_for('speed_sharing_dashboard') }}" class="btn btn-small {% if user_state.speed_sharing_enabled %}btn-secondary{% else %}btn-primary{% endif %}">
                         {% if user_state.speed_sharing_enabled %}Manage{% else %}Enable{% endif %}
                     </a>
                 </div>
                 <div class="service-card {% if user_state.security_enabled %}active{% endif %}">
-                    <div class="service-icon">🛡️</div>
+                    <div class="service-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                    </div>
                     <div class="service-info">
                         <h3>Security</h3>
                         <span class="service-status">{% if user_state.security_enabled %}Protected{% else %}Unprotected{% endif %}</span>
                     </div>
-                    <a href="{{ url_for('security_dashboard') }}" class="btn btn-small {% if user_state.security_enabled %}btn-outline{% else %}btn-primary{% endif %}">
+                    <a href="{{ url_for('security_dashboard') }}" class="btn btn-small {% if user_state.security_enabled %}btn-secondary{% else %}btn-primary{% endif %}">
                         {% if user_state.security_enabled %}Manage{% else %}Enable{% endif %}
                     </a>
                 </div>
@@ -68,24 +74,24 @@
         {% endif %}
         
         <div class="metrics-grid">
-            <div class="metric-card">
+            <div class="metric-card" id="latency-card">
                 <h3>Latency</h3>
-                <div class="metric-value">{{ metrics.get('latency_ms', 0) }}<span class="unit">ms</span></div>
+                <div class="metric-value"><span id="latency-value">{{ metrics.get('latency_ms', 0)|round(1) }}</span><span class="unit">ms</span></div>
                 {% if user_state.route_optimization_enabled %}
                 <span class="optimized-badge">Optimized</span>
                 {% endif %}
             </div>
             <div class="metric-card">
-                <h3>Download</h3>
-                <div class="metric-value">{{ metrics.get('download_mbps', 0) }}<span class="unit">Mbps</span></div>
-            </div>
-            <div class="metric-card">
-                <h3>Upload</h3>
-                <div class="metric-value">{{ metrics.get('upload_mbps', 0) }}<span class="unit">Mbps</span></div>
+                <h3>Connection</h3>
+                <div class="metric-value metric-text">{{ metrics.get('connection_status', 'N/A') }}</div>
             </div>
             <div class="metric-card">
                 <h3>Network</h3>
                 <div class="metric-value metric-text">{{ metrics.get('network_type', 'N/A') }}</div>
+            </div>
+            <div class="metric-card">
+                <h3>Last Updated</h3>
+                <div class="metric-value metric-text" id="last-updated">Just now</div>
             </div>
         </div>
         
@@ -93,9 +99,11 @@
         <div class="security-summary">
             <h2>Security Status</h2>
             <div class="security-summary-card">
-                <div class="security-icon-large">🛡️</div>
+                <div class="security-icon-large">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#34a853" stroke-width="2"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                </div>
                 <div class="security-details">
-                    <h3>Your device is protected</h3>
+                    <h3>Your connection is protected</h3>
                     <p>{{ user_state.threats_blocked or 0 }} threats blocked</p>
                 </div>
             </div>
@@ -121,23 +129,36 @@
                 {% else %}
                 <div class="action-card locked">
                     <h3>Connect VPN</h3>
-                    <p>Pro feature</p>
+                    <p>Upgrade to Pro</p>
                 </div>
                 <div class="action-card locked">
                     <h3>Speed Sharing</h3>
-                    <p>Pro feature</p>
+                    <p>Upgrade to Pro</p>
                 </div>
                 <div class="action-card locked">
                     <h3>Security</h3>
-                    <p>Pro feature</p>
+                    <p>Upgrade to Pro</p>
                 </div>
                 {% endif %}
                 <a href="{{ url_for('analytics_dashboard') }}" class="action-card">
                     <h3>View Analytics</h3>
-                    <p>Network performance</p>
+                    <p>Network performance data</p>
                 </a>
             </div>
         </div>
     </main>
 </div>
+
+<script>
+async function updateMetrics() {
+    try {
+        const response = await fetch('/api/metrics');
+        const data = await response.json();
+        document.getElementById('latency-value').textContent = data.latency_ms ? data.latency_ms.toFixed(1) : '0';
+        document.getElementById('last-updated').textContent = 'Just now';
+    } catch (e) {}
+}
+
+setInterval(updateMetrics, 10000);
+</script>
 {% endblock %}

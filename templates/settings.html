@@ -134,6 +134,18 @@
             </div>
         </div>
         
+        {% if current_user.has_active_subscription() %}
+        <div class="settings-section">
+            <h2>Subscription Management</h2>
+            <div class="settings-card">
+                <div class="setting-row">
+                    <label>Cancel your Form Pro subscription</label>
+                    <a href="{{ url_for('cancel_subscription') }}" class="btn btn-outline">Cancel Plan</a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
         <div class="settings-section danger-zone">
             <h2>Danger Zone</h2>
             <div class="settings-card">

@@ -655,6 +655,61 @@ def speed_sharing_peers():
         'total_shared': round(total_shared, 1)
     })
 
+@app.route('/cancel-subscription')
+@login_required
+def cancel_subscription():
+    if not current_user.has_active_subscription():
+        flash('You do not have an active subscription to cancel.', 'info')
+        return redirect(url_for('dashboard'))
+    
+    pro_config = load_pro_config()
+    pro_users = [u.lower() for u in pro_config.get('pro_users', [])]
+    is_whitelist_user = current_user.email.lower() in pro_users or current_user.username.lower() in pro_users
+    
+    return render_template('cancel_subscription.html', 
+                          is_whitelist_user=is_whitelist_user,
+                          subscription_status=current_user.subscription_status,
+                          trial_end=current_user.trial_end)
+
+@app.route('/process-cancellation', methods=['POST'])
+@login_required
+def process_cancellation():
+    if not current_user.has_active_subscription():
+        flash('No active subscription found.', 'error')
+        return redirect(url_for('dashboard'))
+    
+    pro_config = load_pro_config()
+    pro_users = [u.lower() for u in pro_config.get('pro_users', [])]
+    if current_user.email.lower() in pro_users or current_user.username.lower() in pro_users:
+        flash('Your account has permanent Pro access. Contact support to remove this.', 'info')
+        return redirect(url_for('settings_dashboard'))
+    
+    reason = request.form.get('reason', '')
+    
+    if current_user.stripe_subscription_id and stripe.api_key:
+        try:
+            stripe.Subscription.delete(current_user.stripe_subscription_id)
+        except Exception as e:
+            pass
+    
+    current_user.subscription_status = 'cancelled'
+    current_user.is_pro = False
+    current_user.stripe_subscription_id = None
+    current_user.trial_end = None
+    db.session.commit()
+    
+    update_user_state(current_user.id, {
+        'vpn_enabled': False,
+        'speed_sharing_enabled': False,
+        'security_enabled': False,
+        'route_optimization_enabled': False,
+        'vpn_server': None,
+        'assigned_ip': None
+    })
+    
+    flash('Your subscription has been cancelled. We\'re sorry to see you go!', 'info')
+    return redirect(url_for('dashboard'))
+
 @app.route('/webhook/stripe', methods=['POST'])
 def stripe_webhook():
     payload = request.get_data()

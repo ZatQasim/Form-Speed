@@ -3,7 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>{% block title %}Form{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
@@ -20,10 +26,10 @@
                 {% if current_user.has_active_subscription() %}
                     <span class="pro-badge">PRO</span>
                 {% endif %}
-                <a href="{{ url_for('logout') }}" class="btn btn-outline">Logout</a>
+                <a href="{{ url_for('logout') }}" class="btn btn-outline">Log out</a>
             {% else %}
-                <a href="{{ url_for('login') }}" class="btn btn-outline">Login</a>
-                <a href="{{ url_for('signup') }}" class="btn btn-primary">Sign Up</a>
+                <a href="{{ url_for('login') }}">Sign in</a>
+                <a href="{{ url_for('signup') }}" class="btn btn-primary">Get Started</a>
             {% endif %}
         </div>
     </nav>

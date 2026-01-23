@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+
+{% block title %}Cancel Subscription - Form{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <aside class="sidebar">
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('dashboard') }}">Overview</a>
+            <a href="{{ url_for('vpn_dashboard') }}">VPN</a>
+            <a href="{{ url_for('speed_sharing_dashboard') }}">Speed Sharing</a>
+            <a href="{{ url_for('security_dashboard') }}">Security</a>
+            <a href="{{ url_for('analytics_dashboard') }}">Analytics</a>
+            <a href="{{ url_for('settings_dashboard') }}">Settings</a>
+            <a href="{{ url_for('cancel_subscription') }}" class="active">Cancel Plan</a>
+        </nav>
+    </aside>
+    
+    <main class="dashboard-content">
+        <div class="cancel-page">
+            <div class="cancel-header">
+                <div class="cancel-icon">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                </div>
+                <h1>Cancel Your Subscription</h1>
+                <p class="cancel-subtitle">We're sorry to see you go</p>
+            </div>
+
+            {% if is_whitelist_user %}
+            <div class="notice-card">
+                <div class="notice-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 16v-4m0-4h.01"/>
+                    </svg>
+                </div>
+                <div class="notice-content">
+                    <h3>Permanent Pro Access</h3>
+                    <p>Your account has been granted permanent Pro access by an administrator. This cannot be cancelled through self-service. Please contact support if you need assistance.</p>
+                </div>
+            </div>
+            {% else %}
+            
+            <div class="cancel-benefits">
+                <h3>You'll lose access to:</h3>
+                <div class="benefits-grid">
+                    <div class="benefit-item">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        </svg>
+                        <span>VPN Protection</span>
+                    </div>
+                    <div class="benefit-item">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                        </svg>
+                        <span>Speed Sharing</span>
+                    </div>
+                    <div class="benefit-item">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="3"/>
+                            <path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+                        </svg>
+                        <span>Mesh Network</span>
+                    </div>
+                    <div class="benefit-item">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                        </svg>
+                        <span>Priority Routing</span>
+                    </div>
+                    <div class="benefit-item">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                        <span>Advanced Analytics</span>
+                    </div>
+                    <div class="benefit-item">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                        </svg>
+                        <span>Security Features</span>
+                    </div>
+                </div>
+            </div>
+
+            <form action="{{ url_for('process_cancellation') }}" method="POST" class="cancel-form">
+                <div class="form-section">
+                    <h3>Help us improve</h3>
+                    <p>Please tell us why you're cancelling (optional)</p>
+                    <div class="reason-options">
+                        <label class="reason-option">
+                            <input type="radio" name="reason" value="too_expensive">
+                            <span>Too expensive</span>
+                        </label>
+                        <label class="reason-option">
+                            <input type="radio" name="reason" value="not_using">
+                            <span>Not using it enough</span>
+                        </label>
+                        <label class="reason-option">
+                            <input type="radio" name="reason" value="missing_features">
+                            <span>Missing features I need</span>
+                        </label>
+                        <label class="reason-option">
+                            <input type="radio" name="reason" value="found_alternative">
+                            <span>Found an alternative</span>
+                        </label>
+                        <label class="reason-option">
+                            <input type="radio" name="reason" value="other">
+                            <span>Other reason</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="cancel-actions">
+                    <a href="{{ url_for('settings_dashboard') }}" class="btn btn-secondary">Keep My Subscription</a>
+                    <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to cancel your subscription? This action cannot be undone.')">
+                        Confirm Cancellation
+                    </button>
+                </div>
+            </form>
+            {% endif %}
+        </div>
+    </main>
+</div>
+{% endblock %}
