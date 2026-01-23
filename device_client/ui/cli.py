@@ -1,0 +1,1 @@
+print("Form Device Client CLI")
