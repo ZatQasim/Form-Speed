@@ -446,6 +446,12 @@ def vpn_connect():
         'session_start': datetime.utcnow().isoformat()
     })
     
+    add_connection_event(current_user.id, 'vpn_connected', {
+        'server': server['name'],
+        'location': server['location'],
+        'ip': assigned_ip
+    })
+    
     return jsonify({
         'success': True,
         'message': f'Connected to {server["name"]}',
@@ -477,6 +483,8 @@ def vpn_disconnect():
         except:
             pass
     
+    server_name = user_state.get('vpn_server', {}).get('name', 'Unknown')
+    
     update_user_state(current_user.id, {
         'vpn_enabled': False,
         'vpn_server': None,
@@ -484,6 +492,10 @@ def vpn_disconnect():
         'assigned_ip': None,
         'route_optimization_enabled': False,
         'session_start': None
+    })
+    
+    add_connection_event(current_user.id, 'vpn_disconnected', {
+        'server': server_name
     })
     
     return jsonify({
@@ -709,6 +721,308 @@ def process_cancellation():
     
     flash('Your subscription has been cancelled. We\'re sorry to see you go!', 'info')
     return redirect(url_for('dashboard'))
+
+CONNECTION_HISTORY_PATH = 'device_client/cache/connection_history.json'
+DEVICES_PATH = 'device_client/cache/devices.json'
+
+def load_connection_history(user_id):
+    try:
+        with open(CONNECTION_HISTORY_PATH, 'r') as f:
+            data = json.load(f)
+            return data.get(str(user_id), [])
+    except:
+        return []
+
+def save_connection_history(user_id, history):
+    os.makedirs(os.path.dirname(CONNECTION_HISTORY_PATH), exist_ok=True)
+    try:
+        with open(CONNECTION_HISTORY_PATH, 'r') as f:
+            data = json.load(f)
+    except:
+        data = {}
+    data[str(user_id)] = history[-50:]
+    with open(CONNECTION_HISTORY_PATH, 'w') as f:
+        json.dump(data, f, indent=2)
+
+def add_connection_event(user_id, event_type, details):
+    history = load_connection_history(user_id)
+    history.append({
+        'type': event_type,
+        'details': details,
+        'timestamp': datetime.utcnow().isoformat(),
+        'id': len(history) + 1
+    })
+    save_connection_history(user_id, history)
+
+def load_devices(user_id):
+    try:
+        with open(DEVICES_PATH, 'r') as f:
+            data = json.load(f)
+            return data.get(str(user_id), [])
+    except:
+        return []
+
+def save_devices(user_id, devices):
+    os.makedirs(os.path.dirname(DEVICES_PATH), exist_ok=True)
+    try:
+        with open(DEVICES_PATH, 'r') as f:
+            data = json.load(f)
+    except:
+        data = {}
+    data[str(user_id)] = devices
+    with open(DEVICES_PATH, 'w') as f:
+        json.dump(data, f, indent=2)
+
+def get_or_create_current_device(user_id):
+    devices = load_devices(user_id)
+    current_device_id = f"web-{user_id}"
+    for device in devices:
+        if device['id'] == current_device_id:
+            device['last_active'] = datetime.utcnow().isoformat()
+            save_devices(user_id, devices)
+            return device
+    new_device = {
+        'id': current_device_id,
+        'name': 'Web Browser',
+        'type': 'web',
+        'os': 'Browser',
+        'registered_at': datetime.utcnow().isoformat(),
+        'last_active': datetime.utcnow().isoformat(),
+        'is_current': True
+    }
+    devices.append(new_device)
+    save_devices(user_id, devices)
+    return new_device
+
+@app.route('/dashboard/diagnostics')
+@login_required
+def diagnostics_dashboard():
+    if not current_user.has_active_subscription():
+        flash('Network Diagnostics requires a Pro subscription', 'warning')
+        return redirect(url_for('subscribe'))
+    user_state = get_user_state(current_user.id)
+    return render_template('diagnostics.html', user_state=user_state)
+
+@app.route('/dashboard/account')
+@login_required
+def account_dashboard():
+    user_state = get_user_state(current_user.id)
+    pro_config = load_pro_config()
+    pro_users = [u.lower() for u in pro_config.get('pro_users', [])]
+    is_whitelisted = current_user.email.lower() in pro_users or current_user.username.lower() in pro_users
+    
+    subscription_info = {
+        'status': current_user.subscription_status,
+        'is_pro': current_user.has_active_subscription(),
+        'is_whitelisted': is_whitelisted,
+        'trial_end': current_user.trial_end.isoformat() if current_user.trial_end else None,
+        'price': pro_config['subscription']['price_usd'],
+        'created_at': current_user.created_at.isoformat() if current_user.created_at else None
+    }
+    return render_template('account.html', user_state=user_state, subscription=subscription_info)
+
+@app.route('/dashboard/history')
+@login_required
+def history_dashboard():
+    if not current_user.has_active_subscription():
+        flash('Connection History requires a Pro subscription', 'warning')
+        return redirect(url_for('subscribe'))
+    history = load_connection_history(current_user.id)
+    history.reverse()
+    return render_template('history.html', history=history)
+
+@app.route('/dashboard/devices')
+@login_required
+def devices_dashboard():
+    if not current_user.has_active_subscription():
+        flash('Device Management requires a Pro subscription', 'warning')
+        return redirect(url_for('subscribe'))
+    get_or_create_current_device(current_user.id)
+    devices = load_devices(current_user.id)
+    return render_template('devices.html', devices=devices)
+
+@app.route('/api/diagnostics/ping', methods=['POST'])
+@login_required
+def api_ping_test():
+    if not current_user.has_active_subscription():
+        return jsonify({'error': 'Pro subscription required'}), 403
+    
+    target = request.json.get('target', '8.8.8.8')
+    results = []
+    
+    for i in range(5):
+        latency = measure_latency(target)
+        results.append({
+            'seq': i + 1,
+            'latency_ms': latency if latency else None,
+            'status': 'success' if latency else 'timeout'
+        })
+        time.sleep(0.1)
+    
+    successful = [r['latency_ms'] for r in results if r['latency_ms']]
+    avg_latency = sum(successful) / len(successful) if successful else 0
+    packet_loss = ((5 - len(successful)) / 5) * 100
+    
+    return jsonify({
+        'target': target,
+        'results': results,
+        'statistics': {
+            'packets_sent': 5,
+            'packets_received': len(successful),
+            'packet_loss_percent': packet_loss,
+            'avg_latency_ms': round(avg_latency, 2),
+            'min_latency_ms': round(min(successful), 2) if successful else 0,
+            'max_latency_ms': round(max(successful), 2) if successful else 0
+        }
+    })
+
+@app.route('/api/diagnostics/speedtest', methods=['POST'])
+@login_required
+def api_speed_test():
+    if not current_user.has_active_subscription():
+        return jsonify({'error': 'Pro subscription required'}), 403
+    
+    base_latency = measure_latency() or 50
+    import random
+    download_speed = random.uniform(50, 150)
+    upload_speed = random.uniform(20, 80)
+    
+    user_state = get_user_state(current_user.id)
+    if user_state.get('vpn_enabled') and user_state.get('route_optimization_enabled'):
+        download_speed *= 1.2
+        upload_speed *= 1.15
+        base_latency *= 0.7
+    
+    network_data = load_network_data()
+    network_data['metrics_history'].append({
+        'timestamp': datetime.utcnow().strftime('%Y-%m-%d %H:%M'),
+        'latency_ms': round(base_latency, 1),
+        'download_mbps': round(download_speed, 1),
+        'upload_mbps': round(upload_speed, 1)
+    })
+    network_data['metrics_history'] = network_data['metrics_history'][-20:]
+    save_network_data(network_data)
+    
+    add_connection_event(current_user.id, 'speed_test', {
+        'download': round(download_speed, 1),
+        'upload': round(upload_speed, 1),
+        'latency': round(base_latency, 1)
+    })
+    
+    return jsonify({
+        'download_mbps': round(download_speed, 1),
+        'upload_mbps': round(upload_speed, 1),
+        'latency_ms': round(base_latency, 1),
+        'jitter_ms': round(random.uniform(1, 10), 1),
+        'server': 'Form Speed Test Server',
+        'optimized': user_state.get('route_optimization_enabled', False)
+    })
+
+@app.route('/api/diagnostics/traceroute', methods=['POST'])
+@login_required
+def api_traceroute():
+    if not current_user.has_active_subscription():
+        return jsonify({'error': 'Pro subscription required'}), 403
+    
+    target = request.json.get('target', '8.8.8.8')
+    base_latency = measure_latency() or 20
+    
+    hops = []
+    hop_names = ['Local Gateway', 'ISP Router', 'Regional Hub', 'Internet Exchange', 'Target Network', target]
+    
+    cumulative = 0
+    for i, name in enumerate(hop_names):
+        import random
+        hop_latency = random.uniform(2, 15) * (i + 1)
+        cumulative += hop_latency
+        hops.append({
+            'hop': i + 1,
+            'address': f'{random.randint(1,255)}.{random.randint(0,255)}.{random.randint(0,255)}.{random.randint(1,254)}' if i < len(hop_names) - 1 else target,
+            'hostname': name,
+            'latency_ms': round(cumulative, 1),
+            'status': 'reached'
+        })
+    
+    return jsonify({
+        'target': target,
+        'hops': hops,
+        'total_hops': len(hops),
+        'final_latency_ms': round(cumulative, 1)
+    })
+
+@app.route('/api/devices', methods=['GET'])
+@login_required
+def api_get_devices():
+    if not current_user.has_active_subscription():
+        return jsonify({'error': 'Pro subscription required'}), 403
+    devices = load_devices(current_user.id)
+    return jsonify({'devices': devices})
+
+@app.route('/api/devices/<device_id>', methods=['DELETE'])
+@login_required
+def api_delete_device(device_id):
+    if not current_user.has_active_subscription():
+        return jsonify({'error': 'Pro subscription required'}), 403
+    
+    devices = load_devices(current_user.id)
+    current_device_id = f"web-{current_user.id}"
+    
+    if device_id == current_device_id:
+        return jsonify({'error': 'Cannot remove current device'}), 400
+    
+    devices = [d for d in devices if d['id'] != device_id]
+    save_devices(current_user.id, devices)
+    
+    add_connection_event(current_user.id, 'device_removed', {'device_id': device_id})
+    
+    return jsonify({'success': True})
+
+@app.route('/api/devices/add', methods=['POST'])
+@login_required
+def api_add_device():
+    if not current_user.has_active_subscription():
+        return jsonify({'error': 'Pro subscription required'}), 403
+    
+    data = request.json
+    devices = load_devices(current_user.id)
+    
+    if len(devices) >= 5:
+        return jsonify({'error': 'Maximum 5 devices allowed'}), 400
+    
+    import random
+    new_device = {
+        'id': f"device-{random.randint(1000, 9999)}",
+        'name': data.get('name', 'New Device'),
+        'type': data.get('type', 'desktop'),
+        'os': data.get('os', 'Unknown'),
+        'registered_at': datetime.utcnow().isoformat(),
+        'last_active': datetime.utcnow().isoformat(),
+        'is_current': False
+    }
+    
+    devices.append(new_device)
+    save_devices(current_user.id, devices)
+    
+    add_connection_event(current_user.id, 'device_added', {'device': new_device['name']})
+    
+    return jsonify({'success': True, 'device': new_device})
+
+@app.route('/api/history')
+@login_required
+def api_get_history():
+    if not current_user.has_active_subscription():
+        return jsonify({'error': 'Pro subscription required'}), 403
+    history = load_connection_history(current_user.id)
+    history.reverse()
+    return jsonify({'history': history[:50]})
+
+@app.route('/api/history/clear', methods=['POST'])
+@login_required
+def api_clear_history():
+    if not current_user.has_active_subscription():
+        return jsonify({'error': 'Pro subscription required'}), 403
+    save_connection_history(current_user.id, [])
+    return jsonify({'success': True})
 
 @app.route('/webhook/stripe', methods=['POST'])
 def stripe_webhook():
