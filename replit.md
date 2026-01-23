@@ -68,40 +68,41 @@ The codebase references Rust for core routing/device client, Go for server commu
 
 ## Recent Changes (January 23, 2026)
 
-### UI Redesign - Modern Google/AT&T Style
-- Complete CSS overhaul with clean, minimalist design
-- Light theme with white backgrounds, subtle shadows, and professional typography
-- Google Sans font family for consistent modern look
-- CSS variables for consistent theming (primary blue #1a73e8, secondary green #34a853)
-- Rounded corners, subtle borders, and smooth transitions throughout
+### New Dashboard Pages
+- **Network Diagnostics** (`/dashboard/diagnostics`): Real-time speed tests, ping tests, traceroute functionality, and quick diagnostic checks
+- **Account & Billing** (`/dashboard/account`): Subscription status, billing history, and account management
+- **Connection History** (`/dashboard/history`): Event logging for VPN connections, security alerts, speed tests, and device activity with filtering
+- **Device Management** (`/dashboard/devices`): Add/remove devices, supports up to 5 devices per Pro account
 
-### Cancel Subscription Feature
-- New Cancel Subscription page at `/cancel-subscription`
-- Backend route `/process-cancellation` handles Stripe subscription cancellation
-- Whitelist users (pro.json) cannot cancel through self-service
-- Form collects cancellation reason for feedback
+### API Endpoints Added
+- `/api/diagnostics/speedtest` - Real-time download/upload speed measurement
+- `/api/diagnostics/ping` - Ping test with statistics (avg/min/max latency, packet loss)
+- `/api/diagnostics/traceroute` - Trace network path to destination
+- `/api/history` - Get connection history events
+- `/api/history/clear` - Clear user's connection history
+- `/api/devices` - Get registered devices
+- `/api/devices/add` - Register new device (max 5)
+- `/api/devices/<id>` - Remove device
+
+### Functional Features (Live Data, No Mocks)
+- **VPN connections log events** to connection history (connect/disconnect with server details)
+- **Speed tests save results** to metrics history for analytics
+- **Device data persisted** in `device_client/cache/devices.json`
+- **Connection history stored** in `device_client/cache/connection_history.json`
+- **Real latency measurement**: Measures actual network latency to servers using socket connections
+- **Persistent VPN state**: VPN stays connected until user manually disconnects
+- **Real peer network**: Speed sharing peers are stored and tracked
+
+### UI Updates
+- Expanded sidebar navigation to 10 items (Overview, VPN, Speed Sharing, Security, Diagnostics, Analytics, History, Devices, Account, Settings)
+- New CSS styles for diagnostics cards, account pages, history timeline, device grid, and modals
+- Pro feature gating on new pages (require active subscription)
 
 ### Previous Changes
-- Created main Flask web application (`app.py`) with full authentication and dashboard
-- Added `pro.json` configuration for Pro user management and Stripe settings
-- Implemented Signup/Login pages with password hashing
-- Integrated Stripe subscription with $5/month pricing and 7-day free trial
-- Created multiple dashboard pages:
-  - Overview (main dashboard with network metrics)
-  - VPN (server selection and connection with persistent state)
-  - Speed Sharing (peer management and bandwidth sharing)
-  - Security (threat protection and monitoring)
-  - Analytics (real-time network performance metrics)
-  - Settings (user account and preferences)
-- Added Form logo to static assets
-- Dark theme UI with cyan/green accent colors
-
-### Live Data Features (No Mock Data)
-- **Real latency measurement**: Measures actual network latency to servers using socket connections
-- **Persistent VPN state**: VPN stays connected until user manually disconnects (stored in user_states.json)
-- **Real peer network**: Speed sharing peers are stored and tracked in network_data.json
-- **Case-insensitive pro.json matching**: Usernames and emails in pro.json work regardless of case
-- **Automatic Pro assignment**: Users matching pro.json get Pro status immediately on signup
+- Complete CSS overhaul with modern Google/AT&T-style design
+- Light theme with white backgrounds, subtle shadows, and professional typography
+- Cancel Subscription page with Stripe integration
+- Flask web application with authentication, Stripe payments, and dashboard
 
 ## Dashboard Pages
 
