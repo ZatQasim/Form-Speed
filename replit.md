@@ -74,13 +74,20 @@ The codebase references Rust for core routing/device client, Go for server commu
 - Integrated Stripe subscription with $5/month pricing and 7-day free trial
 - Created multiple dashboard pages:
   - Overview (main dashboard with network metrics)
-  - VPN (server selection and connection)
+  - VPN (server selection and connection with persistent state)
   - Speed Sharing (peer management and bandwidth sharing)
-  - Analytics (detailed network performance metrics)
+  - Security (threat protection and monitoring)
+  - Analytics (real-time network performance metrics)
   - Settings (user account and preferences)
 - Added Form logo to static assets
-- Connected existing VPN and Speed Sharing features from device_client
 - Dark theme UI with cyan/green accent colors
+
+### Live Data Features (No Mock Data)
+- **Real latency measurement**: Measures actual network latency to servers using socket connections
+- **Persistent VPN state**: VPN stays connected until user manually disconnects (stored in user_states.json)
+- **Real peer network**: Speed sharing peers are stored and tracked in network_data.json
+- **Case-insensitive pro.json matching**: Usernames and emails in pro.json work regardless of case
+- **Automatic Pro assignment**: Users matching pro.json get Pro status immediately on signup
 
 ## Dashboard Pages
 

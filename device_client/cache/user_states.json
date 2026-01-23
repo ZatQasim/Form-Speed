@@ -1,0 +1,23 @@
+{
+  "1": {
+    "speed_sharing_enabled": true,
+    "shared_bandwidth_mbps": 5.4,
+    "sharing_started": "2026-01-23T16:59:48.723824",
+    "vpn_enabled": true,
+    "vpn_server": {
+      "id": "uk",
+      "name": "United Kingdom",
+      "location": "London",
+      "ip": "10.0.5.1",
+      "capacity": 68,
+      "protocols": [
+        "WireGuard",
+        "OpenVPN"
+      ]
+    },
+    "connected_at": "2026-01-23T17:00:11.658176",
+    "route_optimization_enabled": true,
+    "security_enabled": true,
+    "last_optimization": "2026-01-23T17:00:17.447187"
+  }
+}
