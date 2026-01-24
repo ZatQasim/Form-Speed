@@ -277,25 +277,33 @@ def sync_pro_users():
     """Sync pro.json users with the database and handle additions/removals."""
     with app.app_context():
         pro_config = load_pro_config()
-        pro_users = [u.lower() for u in pro_config.get('pro_users', [])]
+        # Normalizing to lower case for comparison
+        pro_users = [str(u).strip().lower() for u in pro_config.get('pro_users', [])]
+        
+        print(f"Sync: Scanning pro.json for users: {pro_users}")
         
         all_users = User.query.all()
         for user in all_users:
-            should_be_pro = (
-                user.email.lower() in pro_users or 
-                user.username.lower() in pro_users
+            # Check both email and username against the list
+            is_in_list = (
+                (user.email and user.email.lower() in pro_users) or 
+                (user.username and user.username.lower() in pro_users)
             )
             
-            if should_be_pro and not user.is_pro:
-                user.is_pro = True
-                user.subscription_status = 'active'
-                db.session.add(user)
-                print(f"Sync: Granted Pro to {user.username}")
-            elif not should_be_pro and user.is_pro:
-                user.is_pro = False
-                user.subscription_status = 'inactive'
-                db.session.add(user)
-                print(f"Sync: Revoked Pro from {user.username}")
+            if is_in_list:
+                if not user.is_pro or user.subscription_status != 'active':
+                    user.is_pro = True
+                    user.subscription_status = 'active'
+                    db.session.add(user)
+                    print(f"Sync: Granted Pro to {user.username} ({user.email})")
+            else:
+                # If they are NOT in the list, but they ARE marked as pro, 
+                # we only revoke if they don't have a paid stripe subscription
+                if user.is_pro and not user.stripe_subscription_id:
+                    user.is_pro = False
+                    user.subscription_status = 'inactive'
+                    db.session.add(user)
+                    print(f"Sync: Revoked Pro from {user.username} ({user.email})")
         
         db.session.commit()
 
