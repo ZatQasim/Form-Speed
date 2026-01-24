@@ -33,25 +33,28 @@ NETWORK_DATA_PATH = 'device_client/cache/network_data.json'
 
 def load_pro_config():
     try:
+        if not os.path.exists(PRO_CONFIG_PATH):
+            print(f"Config ERROR: {PRO_CONFIG_PATH} does not exist!")
+            return {"pro_users": [], "subscription": {"price_usd": 5, "trial_days": 7, "features": []}}
+            
         with open(PRO_CONFIG_PATH, 'r') as f:
-            config = json.load(f)
-            # Ensure required structures exist
-            if 'subscription' not in config:
-                config['subscription'] = {"price_usd": 5, "trial_days": 7, "features": []}
-            if 'features' not in config['subscription']:
-                config['subscription']['features'] = ["VPN Access", "Speed Sharing", "Security Protection"]
+            content = f.read().strip()
+            if not content:
+                print("Config ERROR: pro.json is empty!")
+                return {"pro_users": [], "subscription": {"price_usd": 5, "trial_days": 7, "features": []}}
+            config = json.loads(content)
+            
+            # Ensure pro_users is a list
             if 'pro_users' not in config:
                 config['pro_users'] = []
+            
+            # Normalization helper
+            config['pro_users'] = [str(u).strip() for u in config['pro_users'] if u]
+            
             return config
-    except:
-        return {
-            "pro_users": [], 
-            "subscription": {
-                "price_usd": 5, 
-                "trial_days": 7,
-                "features": ["VPN Access", "Speed Sharing", "Security Protection"]
-            }
-        }
+    except Exception as e:
+        print(f"Config LOAD ERROR: {str(e)}")
+        return {"pro_users": [], "subscription": {"price_usd": 5, "trial_days": 7, "features": []}}
 
 def load_user_states():
     try:
@@ -248,28 +251,21 @@ class User(UserMixin, db.Model):
         return check_password_hash(self.password_hash, password)
     
     def has_active_subscription(self):
-        pro_config = load_pro_config()
-        pro_users = [str(u).strip().lower() for u in pro_config.get('pro_users', []) if u]
-        user_email = self.email.strip().lower() if self.email else ""
-        user_name = self.username.strip().lower() if self.username else ""
-        
-        # pro.json is the single source of truth
-        if user_email in pro_users or user_name in pro_users:
-            if not self.is_pro or self.subscription_status != 'active':
-                self.is_pro = True
-                self.subscription_status = 'active'
-                if not self.stripe_subscription_id:
-                    self.stripe_subscription_id = "pro_json_override"
-                db.session.commit()
-            return True
-        
-        # If not in pro.json, they are not pro (unless they have a valid trial, but we follow the prompt's strict rule)
-        if self.is_pro or self.subscription_status == 'active':
-            self.is_pro = False
-            self.subscription_status = 'inactive'
-            self.stripe_subscription_id = None
-            db.session.commit()
+        try:
+            pro_config = load_pro_config()
+            pro_users = [str(u).strip().lower() for u in pro_config.get('pro_users', []) if u]
+            user_email = self.email.strip().lower() if self.email else ""
+            user_name = self.username.strip().lower() if self.username else ""
             
+            if user_email in pro_users or user_name in pro_users:
+                return True
+        except:
+            pass
+            
+        if self.subscription_status == 'active':
+            return True
+        if self.trial_end and self.trial_end > datetime.utcnow():
+            return True
         return False
     
     def get_benefits(self):
@@ -304,41 +300,44 @@ def load_user(user_id):
 def sync_pro_users():
     """Sync pro.json users with the database and handle additions/removals."""
     with app.app_context():
-        pro_config = load_pro_config()
-        # Normalizing to lower case for comparison
-        pro_users = [str(u).strip().lower() for u in pro_config.get('pro_users', []) if u]
-        
-        # Log active pro users for debugging
-        print(f"Sync: Scanning pro.json for users: {pro_users}")
-        
-        all_users = User.query.all()
-        for user in all_users:
-            user_email = user.email.strip().lower() if user.email else ""
-            user_name = user.username.strip().lower() if user.username else ""
+        try:
+            pro_config = load_pro_config()
+            # Extremely thorough cleaning of the input list
+            pro_users = []
+            for u in pro_config.get('pro_users', []):
+                if u and isinstance(u, str):
+                    pro_users.append(u.strip().lower())
             
-            # Check both email and username against the list
-            is_in_list = user_email in pro_users or user_name in pro_users
+            # Log active pro users for debugging
+            print(f"Sync: Final cleaned list from pro.json: {pro_users}")
             
-            if is_in_list:
-                if not user.is_pro or user.subscription_status != 'active':
-                    user.is_pro = True
-                    user.subscription_status = 'active'
-                    # Set a dummy subscription ID for pro.json users to help UI logic if needed
-                    if not user.stripe_subscription_id:
-                        user.stripe_subscription_id = "pro_json_override"
-                    db.session.add(user)
-                    print(f"Sync: Successfully granted Pro to {user.username} (ID: {user.id})")
-            else:
-                # If they are NOT in the list, but they ARE marked as pro, 
-                # we only revoke if they don't have a paid stripe subscription
-                if user.is_pro and (user.stripe_subscription_id == "pro_json_override" or not user.stripe_subscription_id):
-                    user.is_pro = False
-                    user.subscription_status = 'inactive'
-                    user.stripe_subscription_id = None
-                    db.session.add(user)
-                    print(f"Sync: Revoked Pro from {user.username} (not in pro.json anymore)")
-        
-        db.session.commit()
+            all_users = User.query.all()
+            for user in all_users:
+                user_email = user.email.strip().lower() if user.email else ""
+                user_name = user.username.strip().lower() if user.username else ""
+                
+                # Check both email and username against the list
+                is_in_list = user_email in pro_users or user_name in pro_users
+                
+                if is_in_list:
+                    if not user.is_pro or user.subscription_status != 'active':
+                        user.is_pro = True
+                        user.subscription_status = 'active'
+                        if not user.stripe_subscription_id:
+                            user.stripe_subscription_id = "pro_json_override"
+                        db.session.add(user)
+                        print(f"Sync: SUCCESS! Granted Pro to {user.username}")
+                else:
+                    if user.is_pro and (user.stripe_subscription_id == "pro_json_override" or not user.stripe_subscription_id):
+                        user.is_pro = False
+                        user.subscription_status = 'inactive'
+                        user.stripe_subscription_id = None
+                        db.session.add(user)
+                        print(f"Sync: REVOKED Pro from {user.username}")
+            
+            db.session.commit()
+        except Exception as e:
+            print(f"Sync ERROR: {str(e)}")
 
 @app.before_request
 def auto_sync_pro():
