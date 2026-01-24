@@ -34,9 +34,24 @@ NETWORK_DATA_PATH = 'device_client/cache/network_data.json'
 def load_pro_config():
     try:
         with open(PRO_CONFIG_PATH, 'r') as f:
-            return json.load(f)
+            config = json.load(f)
+            # Ensure required structures exist
+            if 'subscription' not in config:
+                config['subscription'] = {"price_usd": 5, "trial_days": 7, "features": []}
+            if 'features' not in config['subscription']:
+                config['subscription']['features'] = ["VPN Access", "Speed Sharing", "Security Protection"]
+            if 'pro_users' not in config:
+                config['pro_users'] = []
+            return config
     except:
-        return {"pro_users": [], "subscription": {"price_usd": 5, "trial_days": 7}}
+        return {
+            "pro_users": [], 
+            "subscription": {
+                "price_usd": 5, 
+                "trial_days": 7,
+                "features": ["VPN Access", "Speed Sharing", "Security Protection"]
+            }
+        }
 
 def load_user_states():
     try:
