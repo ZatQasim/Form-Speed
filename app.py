@@ -275,8 +275,6 @@ def sync_pro_users():
         pro_config = load_pro_config()
         pro_users = [u.lower() for u in pro_config.get('pro_users', [])]
         
-        # 1. Update existing users who should be Pro
-        # We look for matches in email or username
         all_users = User.query.all()
         for user in all_users:
             should_be_pro = (
@@ -284,20 +282,12 @@ def sync_pro_users():
                 user.username.lower() in pro_users
             )
             
-            # Special case for "tags" if they were usernames/identifiers in pro.json
-            # The user mentioned emails, usernames, or tags. 
-            # In our schema, username serves as the "tag" or identifier.
-            
-            # Update status if it changed
             if should_be_pro and not user.is_pro:
                 user.is_pro = True
                 user.subscription_status = 'active'
                 db.session.add(user)
                 print(f"Sync: Granted Pro to {user.username}")
             elif not should_be_pro and user.is_pro:
-                # ONLY take away Pro if it wasn't a paid subscription? 
-                # User says: "AS SOON as they are REMOVED from pro.json, AUTOMATICALLY TAKE AWAY THEIR PRO"
-                # This sounds absolute.
                 user.is_pro = False
                 user.subscription_status = 'inactive'
                 db.session.add(user)
@@ -308,8 +298,6 @@ def sync_pro_users():
 @app.before_request
 def auto_sync_pro():
     """Run sync on every request to ensure pro status is always up to date."""
-    # To avoid performance issues on every single request, we could cache the file mtime
-    # but for simplicity and following the "AUTOMATICALLY" requirement strictly:
     sync_pro_users()
 
 def load_user(user_id):
