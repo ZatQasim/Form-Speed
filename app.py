@@ -841,11 +841,15 @@ def generate_speed_sharing_invite():
     if not current_user.has_active_subscription():
         return jsonify({'error': 'Pro subscription required to generate invites'}), 403
     
-    code = generate_invite_code()
+    # Generate an automated string for sharing
+    # Format: FORM-SHARE-<ID>-<SECRET>
+    random_str = ''.join(secrets.choice(string.ascii_uppercase + string.digits) for _ in range(8))
+    invite_code = f"FORM-SHARE-{current_user.id}-{random_str}"
+    
     invite_data = load_invite_codes()
     
     new_invite = {
-        'code': code,
+        'code': invite_code,
         'creator_id': current_user.id,
         'creator_username': current_user.username,
         'created_at': datetime.utcnow().isoformat(),
@@ -859,9 +863,9 @@ def generate_speed_sharing_invite():
     
     return jsonify({
         'success': True,
-        'invite_code': code,
+        'invite_code': invite_code,
         'expires_in': '7 days',
-        'share_message': f'Join my Form speed sharing network! Use code: {code}'
+        'share_message': f'Join my Form speed sharing network! Use code: {invite_code}'
     })
 
 @app.route('/api/speed-sharing/redeem-invite', methods=['POST'])
@@ -899,12 +903,13 @@ def redeem_speed_sharing_invite():
             update_user_state(current_user.id, {
                 'speed_sharing_guest': True,
                 'speed_sharing_host': invite['creator_username'],
-                'guest_access_until': redeemed['access_until']
+                'guest_access_until': redeemed['access_until'],
+                'route_optimization_enabled': True
             })
             
             return jsonify({
                 'success': True,
-                'message': f"You're now connected to {invite['creator_username']}'s speed sharing network!",
+                'message': f"You're now connected to {invite['creator_username']}'s speed sharing network! You have 30 days of optimized routing.",
                 'host': invite['creator_username'],
                 'access_until': redeemed['access_until']
             })
