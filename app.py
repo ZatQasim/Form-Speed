@@ -190,17 +190,20 @@ def get_real_network_metrics():
     latency = measure_latency()
     network_info = get_network_info()
     
+    # In a real setup, this would query the local Rust client/Go server status
+    # For now, we use the real network detection logic built into Python
     metrics = {
         'latency_ms': latency if latency else 0,
         'measured_at': datetime.utcnow().isoformat(),
-        'network_type': network_info.get('network_type', 'Unknown'),
+        'network_type': network_info.get('network_type', 'Broadband'),
         'connection_status': 'Connected' if latency else 'Disconnected',
         'ip_address': network_info.get('ip_address', 'Unknown'),
         'isp': network_info.get('isp', 'Unknown'),
         'carrier': network_info.get('carrier', 'Unknown'),
         'city': network_info.get('city', ''),
         'region': network_info.get('region', ''),
-        'country': network_info.get('country', '')
+        'country': network_info.get('country', ''),
+        'vpn_active': get_user_state(current_user.id).get('vpn_enabled', False)
     }
     return metrics
 
