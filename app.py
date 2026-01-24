@@ -249,8 +249,15 @@ class User(UserMixin, db.Model):
     
     def has_active_subscription(self):
         pro_config = load_pro_config()
-        pro_users = [u.lower() for u in pro_config.get('pro_users', [])]
-        if self.email.lower() in pro_users or self.username.lower() in pro_users:
+        pro_users = [str(u).strip().lower() for u in pro_config.get('pro_users', []) if u]
+        user_email = self.email.strip().lower() if self.email else ""
+        user_name = self.username.strip().lower() if self.username else ""
+        
+        if user_email in pro_users or user_name in pro_users:
+            # Force status in case sync hasn't run yet
+            if not self.is_pro:
+                self.is_pro = True
+                self.subscription_status = 'active'
             return True
         if self.subscription_status == 'active':
             return True
@@ -292,17 +299,18 @@ def sync_pro_users():
     with app.app_context():
         pro_config = load_pro_config()
         # Normalizing to lower case for comparison
-        pro_users = [str(u).strip().lower() for u in pro_config.get('pro_users', [])]
+        pro_users = [str(u).strip().lower() for u in pro_config.get('pro_users', []) if u]
         
+        # Log active pro users for debugging
         print(f"Sync: Scanning pro.json for users: {pro_users}")
         
         all_users = User.query.all()
         for user in all_users:
+            user_email = user.email.strip().lower() if user.email else ""
+            user_name = user.username.strip().lower() if user.username else ""
+            
             # Check both email and username against the list
-            is_in_list = (
-                (user.email and user.email.lower() in pro_users) or 
-                (user.username and user.username.lower() in pro_users)
-            )
+            is_in_list = user_email in pro_users or user_name in pro_users
             
             if is_in_list:
                 if not user.is_pro or user.subscription_status != 'active':
@@ -312,15 +320,16 @@ def sync_pro_users():
                     if not user.stripe_subscription_id:
                         user.stripe_subscription_id = "pro_json_override"
                     db.session.add(user)
-                    print(f"Sync: Granted Pro to {user.username} ({user.email})")
+                    print(f"Sync: Successfully granted Pro to {user.username} (ID: {user.id})")
             else:
                 # If they are NOT in the list, but they ARE marked as pro, 
                 # we only revoke if they don't have a paid stripe subscription
-                if user.is_pro and not user.stripe_subscription_id:
+                if user.is_pro and (user.stripe_subscription_id == "pro_json_override" or not user.stripe_subscription_id):
                     user.is_pro = False
                     user.subscription_status = 'inactive'
+                    user.stripe_subscription_id = None
                     db.session.add(user)
-                    print(f"Sync: Revoked Pro from {user.username} ({user.email})")
+                    print(f"Sync: Revoked Pro from {user.username} (not in pro.json anymore)")
         
         db.session.commit()
 
@@ -361,10 +370,14 @@ def signup():
         user.set_password(password)
         
         pro_config = load_pro_config()
-        pro_users = [u.lower() for u in pro_config.get('pro_users', [])]
-        if email.lower() in pro_users or username.lower() in pro_users:
+        pro_users = [str(u).strip().lower() for u in pro_config.get('pro_users', []) if u]
+        user_email = email.strip().lower() if email else ""
+        user_name = username.strip().lower() if username else ""
+        
+        if user_email in pro_users or user_name in pro_users:
             user.is_pro = True
             user.subscription_status = 'active'
+            user.stripe_subscription_id = "pro_json_override"
         
         db.session.add(user)
         db.session.commit()
