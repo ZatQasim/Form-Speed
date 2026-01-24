@@ -182,9 +182,30 @@
             <h2>Danger Zone</h2>
             <div class="settings-card">
                 <p>Permanently delete your account and all data.</p>
-                <button class="btn btn-danger">Delete Account</button>
+                <button class="btn btn-danger" id="delete-account-btn">Delete Account</button>
             </div>
         </div>
+
+        <script>
+        document.getElementById('delete-account-btn').addEventListener('click', async function() {
+            if (confirm('Are you absolutely sure you want to delete your account? This action cannot be undone.')) {
+                try {
+                    const response = await fetch('/api/account/delete', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'}
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        window.location.href = data.redirect;
+                    } else {
+                        alert('Error: ' + data.error);
+                    }
+                } catch (error) {
+                    alert('An error occurred. Please try again.');
+                }
+            }
+        });
+        </script>
     </main>
 </div>
 {% endblock %}

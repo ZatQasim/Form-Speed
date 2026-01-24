@@ -498,6 +498,39 @@ def disable_2fa():
     
     return redirect(url_for('settings_dashboard'))
 
+@app.route('/api/account/delete', methods=['POST'])
+@login_required
+def delete_account():
+    user_id = current_user.id
+    user = User.query.get(user_id)
+    
+    # Cancel Stripe subscription if exists
+    if user.stripe_subscription_id and user.stripe_subscription_id != "pro_json_override":
+        try:
+            stripe.Subscription.delete(user.stripe_subscription_id)
+        except:
+            pass
+            
+    # Remove from pro.json if exists
+    pro_config = load_pro_config()
+    modified = False
+    if 'pro_users' in pro_config:
+        original_count = len(pro_config['pro_users'])
+        pro_config['pro_users'] = [u for u in pro_config['pro_users'] if u.strip().lower() not in [user.email.lower(), user.username.lower()]]
+        if len(pro_config['pro_users']) < original_count:
+            modified = True
+            
+    if modified:
+        save_pro_config(pro_config)
+    
+    # Delete user from database
+    db.session.delete(user)
+    db.session.commit()
+    logout_user()
+    
+    flash('Your account has been permanently deleted.', 'info')
+    return jsonify({'success': True, 'redirect': url_for('index')})
+
 @app.route('/logout')
 @login_required
 def logout():
