@@ -269,6 +269,10 @@ class User(UserMixin, db.Model):
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+# Remove duplicate user loader
+# def load_user(user_id):
+#     return User.query.get(int(user_id))
+
 def sync_pro_users():
     """Sync pro.json users with the database and handle additions/removals."""
     with app.app_context():
@@ -300,8 +304,9 @@ def auto_sync_pro():
     """Run sync on every request to ensure pro status is always up to date."""
     sync_pro_users()
 
-def load_user(user_id):
-    return User.query.get(int(user_id))
+# Remove duplicate user loader
+# def load_user(user_id):
+#     return User.query.get(int(user_id))
 
 @app.route('/')
 def index():
