@@ -83,9 +83,34 @@ The codebase references Rust for core routing/device client, Go for server commu
 - `/api/devices` - Get registered devices
 - `/api/devices/add` - Register new device (max 5)
 - `/api/devices/<id>` - Remove device
+- `/api/speed-sharing/generate-invite` - Generate invite code for guests (Pro only)
+- `/api/speed-sharing/redeem-invite` - Redeem invite code to join network
+- `/api/speed-sharing/my-invites` - View generated invites and connected guests
+- `/setup-2fa` - Setup two-factor authentication
+- `/verify-2fa` - Verify 2FA code during login
+- `/disable-2fa` - Disable 2FA with code verification
+
+### Two-Factor Authentication (January 24, 2026)
+- **TOTP-based 2FA**: Users can enable 2FA via Settings page
+- **QR Code setup**: Generates QR code for authenticator apps (Google Authenticator, Authy, etc.)
+- **Manual key entry**: Secret key displayed for manual entry into authenticator
+- **Login flow**: After password, 2FA-enabled users must enter 6-digit code
+- **Disable option**: Users can disable 2FA by entering current code
+
+### Speed Sharing Invite Codes (January 24, 2026)
+- **Invite code generation**: Pro subscribers can generate 8-character invite codes
+- **Code redemption**: Non-subscribers can redeem codes to join speed sharing network
+- **Guest access**: Redeemed invites grant 30-day access to speed sharing benefits
+- **Host tracking**: Pro users can see who has redeemed their invite codes
+- **No more mock data**: All peer connections are real, stored in `device_client/cache/invite_codes.json`
+
+### VPN Routing Visualization
+- **Traffic route display**: Visual diagram showing device → Form VPN → VPN Server → Internet
+- **Encryption details**: Shows WireGuard protocol and AES-256-GCM encryption
+- **Route optimization**: Optimize button to find fastest path
 
 ### Functional Features (Live Data, No Mocks)
-- **Real network detection**: Detects actual IP address, ISP/carrier, and location using ipinfo.io API
+- **Real network detection**: Detects actual IP address, ISP/carrier, and location using ipapi.co API
 - **Real speed tests**: Measures actual download speed using Cloudflare speed test endpoints
 - **Real latency measurement**: Measures actual network latency using socket connections to DNS servers
 - **Real jitter measurement**: Calculates actual network jitter from multiple latency samples
@@ -95,8 +120,9 @@ The codebase references Rust for core routing/device client, Go for server commu
 - **Speed tests save results** to metrics history for analytics
 - **Device data persisted** in `device_client/cache/devices.json`
 - **Connection history stored** in `device_client/cache/connection_history.json`
+- **Invite codes stored** in `device_client/cache/invite_codes.json`
 - **Persistent VPN state**: VPN stays connected until user manually disconnects
-- **Real peer network**: Speed sharing peers are stored and tracked
+- **Real peer network**: Speed sharing uses invite codes, not mock data
 - **Network info API** (`/api/network-info`): Returns real connection, location, and VPN status
 
 ### UI Updates
