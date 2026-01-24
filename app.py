@@ -324,7 +324,8 @@ def sync_pro_users():
 @app.before_request
 def auto_sync_pro():
     """Run sync on every request to ensure pro status is always up to date."""
-    sync_pro_users()
+    if not request.path.startswith('/static'):
+        sync_pro_users()
 
 # Remove duplicate user loader
 # def load_user(user_id):
