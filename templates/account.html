@@ -57,7 +57,7 @@
             <div class="subscription-card active">
                 <div class="subscription-header">
                     <div class="plan-info">
-                        <h3>Form Pro</h3>
+                        <h3>Form Subscription</h3>
                         <p class="plan-price">${{ subscription.price }}/month</p>
                     </div>
                     <span class="status-badge active">Active</span>
@@ -103,7 +103,7 @@
                 </div>
                 
                 <div class="upgrade-cta">
-                    <h4>Get Form Pro</h4>
+                    <h4>Get Form Subscription</h4>
                     <p class="price">$5<span>/month</span></p>
                     <p class="trial-text">Start with a 7-day free trial</p>
                     <a href="{{ url_for('subscribe') }}" class="btn btn-primary btn-large">Upgrade Now</a>
@@ -128,7 +128,7 @@
                     <tbody>
                         <tr>
                             <td>{{ subscription.created_at[:10] if subscription.created_at else 'N/A' }}</td>
-                            <td>Form Pro Subscription</td>
+                            <td>Form Pro</td>
                             <td>${{ subscription.price }}.00</td>
                             <td><span class="status-paid">Paid</span></td>
                         </tr>

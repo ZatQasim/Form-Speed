@@ -35,6 +35,36 @@
       },
       "timestamp": "2026-01-23T17:39:18.302974",
       "id": 4
+    },
+    {
+      "type": "speed_test",
+      "details": {
+        "download": 51.6,
+        "upload": 104.4,
+        "latency": 0.5
+      },
+      "timestamp": "2026-01-24T02:44:26.269698",
+      "id": 5
+    },
+    {
+      "type": "speed_test",
+      "details": {
+        "download": 48.5,
+        "upload": 104.2,
+        "latency": 0.5
+      },
+      "timestamp": "2026-01-24T02:44:29.022045",
+      "id": 6
+    },
+    {
+      "type": "speed_test",
+      "details": {
+        "download": 52.5,
+        "upload": 104.5,
+        "latency": 0.6
+      },
+      "timestamp": "2026-01-24T02:44:30.597011",
+      "id": 7
     }
   ]
 }

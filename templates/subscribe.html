@@ -1,12 +1,12 @@
 {% extends 'base.html' %}
 
-{% block title %}Subscribe - Form Pro{% endblock %}
+{% block title %}Subscribe to Form{% endblock %}
 
 {% block content %}
 <div class="subscribe-container">
     <div class="subscribe-card">
         <img src="{{ url_for('static', filename='logo.png') }}" alt="Form" class="subscribe-logo">
-        <h2>Form Pro Subscription</h2>
+        <h2>Form Subscription</h2>
         <div class="price-display">${{ price }}<span>/month</span></div>
         <p class="trial-text">{{ trial_days }}-day free trial included</p>
         

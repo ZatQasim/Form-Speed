@@ -447,7 +447,7 @@ def create_checkout_session():
                 'price_data': {
                     'currency': 'usd',
                     'product_data': {
-                        'name': 'Form Pro Subscription',
+                        'name': 'Form Subscription',
                         'description': 'VPN, Speed Sharing, and Premium Features',
                     },
                     'unit_amount': pro_config['subscription']['price_usd'] * 100,
@@ -489,7 +489,7 @@ def subscription_success():
         except Exception as e:
             flash(f'Error processing subscription: {str(e)}', 'error')
     
-    flash('Welcome to Form Pro! Your 7-day free trial has started.', 'success')
+    flash('Welcome to Form ! Your 7-day free trial has started.', 'success')
     return redirect(url_for('dashboard'))
 
 @app.route('/dashboard')
@@ -508,7 +508,7 @@ def dashboard():
 @login_required
 def vpn_dashboard():
     if not current_user.has_active_subscription():
-        flash('VPN requires a Pro subscription', 'warning')
+        flash('VPN requires an active subscription', 'warning')
         return redirect(url_for('subscribe'))
     user_state = get_user_state(current_user.id)
     return render_template('vpn.html', user_state=user_state, servers=VPN_SERVERS)
@@ -517,7 +517,7 @@ def vpn_dashboard():
 @login_required
 def speed_sharing_dashboard():
     if not current_user.has_active_subscription():
-        flash('Speed Sharing requires a Pro subscription', 'warning')
+        flash('Speed Sharing requires an active subscription', 'warning')
         return redirect(url_for('subscribe'))
     metrics = get_real_network_metrics()
     user_state = get_user_state(current_user.id)
@@ -1078,7 +1078,7 @@ def get_or_create_current_device(user_id):
 @login_required
 def diagnostics_dashboard():
     if not current_user.has_active_subscription():
-        flash('Network Diagnostics requires a Pro subscription', 'warning')
+        flash('Network Diagnostics requires an active subscription', 'warning')
         return redirect(url_for('subscribe'))
     user_state = get_user_state(current_user.id)
     return render_template('diagnostics.html', user_state=user_state)
@@ -1105,7 +1105,7 @@ def account_dashboard():
 @login_required
 def history_dashboard():
     if not current_user.has_active_subscription():
-        flash('Connection History requires a Pro subscription', 'warning')
+        flash('Detection History requires an active subscription', 'warning')
         return redirect(url_for('subscribe'))
     history = load_connection_history(current_user.id)
     history.reverse()
@@ -1115,7 +1115,7 @@ def history_dashboard():
 @login_required
 def devices_dashboard():
     if not current_user.has_active_subscription():
-        flash('Device Management requires a Pro subscription', 'warning')
+        flash('Device Management requires an active subscription', 'warning')
         return redirect(url_for('subscribe'))
     get_or_create_current_device(current_user.id)
     devices = load_devices(current_user.id)

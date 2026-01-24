@@ -15,6 +15,24 @@
       "latency_ms": 0.6,
       "download_mbps": 49.8,
       "upload_mbps": 104.5
+    },
+    {
+      "timestamp": "2026-01-24 02:44",
+      "latency_ms": 0.5,
+      "download_mbps": 51.6,
+      "upload_mbps": 104.4
+    },
+    {
+      "timestamp": "2026-01-24 02:44",
+      "latency_ms": 0.5,
+      "download_mbps": 48.5,
+      "upload_mbps": 104.2
+    },
+    {
+      "timestamp": "2026-01-24 02:44",
+      "latency_ms": 0.6,
+      "download_mbps": 52.5,
+      "upload_mbps": 104.5
     }
   ]
 }
