@@ -251,6 +251,9 @@ class User(UserMixin, db.Model):
         }
 
 @login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
 def sync_pro_users():
     """Sync pro.json users with the database and handle additions/removals."""
     with app.app_context():
