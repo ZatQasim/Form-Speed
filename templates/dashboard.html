@@ -79,15 +79,19 @@
         
         <div class="network-info-banner">
             <div class="network-detail">
-                <span class="label">Your IP</span>
+                <span class="label">Your IP Address</span>
                 <span class="value" id="user-ip">{{ metrics.get('ip_address', 'Detecting...') }}</span>
             </div>
             <div class="network-detail">
-                <span class="label">ISP/Carrier</span>
-                <span class="value" id="user-isp">{{ metrics.get('isp', 'Detecting...') }}</span>
+                <span class="label">Your ISP/Carrier</span>
+                <span class="value" id="user-isp">{{ metrics.get('carrier', metrics.get('isp', 'Detecting...')) }}</span>
             </div>
             <div class="network-detail">
-                <span class="label">Location</span>
+                <span class="label">Network Type</span>
+                <span class="value" id="network-type">{{ metrics.get('network_type', 'Detecting...') }}</span>
+            </div>
+            <div class="network-detail">
+                <span class="label">Your Location</span>
                 <span class="value" id="user-location">{{ metrics.get('city', '') }}{% if metrics.get('city') and metrics.get('country') %}, {% endif %}{{ metrics.get('country', 'Detecting...') }}</span>
             </div>
         </div>

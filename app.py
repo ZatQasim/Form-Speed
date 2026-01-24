@@ -100,49 +100,53 @@ def measure_latency(host="8.8.8.8"):
     except:
         return None
 
-def get_network_info():
-    """Get real network information - Note: Shows server network, not user's device"""
-    import subprocess
+def get_user_ip_from_request():
+    """Get the real user IP from the request"""
+    if request:
+        forwarded = request.headers.get('X-Forwarded-For', '')
+        if forwarded:
+            return forwarded.split(',')[0].strip()
+        real_ip = request.headers.get('X-Real-IP', '')
+        if real_ip:
+            return real_ip
+        return request.remote_addr
+    return None
+
+def lookup_ip_info(ip_address):
+    """Look up ISP/carrier info for a specific IP address"""
+    import urllib.request
     network_info = {
-        'interface': 'Unknown',
-        'ip_address': 'Unknown',
-        'network_type': 'Cloud Server',
+        'ip_address': ip_address or 'Unknown',
         'isp': 'Unknown',
-        'note': 'Server-side detection'
+        'carrier': 'Unknown',
+        'city': 'Unknown',
+        'region': 'Unknown',
+        'country': 'Unknown',
+        'network_type': 'Unknown'
     }
     
-    try:
-        result = subprocess.run(['ip', 'route', 'get', '8.8.8.8'], capture_output=True, text=True, timeout=5)
-        if result.stdout:
-            parts = result.stdout.split()
-            if 'dev' in parts:
-                idx = parts.index('dev')
-                if idx + 1 < len(parts):
-                    network_info['interface'] = parts[idx + 1]
-    except:
-        pass
+    if not ip_address or ip_address in ['127.0.0.1', 'localhost']:
+        return network_info
     
     try:
-        import urllib.request
-        req = urllib.request.Request('https://ipapi.co/json/', headers={'User-Agent': 'Form-Network/1.0'})
+        req = urllib.request.Request(f'https://ipapi.co/{ip_address}/json/', headers={'User-Agent': 'Form-Network/1.0'})
         with urllib.request.urlopen(req, timeout=5) as response:
             data = json.loads(response.read().decode())
-            network_info['ip_address'] = data.get('ip', 'Unknown')
-            org = data.get('org', '')
-            asn_name = data.get('asn', '')
-            network_info['isp'] = org if org else asn_name if asn_name else 'Unknown'
+            network_info['ip_address'] = data.get('ip', ip_address)
+            network_info['isp'] = data.get('org', 'Unknown')
+            network_info['carrier'] = data.get('org', 'Unknown')
             network_info['city'] = data.get('city', 'Unknown')
             network_info['region'] = data.get('region', 'Unknown')
             network_info['country'] = data.get('country_name', data.get('country', 'Unknown'))
-            network_info['network_type'] = data.get('org', 'Cloud Server')
+            network_info['network_type'] = 'Mobile' if 'mobile' in data.get('org', '').lower() or 'wireless' in data.get('org', '').lower() else 'Broadband'
     except:
         try:
-            import urllib.request
-            req = urllib.request.Request('https://ipinfo.io/json', headers={'User-Agent': 'Form-Network/1.0'})
+            req = urllib.request.Request(f'https://ipinfo.io/{ip_address}/json', headers={'User-Agent': 'Form-Network/1.0'})
             with urllib.request.urlopen(req, timeout=5) as response:
                 data = json.loads(response.read().decode())
-                network_info['ip_address'] = data.get('ip', 'Unknown')
+                network_info['ip_address'] = data.get('ip', ip_address)
                 network_info['isp'] = data.get('org', 'Unknown')
+                network_info['carrier'] = data.get('org', 'Unknown')
                 network_info['city'] = data.get('city', 'Unknown')
                 network_info['region'] = data.get('region', 'Unknown')
                 network_info['country'] = data.get('country', 'Unknown')
@@ -150,6 +154,22 @@ def get_network_info():
             pass
     
     return network_info
+
+def get_network_info():
+    """Get the user's real network information from their IP"""
+    try:
+        user_ip = get_user_ip_from_request()
+        return lookup_ip_info(user_ip)
+    except:
+        return {
+            'ip_address': 'Unknown',
+            'isp': 'Unknown',
+            'carrier': 'Unknown',
+            'city': 'Unknown',
+            'region': 'Unknown',
+            'country': 'Unknown',
+            'network_type': 'Unknown'
+        }
 
 def get_real_network_metrics():
     latency = measure_latency()
@@ -162,7 +182,7 @@ def get_real_network_metrics():
         'connection_status': 'Connected' if latency else 'Disconnected',
         'ip_address': network_info.get('ip_address', 'Unknown'),
         'isp': network_info.get('isp', 'Unknown'),
-        'interface': network_info.get('interface', 'Unknown'),
+        'carrier': network_info.get('carrier', 'Unknown'),
         'city': network_info.get('city', ''),
         'region': network_info.get('region', ''),
         'country': network_info.get('country', '')

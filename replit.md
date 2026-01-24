@@ -110,7 +110,7 @@ The codebase references Rust for core routing/device client, Go for server commu
 - **Route optimization**: Optimize button to find fastest path
 
 ### Functional Features (Live Data, No Mocks)
-- **Real network detection**: Detects actual IP address, ISP/carrier, and location using ipapi.co API
+- **Real network detection**: Detects user's actual IP address, ISP/carrier, and location from their request IP using ipapi.co API
 - **Real speed tests**: Measures actual download speed using Cloudflare speed test endpoints
 - **Real latency measurement**: Measures actual network latency using socket connections to DNS servers
 - **Real jitter measurement**: Calculates actual network jitter from multiple latency samples

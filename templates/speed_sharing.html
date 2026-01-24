@@ -21,30 +21,30 @@
     
     <main class="dashboard-content">
         <h1>Speed Sharing</h1>
-        <p class="page-description">Share your bandwidth with trusted peers using invite codes</p>
+        <p class="page-description">Share bandwidth with trusted connections using allowance codes</p>
         
-        {% if is_pro %}
-        <div class="speed-sharing-status">
-            <div class="sharing-card main-card">
-                <h3>Your Network</h3>
-                <div class="bandwidth-display">
-                    <div class="bandwidth-stat">
-                        <span class="value" id="download-speed">--</span>
-                        <span class="label">Download Mbps</span>
-                    </div>
-                    <div class="bandwidth-stat">
-                        <span class="value" id="upload-speed">--</span>
-                        <span class="label">Upload Mbps</span>
-                    </div>
+        <div class="your-network-info">
+            <h3>Your Network</h3>
+            <div class="network-stats">
+                <div class="stat">
+                    <span class="label">IP Address</span>
+                    <span class="value">{{ metrics.get('ip_address', 'Detecting...') }}</span>
                 </div>
-                <div class="carrier-info">
-                    <span class="carrier-label">Network:</span>
-                    <span class="carrier-value" id="network-type">{{ metrics.get('network_type', 'Detecting...') }}</span>
+                <div class="stat">
+                    <span class="label">Carrier/ISP</span>
+                    <span class="value">{{ metrics.get('carrier', metrics.get('isp', 'Detecting...')) }}</span>
+                </div>
+                <div class="stat">
+                    <span class="label">Location</span>
+                    <span class="value">{{ metrics.get('city', '') }}, {{ metrics.get('country', '') }}</span>
                 </div>
             </div>
-            
-            <div class="sharing-card">
-                <h3>Sharing Status</h3>
+        </div>
+        
+        {% if is_pro %}
+        <div class="pro-section">
+            <div class="sharing-controls">
+                <h2>Sharing Status</h2>
                 <div class="sharing-toggle-large">
                     <label class="switch large">
                         <input type="checkbox" id="sharing-toggle" {% if user_state.speed_sharing_enabled %}checked{% endif %}>
@@ -54,114 +54,85 @@
                         <span id="sharing-status-text">
                             {% if user_state.speed_sharing_enabled %}Sharing Enabled{% else %}Sharing Disabled{% endif %}
                         </span>
-                        <span class="sharing-amount" id="sharing-amount">
-                            {% if user_state.speed_sharing_enabled %}
-                            Contributing {{ user_state.shared_bandwidth_mbps }} Mbps
-                            {% else %}
-                            Enable to contribute
-                            {% endif %}
-                        </span>
                     </div>
                 </div>
             </div>
-        </div>
-        
-        <div class="invite-section">
-            <h2>Invite Friends</h2>
-            <p>Share your connection speed with friends who don't have a subscription yet</p>
             
-            <div class="invite-actions">
-                <button class="btn btn-primary" id="generate-invite-btn">Generate Invite Code</button>
-            </div>
-            
-            <div id="invite-result" class="invite-result" style="display: none;">
-                <div class="invite-code-display">
-                    <span class="label">Share this code:</span>
-                    <code id="invite-code"></code>
-                    <button class="btn btn-small btn-secondary" onclick="copyInviteCode()">Copy</button>
+            <div class="allowance-section">
+                <h2>Generate Allowance</h2>
+                <p>Create an allowance code to share your optimized routes with others</p>
+                
+                <button class="btn btn-primary btn-large" id="generate-allowance-btn">Generate Allowance Code</button>
+                
+                <div id="allowance-result" class="allowance-result" style="display: none;">
+                    <div class="allowance-code-box">
+                        <span class="code-label">Share this code:</span>
+                        <code id="allowance-code" class="allowance-code"></code>
+                        <button class="btn btn-secondary" onclick="copyAllowanceCode()">Copy</button>
+                    </div>
+                    <p class="code-info">Valid for 7 days. Recipient gets 30 days of optimized routing.</p>
                 </div>
-                <p class="invite-expiry">Valid for 7 days</p>
-            </div>
-            
-            <div class="my-invites">
-                <h3>Your Guests</h3>
-                <div id="guests-list" class="guests-list">
-                    <p class="loading">Loading guests...</p>
+                
+                <div class="my-guests">
+                    <h3>Connected Guests</h3>
+                    <div id="guests-list" class="guests-list"></div>
                 </div>
             </div>
         </div>
         
         {% else %}
         
-        <div class="guest-access-section">
-            <h2>Join a Speed Sharing Network</h2>
-            <p>Enter an invite code from a Pro subscriber to access faster internet routes</p>
+        <div class="guest-section">
+            <h2>Use Allowance Code</h2>
+            <p>Enter an allowance code from a Pro subscriber to access optimized internet routes</p>
             
             <div class="redeem-form">
-                <input type="text" id="redeem-code" placeholder="Enter invite code (e.g., ABC12345)" maxlength="8" class="invite-input">
-                <button class="btn btn-primary" id="redeem-btn">Redeem Code</button>
+                <input type="text" id="allowance-input" placeholder="Enter allowance code (e.g., ABC12345)" maxlength="8" class="allowance-input">
+                <button class="btn btn-primary btn-large" id="use-allowance-btn">Use Allowance</button>
             </div>
             
-            <div id="redeem-result" class="redeem-result" style="display: none;"></div>
+            <div id="redeem-result" class="redeem-result"></div>
             
             {% if user_state.speed_sharing_guest %}
-            <div class="guest-status active">
+            <div class="guest-status-card active">
                 <h3>You're Connected!</h3>
-                <p>Host: <strong>{{ user_state.speed_sharing_host }}</strong></p>
-                <p>Access until: {{ user_state.guest_access_until }}</p>
+                <p>Connected to: <strong>{{ user_state.speed_sharing_host }}</strong></p>
+                <p>Access until: {{ user_state.guest_access_until[:10] if user_state.guest_access_until else 'N/A' }}</p>
+                <p class="benefit-info">You now have access to optimized routing through this connection.</p>
             </div>
             {% endif %}
         </div>
         
-        <div class="upgrade-prompt">
+        <div class="upgrade-cta">
             <h3>Want to share with others?</h3>
-            <p>Upgrade to Pro to generate invite codes and share your bandwidth with friends</p>
+            <p>Upgrade to Pro to generate allowance codes and share optimized routes</p>
             <a href="{{ url_for('subscribe') }}" class="btn btn-primary">Upgrade to Pro - $5/month</a>
         </div>
         
         {% endif %}
         
-        <div class="network-benefits">
-            <h2>Network Benefits</h2>
-            <div class="benefits-grid">
-                <div class="benefit-card">
-                    <div class="benefit-icon">🚀</div>
-                    <h3>Speed Boost</h3>
-                    <p id="speed-boost">+0 Mbps</p>
-                    <span class="benefit-desc">From peer contributions</span>
-                </div>
-                <div class="benefit-card">
-                    <div class="benefit-icon">👥</div>
-                    <h3>Connected Peers</h3>
-                    <p id="active-peers">0</p>
-                    <span class="benefit-desc">In your network</span>
-                </div>
-                <div class="benefit-card">
-                    <div class="benefit-icon">📊</div>
-                    <h3>Total Shared</h3>
-                    <p id="total-shared">0 Mbps</p>
-                    <span class="benefit-desc">Network-wide</span>
-                </div>
-            </div>
-        </div>
-        
         <div class="how-it-works">
-            <h2>How Invite Codes Work</h2>
-            <div class="steps">
+            <h2>How Allowance Codes Work</h2>
+            <div class="steps-grid">
                 <div class="step">
-                    <div class="step-number">1</div>
+                    <div class="step-num">1</div>
                     <h3>Pro Generates Code</h3>
-                    <p>Pro subscribers can generate invite codes for friends</p>
+                    <p>Pro subscribers generate allowance codes</p>
                 </div>
                 <div class="step">
-                    <div class="step-number">2</div>
-                    <h3>Friend Redeems</h3>
-                    <p>Non-subscribers enter the code to join the network</p>
+                    <div class="step-num">2</div>
+                    <h3>Share the Code</h3>
+                    <p>Send the code to friends or family</p>
                 </div>
                 <div class="step">
-                    <div class="step-number">3</div>
-                    <h3>Shared Speed</h3>
-                    <p>Both get optimized routes and shared bandwidth benefits</p>
+                    <div class="step-num">3</div>
+                    <h3>Use Allowance</h3>
+                    <p>Recipient enters code to activate</p>
+                </div>
+                <div class="step">
+                    <div class="step-num">4</div>
+                    <h3>Enjoy Fast Routes</h3>
+                    <p>Get 30 days of optimized internet</p>
                 </div>
             </div>
         </div>
@@ -169,68 +140,140 @@
 </div>
 
 <style>
-.invite-section, .guest-access-section {
+.your-network-info {
+    background: linear-gradient(135deg, rgba(26, 115, 232, 0.08), rgba(52, 168, 83, 0.05));
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+.network-stats {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+}
+.network-stats .stat {
+    display: flex;
+    flex-direction: column;
+}
+.network-stats .label {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+}
+.network-stats .value {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+.pro-section, .guest-section {
     background: var(--bg-secondary);
     border-radius: var(--radius-lg);
     padding: 2rem;
     margin-bottom: 2rem;
 }
-.invite-actions { margin: 1.5rem 0; }
-.invite-result {
+.allowance-section {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border-light);
+}
+.allowance-result {
+    margin-top: 1.5rem;
+    padding: 1.5rem;
     background: var(--bg-tertiary);
     border-radius: var(--radius-md);
-    padding: 1.5rem;
-    margin-top: 1rem;
 }
-.invite-code-display {
+.allowance-code-box {
     display: flex;
     align-items: center;
     gap: 1rem;
+    flex-wrap: wrap;
 }
-.invite-code-display code {
-    font-size: 1.5rem;
+.allowance-code {
+    font-size: 2rem;
     font-weight: 700;
-    letter-spacing: 0.2rem;
-    background: var(--bg-primary);
-    padding: 0.75rem 1.5rem;
+    letter-spacing: 0.3rem;
+    padding: 1rem 2rem;
+    background: white;
     border-radius: var(--radius-md);
+    border: 2px solid var(--primary);
 }
-.invite-expiry { color: var(--text-tertiary); margin-top: 0.5rem; font-size: 0.875rem; }
-.guests-list { margin-top: 1rem; }
-.guest-card {
-    display: flex;
-    justify-content: space-between;
-    padding: 1rem;
-    background: var(--bg-tertiary);
-    border-radius: var(--radius-md);
-    margin-bottom: 0.5rem;
+.code-info {
+    margin-top: 1rem;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
 }
 .redeem-form {
     display: flex;
     gap: 1rem;
     margin: 1.5rem 0;
+    flex-wrap: wrap;
 }
-.invite-input {
+.allowance-input {
     flex: 1;
+    min-width: 200px;
     max-width: 300px;
     text-transform: uppercase;
-    letter-spacing: 0.2rem;
+    letter-spacing: 0.3rem;
     font-size: 1.25rem;
     text-align: center;
+    padding: 1rem;
 }
-.guest-status.active {
-    background: linear-gradient(135deg, rgba(52, 168, 83, 0.1), rgba(52, 168, 83, 0.05));
-    border: 1px solid var(--success);
-    border-radius: var(--radius-md);
-    padding: 1.5rem;
-    margin-top: 1.5rem;
+.guest-status-card.active {
+    background: linear-gradient(135deg, rgba(52, 168, 83, 0.1), rgba(52, 168, 83, 0.03));
+    border: 2px solid var(--success);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    margin-top: 2rem;
 }
-.upgrade-prompt {
-    background: linear-gradient(135deg, rgba(26, 115, 232, 0.08), rgba(26, 115, 232, 0.03));
+.benefit-info {
+    color: var(--success);
+    font-weight: 500;
+}
+.upgrade-cta {
+    background: linear-gradient(135deg, rgba(26, 115, 232, 0.1), rgba(26, 115, 232, 0.03));
     border-radius: var(--radius-lg);
     padding: 2rem;
     text-align: center;
     margin-top: 2rem;
+}
+.steps-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+.step {
+    text-align: center;
+    padding: 1.5rem;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+}
+.step-num {
+    width: 40px;
+    height: 40px;
+    background: var(--primary);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    margin: 0 auto 1rem;
+}
+.my-guests {
+    margin-top: 2rem;
+}
+.guests-list {
+    margin-top: 1rem;
+}
+.guest-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    margin-bottom: 0.5rem;
 }
 </style>
 
@@ -247,8 +290,6 @@ document.getElementById('sharing-toggle').addEventListener('change', async funct
         const data = await response.json();
         if (data.success) {
             document.getElementById('sharing-status-text').textContent = enabled ? 'Sharing Enabled' : 'Sharing Disabled';
-            document.getElementById('sharing-amount').textContent = enabled ? `Contributing ${data.shared_bandwidth_mbps} Mbps` : 'Enable to contribute';
-            loadStatus();
         }
     } catch (error) {
         alert('Error: ' + error.message);
@@ -256,20 +297,24 @@ document.getElementById('sharing-toggle').addEventListener('change', async funct
     }
 });
 
-document.getElementById('generate-invite-btn').addEventListener('click', async function() {
+document.getElementById('generate-allowance-btn').addEventListener('click', async function() {
+    this.disabled = true;
+    this.textContent = 'Generating...';
     try {
         const response = await fetch('/api/speed-sharing/generate-invite', { method: 'POST' });
         const data = await response.json();
         if (data.success) {
-            document.getElementById('invite-code').textContent = data.invite_code;
-            document.getElementById('invite-result').style.display = 'block';
+            document.getElementById('allowance-code').textContent = data.invite_code;
+            document.getElementById('allowance-result').style.display = 'block';
             loadGuests();
         } else {
-            alert(data.error || 'Failed to generate invite');
+            alert(data.error || 'Failed to generate');
         }
     } catch (error) {
         alert('Error: ' + error.message);
     }
+    this.disabled = false;
+    this.textContent = 'Generate Allowance Code';
 });
 
 async function loadGuests() {
@@ -280,23 +325,30 @@ async function loadGuests() {
         if (data.guests && data.guests.length > 0) {
             list.innerHTML = data.guests.map(g => `
                 <div class="guest-card">
-                    <span>${g.username}</span>
-                    <span>Joined ${new Date(g.redeemed_at).toLocaleDateString()}</span>
+                    <span><strong>${g.username}</strong></span>
+                    <span>Connected ${new Date(g.redeemed_at).toLocaleDateString()}</span>
                 </div>
             `).join('');
         } else {
-            list.innerHTML = '<p class="no-data">No guests yet. Generate an invite code to share!</p>';
+            list.innerHTML = '<p class="empty-state">No guests yet. Generate an allowance code to share!</p>';
         }
     } catch (error) {
-        console.error('Error loading guests:', error);
+        console.error('Error:', error);
     }
 }
-
 loadGuests();
+
 {% else %}
-document.getElementById('redeem-btn').addEventListener('click', async function() {
-    const code = document.getElementById('redeem-code').value.trim();
-    if (!code) { alert('Please enter an invite code'); return; }
+
+document.getElementById('use-allowance-btn').addEventListener('click', async function() {
+    const code = document.getElementById('allowance-input').value.trim().toUpperCase();
+    if (!code) { 
+        alert('Please enter an allowance code'); 
+        return; 
+    }
+    
+    this.disabled = true;
+    this.textContent = 'Activating...';
     
     try {
         const response = await fetch('/api/speed-sharing/redeem-invite', {
@@ -306,36 +358,28 @@ document.getElementById('redeem-btn').addEventListener('click', async function()
         });
         const data = await response.json();
         const result = document.getElementById('redeem-result');
-        result.style.display = 'block';
+        
         if (data.success) {
             result.innerHTML = `<div class="alert alert-success">${data.message}</div>`;
-            setTimeout(() => location.reload(), 2000);
+            setTimeout(() => location.reload(), 1500);
         } else {
             result.innerHTML = `<div class="alert alert-error">${data.error}</div>`;
         }
     } catch (error) {
         alert('Error: ' + error.message);
     }
+    
+    this.disabled = false;
+    this.textContent = 'Use Allowance';
 });
+
 {% endif %}
 
-async function loadStatus() {
-    try {
-        const response = await fetch('/api/speed-sharing/status');
-        const data = await response.json();
-        document.getElementById('speed-boost').textContent = `+${data.network_boost || 0} Mbps`;
-        document.getElementById('active-peers').textContent = (data.peers || []).length;
-        document.getElementById('total-shared').textContent = `${data.total_shared || 0} Mbps`;
-    } catch (error) {
-        console.error('Error loading status:', error);
-    }
+function copyAllowanceCode() {
+    const code = document.getElementById('allowance-code').textContent;
+    navigator.clipboard.writeText(code).then(() => {
+        alert('Allowance code copied!');
+    });
 }
-
-function copyInviteCode() {
-    const code = document.getElementById('invite-code').textContent;
-    navigator.clipboard.writeText(code).then(() => alert('Invite code copied!'));
-}
-
-loadStatus();
 </script>
 {% endblock %}
