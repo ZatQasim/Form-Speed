@@ -58,7 +58,11 @@
                 <div class="subscription-header">
                     <div class="plan-info">
                         <h3>Form Subscription</h3>
+                        {% if subscription.is_whitelisted %}
+                        <p class="plan-price">$5/month</p>
+                        {% else %}
                         <p class="plan-price">${{ subscription.price }}/month</p>
+                        {% endif %}
                     </div>
                     <span class="status-badge active">Active</span>
                 </div>

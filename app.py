@@ -308,6 +308,9 @@ def sync_pro_users():
                 if not user.is_pro or user.subscription_status != 'active':
                     user.is_pro = True
                     user.subscription_status = 'active'
+                    # Set a dummy subscription ID for pro.json users to help UI logic if needed
+                    if not user.stripe_subscription_id:
+                        user.stripe_subscription_id = "pro_json_override"
                     db.session.add(user)
                     print(f"Sync: Granted Pro to {user.username} ({user.email})")
             else:
