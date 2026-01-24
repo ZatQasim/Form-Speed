@@ -106,7 +106,11 @@
         <div class="upgrade-cta">
             <h3>Want to share with others?</h3>
             <p>Upgrade to Pro to generate allowance codes and share optimized routes</p>
+            {% if is_pro %}
+            <button class="btn btn-primary" onclick="location.reload()">Refresh to Start Sharing</button>
+            {% else %}
             <a href="{{ url_for('subscribe') }}" class="btn btn-primary">Start Sharing</a>
+            {% endif %}
         </div>
         
         {% endif %}
@@ -339,6 +343,14 @@ async function loadGuests() {
 loadGuests();
 
 {% else %}
+
+if (document.getElementById('start-sharing-cta-btn')) {
+    document.getElementById('start-sharing-cta-btn').addEventListener('click', function() {
+        // If the user is Pro but somehow sees this button, we'll reload to show the pro UI
+        // Otherwise, it should go to subscribe as intended for non-pro users
+        window.location.href = "{{ url_for('subscribe') }}";
+    });
+}
 
 document.getElementById('use-allowance-btn').addEventListener('click', async function() {
     const code = document.getElementById('allowance-input').value.trim().toUpperCase();

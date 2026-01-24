@@ -573,12 +573,14 @@ def vpn_dashboard():
 @app.route('/dashboard/speed-sharing')
 @login_required
 def speed_sharing_dashboard():
-    if not current_user.has_active_subscription():
-        flash('Speed Sharing requires an active subscription', 'warning')
-        return redirect(url_for('subscribe'))
+    # The auto_sync_pro already handled the pro.json check
+    # We allow access to the page, and the template handles the UI based on is_pro
     metrics = get_real_network_metrics()
     user_state = get_user_state(current_user.id)
-    return render_template('speed_sharing.html', metrics=metrics, user_state=user_state)
+    return render_template('speed_sharing.html', 
+                          metrics=metrics, 
+                          is_pro=current_user.has_active_subscription(),
+                          user_state=user_state)
 
 @app.route('/dashboard/security')
 @login_required
