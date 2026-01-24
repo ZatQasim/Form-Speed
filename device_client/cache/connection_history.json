@@ -1,0 +1,40 @@
+{
+  "2": [
+    {
+      "type": "vpn_connected",
+      "details": {
+        "server": "US West",
+        "location": "Los Angeles",
+        "ip": "10.8.38.77"
+      },
+      "timestamp": "2026-01-23T17:35:55.025185",
+      "id": 1
+    },
+    {
+      "type": "speed_test",
+      "details": {
+        "download": 49.8,
+        "upload": 104.5,
+        "latency": 0.6
+      },
+      "timestamp": "2026-01-23T17:36:34.711609",
+      "id": 2
+    },
+    {
+      "type": "device_added",
+      "details": {
+        "device": "Samsung"
+      },
+      "timestamp": "2026-01-23T17:39:12.278840",
+      "id": 3
+    },
+    {
+      "type": "device_removed",
+      "details": {
+        "device_id": "device-8738"
+      },
+      "timestamp": "2026-01-23T17:39:18.302974",
+      "id": 4
+    }
+  ]
+}

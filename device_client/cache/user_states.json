@@ -19,5 +19,29 @@
     "route_optimization_enabled": true,
     "security_enabled": true,
     "last_optimization": "2026-01-23T17:00:17.447187"
+  },
+  "2": {
+    "vpn_enabled": true,
+    "vpn_server": {
+      "id": "us-west",
+      "name": "US West",
+      "location": "Los Angeles",
+      "ip": "137.184.0.1",
+      "capacity": 72,
+      "protocols": [
+        "WireGuard",
+        "OpenVPN"
+      ]
+    },
+    "vpn_connected_at": "2026-01-23T17:35:55.024742",
+    "assigned_ip": "10.8.38.77",
+    "route_optimization_enabled": true,
+    "security_enabled": true,
+    "session_start": "2026-01-23T17:35:55.024750",
+    "last_optimization": "2026-01-23T17:40:44.461977",
+    "optimization_improvement_ms": 0,
+    "speed_sharing_enabled": true,
+    "shared_bandwidth_mbps": 5.4,
+    "sharing_started": "2026-01-23T17:36:59.571397"
   }
 }

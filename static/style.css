@@ -2770,3 +2770,46 @@ footer {
     color: var(--text-primary);
 }
 
+
+/* 2FA Settings */
+.setting-desc {
+    font-size: 0.875rem;
+    color: var(--text-tertiary);
+    margin: 0.25rem 0 0;
+}
+.disable-2fa-form {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-light);
+}
+.totp-disable-row {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    margin-top: 0.5rem;
+}
+.totp-input {
+    width: 120px;
+    text-align: center;
+    font-size: 1.25rem;
+    letter-spacing: 0.3rem;
+    font-weight: 600;
+}
+.btn-danger {
+    background: var(--error);
+    color: white;
+    border-color: var(--error);
+}
+.btn-danger:hover {
+    background: #c53929;
+}
+.btn-outline.btn-danger {
+    background: transparent;
+    color: var(--error);
+    border-color: var(--error);
+}
+.btn-outline.btn-danger:hover {
+    background: var(--error);
+    color: white;
+}
+

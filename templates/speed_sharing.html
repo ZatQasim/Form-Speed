@@ -21,24 +21,25 @@
     
     <main class="dashboard-content">
         <h1>Speed Sharing</h1>
-        <p class="page-description">Share your carrier bandwidth with trusted peers and benefit from the network</p>
+        <p class="page-description">Share your bandwidth with trusted peers using invite codes</p>
         
+        {% if is_pro %}
         <div class="speed-sharing-status">
             <div class="sharing-card main-card">
-                <h3>Your Bandwidth</h3>
+                <h3>Your Network</h3>
                 <div class="bandwidth-display">
                     <div class="bandwidth-stat">
-                        <span class="value">{{ metrics.get('download_mbps', 0) }}</span>
+                        <span class="value" id="download-speed">--</span>
                         <span class="label">Download Mbps</span>
                     </div>
                     <div class="bandwidth-stat">
-                        <span class="value">{{ metrics.get('upload_mbps', 0) }}</span>
+                        <span class="value" id="upload-speed">--</span>
                         <span class="label">Upload Mbps</span>
                     </div>
                 </div>
                 <div class="carrier-info">
-                    <span class="carrier-label">Network Type:</span>
-                    <span class="carrier-value">{{ metrics.get('network_type', 'Unknown') }}</span>
+                    <span class="carrier-label">Network:</span>
+                    <span class="carrier-value" id="network-type">{{ metrics.get('network_type', 'Detecting...') }}</span>
                 </div>
             </div>
             
@@ -62,11 +63,63 @@
                         </span>
                     </div>
                 </div>
-                <div class="sharing-info">
-                    <p>Share up to 30% of your upload bandwidth with trusted Form peers</p>
+            </div>
+        </div>
+        
+        <div class="invite-section">
+            <h2>Invite Friends</h2>
+            <p>Share your connection speed with friends who don't have a subscription yet</p>
+            
+            <div class="invite-actions">
+                <button class="btn btn-primary" id="generate-invite-btn">Generate Invite Code</button>
+            </div>
+            
+            <div id="invite-result" class="invite-result" style="display: none;">
+                <div class="invite-code-display">
+                    <span class="label">Share this code:</span>
+                    <code id="invite-code"></code>
+                    <button class="btn btn-small btn-secondary" onclick="copyInviteCode()">Copy</button>
+                </div>
+                <p class="invite-expiry">Valid for 7 days</p>
+            </div>
+            
+            <div class="my-invites">
+                <h3>Your Guests</h3>
+                <div id="guests-list" class="guests-list">
+                    <p class="loading">Loading guests...</p>
                 </div>
             </div>
         </div>
+        
+        {% else %}
+        
+        <div class="guest-access-section">
+            <h2>Join a Speed Sharing Network</h2>
+            <p>Enter an invite code from a Pro subscriber to access faster internet routes</p>
+            
+            <div class="redeem-form">
+                <input type="text" id="redeem-code" placeholder="Enter invite code (e.g., ABC12345)" maxlength="8" class="invite-input">
+                <button class="btn btn-primary" id="redeem-btn">Redeem Code</button>
+            </div>
+            
+            <div id="redeem-result" class="redeem-result" style="display: none;"></div>
+            
+            {% if user_state.speed_sharing_guest %}
+            <div class="guest-status active">
+                <h3>You're Connected!</h3>
+                <p>Host: <strong>{{ user_state.speed_sharing_host }}</strong></p>
+                <p>Access until: {{ user_state.guest_access_until }}</p>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="upgrade-prompt">
+            <h3>Want to share with others?</h3>
+            <p>Upgrade to Pro to generate invite codes and share your bandwidth with friends</p>
+            <a href="{{ url_for('subscribe') }}" class="btn btn-primary">Upgrade to Pro - $5/month</a>
+        </div>
+        
+        {% endif %}
         
         <div class="network-benefits">
             <h2>Network Benefits</h2>
@@ -79,9 +132,9 @@
                 </div>
                 <div class="benefit-card">
                     <div class="benefit-icon">👥</div>
-                    <h3>Active Peers</h3>
+                    <h3>Connected Peers</h3>
                     <p id="active-peers">0</p>
-                    <span class="benefit-desc">Connected to you</span>
+                    <span class="benefit-desc">In your network</span>
                 </div>
                 <div class="benefit-card">
                     <div class="benefit-icon">📊</div>
@@ -92,38 +145,99 @@
             </div>
         </div>
         
-        <h2>Connected Peers</h2>
-        <div class="peers-list" id="peers-list">
-            <div class="loading">Loading peers...</div>
-        </div>
-        
         <div class="how-it-works">
-            <h2>How Speed Sharing Works</h2>
+            <h2>How Invite Codes Work</h2>
             <div class="steps">
                 <div class="step">
                     <div class="step-number">1</div>
-                    <h3>Enable Sharing</h3>
-                    <p>Toggle speed sharing to contribute part of your bandwidth</p>
+                    <h3>Pro Generates Code</h3>
+                    <p>Pro subscribers can generate invite codes for friends</p>
                 </div>
                 <div class="step">
                     <div class="step-number">2</div>
-                    <h3>Connect to Peers</h3>
-                    <p>Form automatically connects you with trusted peers</p>
+                    <h3>Friend Redeems</h3>
+                    <p>Non-subscribers enter the code to join the network</p>
                 </div>
                 <div class="step">
                     <div class="step-number">3</div>
-                    <h3>Boost Your Speed</h3>
-                    <p>Receive bandwidth from peers when you need extra speed</p>
+                    <h3>Shared Speed</h3>
+                    <p>Both get optimized routes and shared bandwidth benefits</p>
                 </div>
             </div>
         </div>
     </main>
 </div>
 
+<style>
+.invite-section, .guest-access-section {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+.invite-actions { margin: 1.5rem 0; }
+.invite-result {
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+    margin-top: 1rem;
+}
+.invite-code-display {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+.invite-code-display code {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: 0.2rem;
+    background: var(--bg-primary);
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-md);
+}
+.invite-expiry { color: var(--text-tertiary); margin-top: 0.5rem; font-size: 0.875rem; }
+.guests-list { margin-top: 1rem; }
+.guest-card {
+    display: flex;
+    justify-content: space-between;
+    padding: 1rem;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    margin-bottom: 0.5rem;
+}
+.redeem-form {
+    display: flex;
+    gap: 1rem;
+    margin: 1.5rem 0;
+}
+.invite-input {
+    flex: 1;
+    max-width: 300px;
+    text-transform: uppercase;
+    letter-spacing: 0.2rem;
+    font-size: 1.25rem;
+    text-align: center;
+}
+.guest-status.active {
+    background: linear-gradient(135deg, rgba(52, 168, 83, 0.1), rgba(52, 168, 83, 0.05));
+    border: 1px solid var(--success);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+}
+.upgrade-prompt {
+    background: linear-gradient(135deg, rgba(26, 115, 232, 0.08), rgba(26, 115, 232, 0.03));
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    text-align: center;
+    margin-top: 2rem;
+}
+</style>
+
 <script>
+{% if is_pro %}
 document.getElementById('sharing-toggle').addEventListener('change', async function() {
     const enabled = this.checked;
-    
     try {
         const response = await fetch('/api/speed-sharing/toggle', {
             method: 'POST',
@@ -131,54 +245,97 @@ document.getElementById('sharing-toggle').addEventListener('change', async funct
             body: JSON.stringify({ enabled })
         });
         const data = await response.json();
-        
         if (data.success) {
-            document.getElementById('sharing-status-text').textContent = 
-                enabled ? 'Sharing Enabled' : 'Sharing Disabled';
-            document.getElementById('sharing-amount').textContent = 
-                enabled ? `Contributing ${data.shared_bandwidth_mbps} Mbps` : 'Enable to contribute';
-            loadPeers();
+            document.getElementById('sharing-status-text').textContent = enabled ? 'Sharing Enabled' : 'Sharing Disabled';
+            document.getElementById('sharing-amount').textContent = enabled ? `Contributing ${data.shared_bandwidth_mbps} Mbps` : 'Enable to contribute';
+            loadStatus();
         }
     } catch (error) {
-        alert('Error toggling speed sharing: ' + error.message);
+        alert('Error: ' + error.message);
         this.checked = !enabled;
     }
 });
 
-async function loadPeers() {
+document.getElementById('generate-invite-btn').addEventListener('click', async function() {
     try {
-        const response = await fetch('/api/speed-sharing/status');
+        const response = await fetch('/api/speed-sharing/generate-invite', { method: 'POST' });
         const data = await response.json();
-        
-        document.getElementById('speed-boost').textContent = `+${data.network_boost} Mbps`;
-        document.getElementById('active-peers').textContent = data.peers.filter(p => p.status === 'active').length;
-        document.getElementById('total-shared').textContent = `${data.total_shared} Mbps`;
-        
-        const peersList = document.getElementById('peers-list');
-        if (data.peers && data.peers.length > 0) {
-            peersList.innerHTML = data.peers.map(peer => `
-                <div class="peer-card ${peer.status}">
-                    <div class="peer-info">
-                        <h3>${peer.device_id}</h3>
-                        <span class="peer-carrier">${peer.carrier}</span>
-                        <span class="peer-status ${peer.status}">${peer.status}</span>
-                    </div>
-                    <div class="peer-stats">
-                        <div class="peer-bandwidth">${peer.shared_bandwidth_mbps.toFixed(1)} Mbps</div>
-                        <div class="peer-contribution">Contributing ${peer.contribution}%</div>
-                    </div>
+        if (data.success) {
+            document.getElementById('invite-code').textContent = data.invite_code;
+            document.getElementById('invite-result').style.display = 'block';
+            loadGuests();
+        } else {
+            alert(data.error || 'Failed to generate invite');
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+});
+
+async function loadGuests() {
+    try {
+        const response = await fetch('/api/speed-sharing/my-invites');
+        const data = await response.json();
+        const list = document.getElementById('guests-list');
+        if (data.guests && data.guests.length > 0) {
+            list.innerHTML = data.guests.map(g => `
+                <div class="guest-card">
+                    <span>${g.username}</span>
+                    <span>Joined ${new Date(g.redeemed_at).toLocaleDateString()}</span>
                 </div>
             `).join('');
         } else {
-            peersList.innerHTML = '<p class="no-peers">No peers connected yet. Enable sharing to connect!</p>';
+            list.innerHTML = '<p class="no-data">No guests yet. Generate an invite code to share!</p>';
         }
     } catch (error) {
-        console.error('Error loading peers:', error);
-        document.getElementById('peers-list').innerHTML = '<p>Error loading peers</p>';
+        console.error('Error loading guests:', error);
     }
 }
 
-loadPeers();
-setInterval(loadPeers, 15000);
+loadGuests();
+{% else %}
+document.getElementById('redeem-btn').addEventListener('click', async function() {
+    const code = document.getElementById('redeem-code').value.trim();
+    if (!code) { alert('Please enter an invite code'); return; }
+    
+    try {
+        const response = await fetch('/api/speed-sharing/redeem-invite', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ code })
+        });
+        const data = await response.json();
+        const result = document.getElementById('redeem-result');
+        result.style.display = 'block';
+        if (data.success) {
+            result.innerHTML = `<div class="alert alert-success">${data.message}</div>`;
+            setTimeout(() => location.reload(), 2000);
+        } else {
+            result.innerHTML = `<div class="alert alert-error">${data.error}</div>`;
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+});
+{% endif %}
+
+async function loadStatus() {
+    try {
+        const response = await fetch('/api/speed-sharing/status');
+        const data = await response.json();
+        document.getElementById('speed-boost').textContent = `+${data.network_boost || 0} Mbps`;
+        document.getElementById('active-peers').textContent = (data.peers || []).length;
+        document.getElementById('total-shared').textContent = `${data.total_shared || 0} Mbps`;
+    } catch (error) {
+        console.error('Error loading status:', error);
+    }
+}
+
+function copyInviteCode() {
+    const code = document.getElementById('invite-code').textContent;
+    navigator.clipboard.writeText(code).then(() => alert('Invite code copied!'));
+}
+
+loadStatus();
 </script>
 {% endblock %}

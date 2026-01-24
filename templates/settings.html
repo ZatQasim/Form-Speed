@@ -105,6 +105,34 @@
         </div>
         
         <div class="settings-section">
+            <h2>Two-Factor Authentication</h2>
+            <div class="settings-card">
+                <div class="setting-row">
+                    <div>
+                        <label>2FA Status</label>
+                        <p class="setting-desc">Add an extra layer of security to your account</p>
+                    </div>
+                    {% if current_user.totp_enabled %}
+                    <span class="status-active">Enabled</span>
+                    {% else %}
+                    <span class="status-inactive">Disabled</span>
+                    {% endif %}
+                </div>
+                {% if current_user.totp_enabled %}
+                <form method="POST" action="{{ url_for('disable_2fa') }}" class="disable-2fa-form">
+                    <p>Enter your 2FA code to disable:</p>
+                    <div class="totp-disable-row">
+                        <input type="text" name="totp_code" pattern="[0-9]{6}" maxlength="6" placeholder="000000" required class="totp-input">
+                        <button type="submit" class="btn btn-outline btn-danger">Disable 2FA</button>
+                    </div>
+                </form>
+                {% else %}
+                <a href="{{ url_for('setup_2fa') }}" class="btn btn-primary">Enable 2FA</a>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="settings-section">
             <h2>Preferences</h2>
             <div class="settings-card">
                 <div class="setting-row">

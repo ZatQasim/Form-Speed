@@ -1,0 +1,20 @@
+{
+  "peers": [
+    {
+      "device_id": "user_2",
+      "username": "sunsetamarat0",
+      "shared_bandwidth_mbps": 5.4,
+      "status": "active",
+      "joined_at": "2026-01-23T17:36:59.571929"
+    }
+  ],
+  "threats": [],
+  "metrics_history": [
+    {
+      "timestamp": "2026-01-23 17:36",
+      "latency_ms": 0.6,
+      "download_mbps": 49.8,
+      "upload_mbps": 104.5
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "2": [
+    {
+      "id": "web-2",
+      "name": "Web Browser",
+      "type": "web",
+      "os": "Browser",
+      "registered_at": "2026-01-23T17:38:46.182098",
+      "last_active": "2026-01-23T17:39:18.691488",
+      "is_current": true
+    }
+  ]
+}

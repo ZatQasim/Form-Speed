@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -8,6 +8,12 @@ import json
 import time
 import subprocess
 import socket
+import pyotp
+import qrcode
+import io
+import base64
+import secrets
+import string
 from datetime import datetime, timedelta
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
@@ -95,48 +101,53 @@ def measure_latency(host="8.8.8.8"):
         return None
 
 def get_network_info():
-    """Get real network information from the system"""
+    """Get real network information - Note: Shows server network, not user's device"""
     import subprocess
     network_info = {
         'interface': 'Unknown',
         'ip_address': 'Unknown',
-        'network_type': 'Unknown',
-        'isp': 'Unknown'
+        'network_type': 'Cloud Server',
+        'isp': 'Unknown',
+        'note': 'Server-side detection'
     }
     
     try:
         result = subprocess.run(['ip', 'route', 'get', '8.8.8.8'], capture_output=True, text=True, timeout=5)
         if result.stdout:
             parts = result.stdout.split()
-            if 'src' in parts:
-                idx = parts.index('src')
-                if idx + 1 < len(parts):
-                    network_info['ip_address'] = parts[idx + 1]
             if 'dev' in parts:
                 idx = parts.index('dev')
                 if idx + 1 < len(parts):
                     network_info['interface'] = parts[idx + 1]
-                    if 'eth' in parts[idx + 1] or 'eno' in parts[idx + 1]:
-                        network_info['network_type'] = 'Ethernet'
-                    elif 'wlan' in parts[idx + 1] or 'wifi' in parts[idx + 1].lower():
-                        network_info['network_type'] = 'WiFi'
-                    else:
-                        network_info['network_type'] = 'Virtual/Cloud'
     except:
         pass
     
     try:
         import urllib.request
-        req = urllib.request.Request('https://ipinfo.io/json', headers={'User-Agent': 'Mozilla/5.0'})
+        req = urllib.request.Request('https://ipapi.co/json/', headers={'User-Agent': 'Form-Network/1.0'})
         with urllib.request.urlopen(req, timeout=5) as response:
             data = json.loads(response.read().decode())
-            network_info['ip_address'] = data.get('ip', network_info['ip_address'])
-            network_info['isp'] = data.get('org', 'Unknown')
+            network_info['ip_address'] = data.get('ip', 'Unknown')
+            org = data.get('org', '')
+            asn_name = data.get('asn', '')
+            network_info['isp'] = org if org else asn_name if asn_name else 'Unknown'
             network_info['city'] = data.get('city', 'Unknown')
             network_info['region'] = data.get('region', 'Unknown')
-            network_info['country'] = data.get('country', 'Unknown')
+            network_info['country'] = data.get('country_name', data.get('country', 'Unknown'))
+            network_info['network_type'] = data.get('org', 'Cloud Server')
     except:
-        pass
+        try:
+            import urllib.request
+            req = urllib.request.Request('https://ipinfo.io/json', headers={'User-Agent': 'Form-Network/1.0'})
+            with urllib.request.urlopen(req, timeout=5) as response:
+                data = json.loads(response.read().decode())
+                network_info['ip_address'] = data.get('ip', 'Unknown')
+                network_info['isp'] = data.get('org', 'Unknown')
+                network_info['city'] = data.get('city', 'Unknown')
+                network_info['region'] = data.get('region', 'Unknown')
+                network_info['country'] = data.get('country', 'Unknown')
+        except:
+            pass
     
     return network_info
 
@@ -178,6 +189,8 @@ class User(UserMixin, db.Model):
     trial_end = db.Column(db.DateTime)
     subscription_status = db.Column(db.String(50), default='inactive')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    totp_secret = db.Column(db.String(32))
+    totp_enabled = db.Column(db.Boolean, default=False)
     
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -274,17 +287,102 @@ def login():
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
+        totp_code = request.form.get('totp_code')
         
         user = User.query.filter_by(email=email).first()
         
         if user and user.check_password(password):
+            if user.totp_enabled:
+                if not totp_code:
+                    session['pending_2fa_user_id'] = user.id
+                    return render_template('verify_2fa.html', email=email)
+                totp = pyotp.TOTP(user.totp_secret)
+                if not totp.verify(totp_code):
+                    flash('Invalid 2FA code', 'error')
+                    return render_template('verify_2fa.html', email=email)
             login_user(user)
+            session.pop('pending_2fa_user_id', None)
             flash('Welcome back!', 'success')
             return redirect(url_for('dashboard'))
         else:
             flash('Invalid email or password', 'error')
     
     return render_template('login.html')
+
+@app.route('/verify-2fa', methods=['POST'])
+def verify_2fa():
+    user_id = session.get('pending_2fa_user_id')
+    if not user_id:
+        return redirect(url_for('login'))
+    
+    user = User.query.get(user_id)
+    totp_code = request.form.get('totp_code')
+    
+    if user and user.totp_enabled:
+        totp = pyotp.TOTP(user.totp_secret)
+        if totp.verify(totp_code):
+            login_user(user)
+            session.pop('pending_2fa_user_id', None)
+            flash('Welcome back!', 'success')
+            return redirect(url_for('dashboard'))
+        else:
+            flash('Invalid 2FA code', 'error')
+            return render_template('verify_2fa.html', email=user.email)
+    
+    return redirect(url_for('login'))
+
+@app.route('/setup-2fa', methods=['GET', 'POST'])
+@login_required
+def setup_2fa():
+    if request.method == 'POST':
+        totp_code = request.form.get('totp_code')
+        secret = session.get('pending_totp_secret')
+        
+        if secret:
+            totp = pyotp.TOTP(secret)
+            if totp.verify(totp_code):
+                current_user.totp_secret = secret
+                current_user.totp_enabled = True
+                db.session.commit()
+                session.pop('pending_totp_secret', None)
+                flash('Two-factor authentication enabled!', 'success')
+                return redirect(url_for('settings_dashboard'))
+            else:
+                flash('Invalid code. Please try again.', 'error')
+    
+    secret = pyotp.random_base32()
+    session['pending_totp_secret'] = secret
+    
+    totp = pyotp.TOTP(secret)
+    provisioning_uri = totp.provisioning_uri(name=current_user.email, issuer_name='Form Network')
+    
+    qr = qrcode.QRCode(version=1, box_size=10, border=5)
+    qr.add_data(provisioning_uri)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color='black', back_color='white')
+    
+    buffer = io.BytesIO()
+    img.save(buffer, format='PNG')
+    qr_code_base64 = base64.b64encode(buffer.getvalue()).decode()
+    
+    return render_template('setup_2fa.html', secret=secret, qr_code=qr_code_base64)
+
+@app.route('/disable-2fa', methods=['POST'])
+@login_required
+def disable_2fa():
+    totp_code = request.form.get('totp_code')
+    
+    if current_user.totp_enabled:
+        totp = pyotp.TOTP(current_user.totp_secret)
+        if totp.verify(totp_code):
+            current_user.totp_enabled = False
+            current_user.totp_secret = None
+            db.session.commit()
+            flash('Two-factor authentication disabled', 'success')
+        else:
+            flash('Invalid code', 'error')
+    
+    return redirect(url_for('settings_dashboard'))
 
 @app.route('/logout')
 @login_required
@@ -658,6 +756,115 @@ def toggle_speed_sharing():
         'enabled': enabled,
         'shared_bandwidth_mbps': shared_amount,
         'message': f'Speed sharing {"enabled" if enabled else "disabled"}'
+    })
+
+def generate_invite_code():
+    """Generate a unique invite code"""
+    chars = string.ascii_uppercase + string.digits
+    return ''.join(secrets.choice(chars) for _ in range(8))
+
+def load_invite_codes():
+    """Load invite codes from file"""
+    try:
+        with open('device_client/cache/invite_codes.json', 'r') as f:
+            return json.load(f)
+    except:
+        return {'codes': [], 'redeemed': []}
+
+def save_invite_codes(data):
+    """Save invite codes to file"""
+    os.makedirs('device_client/cache', exist_ok=True)
+    with open('device_client/cache/invite_codes.json', 'w') as f:
+        json.dump(data, f, indent=2)
+
+@app.route('/api/speed-sharing/generate-invite', methods=['POST'])
+@login_required
+def generate_speed_sharing_invite():
+    if not current_user.has_active_subscription():
+        return jsonify({'error': 'Pro subscription required to generate invites'}), 403
+    
+    code = generate_invite_code()
+    invite_data = load_invite_codes()
+    
+    new_invite = {
+        'code': code,
+        'creator_id': current_user.id,
+        'creator_username': current_user.username,
+        'created_at': datetime.utcnow().isoformat(),
+        'expires_at': (datetime.utcnow() + timedelta(days=7)).isoformat(),
+        'used': False,
+        'used_by': None
+    }
+    
+    invite_data['codes'].append(new_invite)
+    save_invite_codes(invite_data)
+    
+    return jsonify({
+        'success': True,
+        'invite_code': code,
+        'expires_in': '7 days',
+        'share_message': f'Join my Form speed sharing network! Use code: {code}'
+    })
+
+@app.route('/api/speed-sharing/redeem-invite', methods=['POST'])
+@login_required
+def redeem_speed_sharing_invite():
+    data = request.get_json()
+    code = data.get('code', '').upper().strip()
+    
+    if not code:
+        return jsonify({'error': 'Invite code required'}), 400
+    
+    invite_data = load_invite_codes()
+    
+    for invite in invite_data['codes']:
+        if invite['code'] == code and not invite['used']:
+            if datetime.fromisoformat(invite['expires_at']) < datetime.utcnow():
+                return jsonify({'error': 'This invite code has expired'}), 400
+            
+            invite['used'] = True
+            invite['used_by'] = current_user.id
+            invite['redeemed_at'] = datetime.utcnow().isoformat()
+            
+            redeemed = {
+                'user_id': current_user.id,
+                'username': current_user.username,
+                'code': code,
+                'host_id': invite['creator_id'],
+                'host_username': invite['creator_username'],
+                'redeemed_at': datetime.utcnow().isoformat(),
+                'access_until': (datetime.utcnow() + timedelta(days=30)).isoformat()
+            }
+            invite_data['redeemed'].append(redeemed)
+            save_invite_codes(invite_data)
+            
+            update_user_state(current_user.id, {
+                'speed_sharing_guest': True,
+                'speed_sharing_host': invite['creator_username'],
+                'guest_access_until': redeemed['access_until']
+            })
+            
+            return jsonify({
+                'success': True,
+                'message': f"You're now connected to {invite['creator_username']}'s speed sharing network!",
+                'host': invite['creator_username'],
+                'access_until': redeemed['access_until']
+            })
+    
+    return jsonify({'error': 'Invalid or already used invite code'}), 400
+
+@app.route('/api/speed-sharing/my-invites')
+@login_required
+def get_my_invites():
+    invite_data = load_invite_codes()
+    
+    my_invites = [inv for inv in invite_data['codes'] if inv['creator_id'] == current_user.id]
+    my_guests = [r for r in invite_data['redeemed'] if r['host_id'] == current_user.id]
+    
+    return jsonify({
+        'invites': my_invites,
+        'guests': my_guests,
+        'total_guests': len(my_guests)
     })
 
 @app.route('/api/security/status')
