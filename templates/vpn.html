@@ -44,12 +44,16 @@
             <h2>Active Connection</h2>
             <div class="connection-details">
                 <div class="detail-card">
-                    <h4>Server</h4>
-                    <p>{{ user_state.vpn_server.name if user_state.vpn_server else 'N/A' }}</p>
+                    <h4>Server Address</h4>
+                    <p>{{ user_state.vpn_server.ip if user_state.vpn_server else 'N/A' }}</p>
+                </div>
+                <div class="detail-card">
+                    <h4>IPSec ID</h4>
+                    <p>{{ user_state.vpn_server.ipsec_id if user_state.vpn_server else 'N/A' }}</p>
                 </div>
                 <div class="detail-card">
                     <h4>Protocol</h4>
-                    <p>WireGuard</p>
+                    <p>IPSec / WireGuard</p>
                 </div>
                 <div class="detail-card">
                     <h4>Encryption</h4>
