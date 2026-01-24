@@ -57,6 +57,17 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Paste Allowance Menu for Pro Users -->
+            <div class="allowance-section paste-section">
+                <h2>Redeem Allowance</h2>
+                <p>Have an allowance code from another peer? Paste it here to join their network.</p>
+                <div class="redeem-form">
+                    <input type="text" id="allowance-input-pro" placeholder="Enter allowance code (e.g., FORM-SHARE-1-ABC12345)" class="allowance-input">
+                    <button class="btn btn-primary btn-large" id="use-allowance-btn-pro">Use Allowance</button>
+                </div>
+                <div id="redeem-result-pro" class="redeem-result"></div>
+            </div>
             
             <div class="allowance-section">
                 <h2>Generate Allowance</h2>
@@ -279,6 +290,13 @@
     border-radius: var(--radius-md);
     margin-bottom: 0.5rem;
 }
+.paste-section {
+    margin-top: 1rem !important;
+    padding-top: 1rem !important;
+    border-top: none !important;
+    border-bottom: 1px solid var(--border-light);
+    padding-bottom: 2rem;
+}
 </style>
 
 <script>
@@ -319,6 +337,39 @@ document.getElementById('generate-allowance-btn').addEventListener('click', asyn
     }
     this.disabled = false;
     this.textContent = 'Generate Allowance Code';
+});
+
+document.getElementById('use-allowance-btn-pro').addEventListener('click', async function() {
+    const code = document.getElementById('allowance-input-pro').value.trim().toUpperCase();
+    if (!code) { 
+        alert('Please enter an allowance code'); 
+        return; 
+    }
+    
+    this.disabled = true;
+    this.textContent = 'Activating...';
+    
+    try {
+        const response = await fetch('/api/speed-sharing/redeem-invite', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ code })
+        });
+        const data = await response.json();
+        const result = document.getElementById('redeem-result-pro');
+        
+        if (data.success) {
+            result.innerHTML = `<div class="alert alert-success">${data.message}</div>`;
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            result.innerHTML = `<div class="alert alert-error">${data.error}</div>`;
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+    
+    this.disabled = false;
+    this.textContent = 'Use Allowance';
 });
 
 async function loadGuests() {
