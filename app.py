@@ -253,16 +253,23 @@ class User(UserMixin, db.Model):
         user_email = self.email.strip().lower() if self.email else ""
         user_name = self.username.strip().lower() if self.username else ""
         
+        # pro.json is the single source of truth
         if user_email in pro_users or user_name in pro_users:
-            # Force status in case sync hasn't run yet
-            if not self.is_pro:
+            if not self.is_pro or self.subscription_status != 'active':
                 self.is_pro = True
                 self.subscription_status = 'active'
+                if not self.stripe_subscription_id:
+                    self.stripe_subscription_id = "pro_json_override"
+                db.session.commit()
             return True
-        if self.subscription_status == 'active':
-            return True
-        if self.trial_end and self.trial_end > datetime.utcnow():
-            return True
+        
+        # If not in pro.json, they are not pro (unless they have a valid trial, but we follow the prompt's strict rule)
+        if self.is_pro or self.subscription_status == 'active':
+            self.is_pro = False
+            self.subscription_status = 'inactive'
+            self.stripe_subscription_id = None
+            db.session.commit()
+            
         return False
     
     def get_benefits(self):
@@ -555,6 +562,27 @@ def create_checkout_session():
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 
+def save_pro_config(config):
+    with open(PRO_CONFIG_PATH, 'w') as f:
+        json.dump(config, f, indent=2)
+
+def add_user_to_pro_json(email, username):
+    config = load_pro_config()
+    if 'pro_users' not in config:
+        config['pro_users'] = []
+    
+    modified = False
+    if email and email.strip().lower() not in [u.strip().lower() for u in config['pro_users']]:
+        config['pro_users'].append(email.strip())
+        modified = True
+    if username and username.strip().lower() not in [u.strip().lower() for u in config['pro_users']]:
+        config['pro_users'].append(username.strip())
+        modified = True
+    
+    if modified:
+        save_pro_config(config)
+        sync_pro_users()
+
 @app.route('/subscription-success')
 @login_required
 def subscription_success():
@@ -568,6 +596,9 @@ def subscription_success():
             current_user.trial_end = datetime.utcnow() + timedelta(days=7)
             current_user.is_pro = True
             db.session.commit()
+            
+            # Automatically add to pro.json
+            add_user_to_pro_json(current_user.email, current_user.username)
             
             update_user_state(current_user.id, {
                 'security_enabled': True,
