@@ -462,7 +462,15 @@ def security_dashboard():
 @app.route('/dashboard/settings')
 @login_required
 def settings_dashboard():
-    return render_template('settings.html', user=current_user)
+    return render_template('settings.html', user=current_user, user_state=get_user_state(current_user.id), benefits=current_user.get_benefits())
+
+@app.route('/dashboard/cloud')
+@login_required
+def cloud_dashboard():
+    if not current_user.has_active_subscription():
+        flash('Cloud Storage requires a Pro subscription', 'warning')
+        return redirect(url_for('subscribe'))
+    return render_template('cloud.html', user_state=get_user_state(current_user.id))
 
 @app.route('/dashboard/analytics')
 @login_required

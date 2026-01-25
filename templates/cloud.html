@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% block title %}Cloud Storage - Form{% endblock %}
+{% block content %}
+<div class="dashboard">
+    <aside class="sidebar">
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('dashboard') }}">Overview</a>
+            <a href="{{ url_for('vpn_dashboard') }}">VPN</a>
+            <a href="{{ url_for('speed_sharing_dashboard') }}">Speed Sharing</a>
+            <a href="{{ url_for('security_dashboard') }}">Security</a>
+            <a href="{{ url_for('mesh_dashboard') }}">Mesh Network</a>
+            <a href="{{ url_for('tools_dashboard') }}">Tools</a>
+            <a href="{{ url_for('cloud_dashboard') }}" class="active">Cloud</a>
+            <a href="{{ url_for('analytics_dashboard') }}">Analytics</a>
+            <a href="{{ url_for('password_manager') }}">Passwords</a>
+            <a href="{{ url_for('history_dashboard') }}">History</a>
+            <a href="{{ url_for('devices_dashboard') }}">Devices</a>
+            <a href="{{ url_for('account_dashboard') }}">Account</a>
+            <a href="{{ url_for('settings_dashboard') }}">Settings</a>
+        </nav>
+    </aside>
+    <main class="dashboard-content">
+        <h1>Cloud Storage</h1>
+        <p class="page-description">Securely backup your data, media, emails, and information to your Form account.</p>
+        
+        <div class="cloud-grid">
+            <div class="card">
+                <h3>Backups</h3>
+                <div class="backup-stats">
+                    <div class="stat">
+                        <span class="label">Storage Used</span>
+                        <span class="value">0 GB / 100 GB</span>
+                    </div>
+                </div>
+                <button class="btn btn-primary" style="margin-top: 1rem;">New Backup</button>
+            </div>
+            
+            <div class="card">
+                <h3>Media Vault</h3>
+                <p>Encrypted storage for photos and videos.</p>
+                <div class="empty-state">No media files uploaded.</div>
+                <button class="btn btn-outline" style="margin-top: 1rem;">Upload Media</button>
+            </div>
+
+            <div class="card">
+                <h3>Email Archive</h3>
+                <p>Securely store and index your important communications.</p>
+                <button class="btn btn-outline" style="margin-top: 1rem;">Connect Email</button>
+            </div>
+        </div>
+    </main>
+</div>
+<style>
+.cloud-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+.backup-stats {
+    background: var(--bg-secondary);
+    padding: 1rem;
+    border-radius: 8px;
+    margin: 1rem 0;
+}
+.stat {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.stat .label { color: var(--text-secondary); }
+.stat .value { font-weight: 600; color: var(--primary-color); }
+</style>
+{% endblock %}
