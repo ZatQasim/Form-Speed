@@ -1,5 +1,7 @@
 {
-  "pro_users": [],
+  "pro_users": [
+    "qasimthemuslimdiscord@gmail.com"
+  ],
   "subscription": {
     "price_usd": 5,
     "trial_days": 7,
