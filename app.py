@@ -383,7 +383,7 @@ def delete_account():
 
 @app.route('/logout')
 @login_required
-def logout_route(): logout_user(); flash('You have been logged out', 'info'); return redirect(url_for('index'))
+def logout(): logout_user(); flash('You have been logged out', 'info'); return redirect(url_for('index'))
 
 @app.route('/subscribe')
 @login_required
@@ -439,10 +439,45 @@ def vpn_dashboard():
     if not current_user.has_active_subscription(): flash('VPN requires Pro', 'warning'); return redirect(url_for('subscribe'))
     return render_template('vpn.html', user_state=get_user_state(current_user.id), servers=VPN_SERVERS)
 
+@app.route('/dashboard/speed-sharing')
+@login_required
+def speed_sharing_dashboard():
+    metrics = get_real_network_metrics()
+    user_state = get_user_state(current_user.id)
+    return render_template('speed_sharing.html', 
+                      metrics=metrics, 
+                      is_pro=current_user.has_active_subscription(),
+                      user_state=user_state)
+
+@app.route('/dashboard/security')
+@login_required
+def security_dashboard():
+    if not current_user.has_active_subscription():
+        flash('Security features require a Pro subscription', 'warning')
+        return redirect(url_for('subscribe'))
+    user_state = get_user_state(current_user.id)
+    return render_template('security.html', user_state=user_state)
+
 @app.route('/dashboard/settings')
 @login_required
 def settings_dashboard():
     return render_template('settings.html', user=current_user)
+
+@app.route('/dashboard/analytics')
+@login_required
+def analytics_dashboard():
+    if not current_user.has_active_subscription():
+        flash('Advanced Analytics require a Pro subscription', 'warning')
+        return redirect(url_for('subscribe'))
+    return render_template('analytics.html')
+
+@app.route('/dashboard/mesh')
+@login_required
+def mesh_dashboard():
+    if not current_user.has_active_subscription():
+        flash('Mesh Networking requires a Pro subscription', 'warning')
+        return redirect(url_for('subscribe'))
+    return render_template('mesh.html')
 
 if __name__ == '__main__':
     with app.app_context(): db.create_all()
