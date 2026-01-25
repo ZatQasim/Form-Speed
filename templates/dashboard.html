@@ -6,12 +6,14 @@
 <div class="dashboard">
     <aside class="sidebar">
         <nav class="sidebar-nav">
-            <a href="{{ url_for('dashboard') }}" class="active">Dashboard</a>
+            <a href="{{ url_for('dashboard') }}" class="active">Overview</a>
             <a href="{{ url_for('vpn_dashboard') }}" {% if not is_pro %}class="locked"{% endif %}>VPN</a>
             <a href="{{ url_for('speed_sharing_dashboard') }}" {% if not is_pro %}class="locked"{% endif %}>Speed Sharing</a>
             <a href="{{ url_for('security_dashboard') }}" {% if not is_pro %}class="locked"{% endif %}>Security</a>
+            <a href="{{ url_for('mesh_dashboard') }}" {% if not is_pro %}class="locked"{% endif %}>Mesh Network</a>
             <a href="{{ url_for('tools_dashboard') }}" {% if not is_pro %}class="locked"{% endif %}>Tools</a>
             <a href="{{ url_for('analytics_dashboard') }}">Analytics</a>
+            <a href="{{ url_for('diagnostics_dashboard') }}">Diagnostics</a>
             <a href="{{ url_for('history_dashboard') }}" {% if not is_pro %}class="locked"{% endif %}>History</a>
             <a href="{{ url_for('devices_dashboard') }}" {% if not is_pro %}class="locked"{% endif %}>Devices</a>
             <a href="{{ url_for('account_dashboard') }}">Account</a>

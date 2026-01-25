@@ -1,13 +1,31 @@
 {% extends 'base.html' %}
 
-{% block content %}
-<div class="container">
-    <div class="dashboard-header">
-        <h1>Network Tools</h1>
-        <p>Advanced diagnostic and scanning tools for network optimization.</p>
-    </div>
+{% block title %}Network Tools - Form{% endblock %}
 
-    <div class="tools-grid">
+{% block content %}
+<div class="dashboard">
+    <aside class="sidebar">
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('dashboard') }}">Overview</a>
+            <a href="{{ url_for('vpn_dashboard') }}">VPN</a>
+            <a href="{{ url_for('speed_sharing_dashboard') }}">Speed Sharing</a>
+            <a href="{{ url_for('security_dashboard') }}">Security</a>
+            <a href="{{ url_for('mesh_dashboard') }}">Mesh Network</a>
+            <a href="{{ url_for('tools_dashboard') }}" class="active">Tools</a>
+            <a href="{{ url_for('analytics_dashboard') }}">Analytics</a>
+            <a href="{{ url_for('diagnostics_dashboard') }}">Diagnostics</a>
+            <a href="{{ url_for('history_dashboard') }}">History</a>
+            <a href="{{ url_for('devices_dashboard') }}">Devices</a>
+            <a href="{{ url_for('account_dashboard') }}">Account</a>
+            <a href="{{ url_for('settings_dashboard') }}">Settings</a>
+        </nav>
+    </aside>
+
+    <main class="dashboard-content">
+        <h1>Network Tools</h1>
+        <p class="page-description">Advanced diagnostic and scanning tools for network optimization.</p>
+
+        <div class="tools-grid">
         <div class="tool-card">
             <div class="tool-icon">📡</div>
             <h3>WIFI Analyser</h3>
@@ -49,7 +67,7 @@
             <p>Discover and map devices on your local network.</p>
             <button class="btn btn-primary btn-sm">Scan Network</button>
         </div>
-    </div>
+    </main>
 </div>
 
 <style>

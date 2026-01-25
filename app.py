@@ -469,7 +469,7 @@ def analytics_dashboard():
     if not current_user.has_active_subscription():
         flash('Advanced Analytics require a Pro subscription', 'warning')
         return redirect(url_for('subscribe'))
-    return render_template('analytics.html')
+    return render_template('analytics.html', metrics=get_real_network_metrics(), user_state=get_user_state(current_user.id), history=[])
 
 @app.route('/dashboard/mesh')
 @login_required
@@ -477,7 +477,39 @@ def mesh_dashboard():
     if not current_user.has_active_subscription():
         flash('Mesh Networking requires a Pro subscription', 'warning')
         return redirect(url_for('subscribe'))
-    return render_template('mesh.html')
+    return render_template('mesh.html', user_state=get_user_state(current_user.id))
+
+@app.route('/dashboard/diagnostics')
+@login_required
+def diagnostics_dashboard():
+    return render_template('diagnostics.html', metrics=get_real_network_metrics(), user_state=get_user_state(current_user.id))
+
+@app.route('/dashboard/history')
+@login_required
+def history_dashboard():
+    return render_template('history.html', user_state=get_user_state(current_user.id), history=[])
+
+@app.route('/dashboard/devices')
+@login_required
+def devices_dashboard():
+    return render_template('devices.html', user_state=get_user_state(current_user.id), devices=[])
+
+@app.route('/dashboard/account')
+@login_required
+def account_dashboard():
+    subscription = {
+        'is_pro': current_user.has_active_subscription(),
+        'created_at': current_user.created_at.isoformat() if current_user.created_at else None,
+        'price': 5,
+        'is_whitelisted': current_user.stripe_subscription_id == "pro_json_override",
+        'trial_end': current_user.trial_end.isoformat() if current_user.trial_end else None
+    }
+    return render_template('account.html', user=current_user, subscription=subscription)
+
+@app.route('/api/metrics')
+@login_required
+def get_metrics_api():
+    return jsonify(get_real_network_metrics())
 
 @app.route('/dashboard/tools')
 @login_required
