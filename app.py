@@ -241,9 +241,6 @@ class User(UserMixin, db.Model):
     totp_secret = db.Column(db.String(32))
     totp_enabled = db.Column(db.Boolean, default=False)
 
-    def __init__(self, **kwargs):
-        super(User, self).__init__(**kwargs)
-
     def set_password(self, password): self.password_hash = generate_password_hash(password)
     def check_password(self, password): return check_password_hash(self.password_hash, password)
     def has_active_subscription(self):
