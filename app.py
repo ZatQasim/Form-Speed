@@ -479,6 +479,15 @@ def mesh_dashboard():
         return redirect(url_for('subscribe'))
     return render_template('mesh.html')
 
+@app.route('/dashboard/tools')
+@login_required
+def tools_dashboard():
+    if not current_user.has_active_subscription():
+        flash('Advanced tools require a Pro subscription', 'warning')
+        return redirect(url_for('subscribe'))
+    return render_template('tools.html', user_state=get_user_state(current_user.id))
+
 if __name__ == '__main__':
-    with app.app_context(): db.create_all()
+    with app.app_context():
+        db.create_all()
     app.run(host='0.0.0.0', port=5000)

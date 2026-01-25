@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="dashboard-header">
+        <h1>Network Tools</h1>
+        <p>Advanced diagnostic and scanning tools for network optimization.</p>
+    </div>
+
+    <div class="tools-grid">
+        <div class="tool-card">
+            <div class="tool-icon">📡</div>
+            <h3>WIFI Analyser</h3>
+            <p>Analyze nearby WiFi signals, channel congestion, and signal strength.</p>
+            <button class="btn btn-primary btn-sm">Start Analysis</button>
+        </div>
+
+        <div class="tool-card">
+            <div class="tool-icon">🔍</div>
+            <h3>Port Scanner</h3>
+            <p>Scan a specific target for open ports and services.</p>
+            <button class="btn btn-primary btn-sm">Scan Port</button>
+        </div>
+
+        <div class="tool-card">
+            <div class="tool-icon">🛰️</div>
+            <h3>Multi-Port Scanner</h3>
+            <p>Perform a comprehensive scan across a range of ports.</p>
+            <button class="btn btn-primary btn-sm">Full Scan</button>
+        </div>
+
+        <div class="tool-card">
+            <div class="tool-icon">🆔</div>
+            <h3>Whois Lookup</h3>
+            <p>Retrieve registration information for domains and IP addresses.</p>
+            <button class="btn btn-primary btn-sm">Lookup</button>
+        </div>
+
+        <div class="tool-card">
+            <div class="tool-icon">🛡️</div>
+            <h3>DNS Certificate Scanner</h3>
+            <p>Verify SSL/TLS certificates and DNS record integrity.</p>
+            <button class="btn btn-primary btn-sm">Scan DNS</button>
+        </div>
+
+        <div class="tool-card">
+            <div class="tool-icon">🌐</div>
+            <h3>WLAN/LAN Scanner</h3>
+            <p>Discover and map devices on your local network.</p>
+            <button class="btn btn-primary btn-sm">Scan Network</button>
+        </div>
+    </div>
+</div>
+
+<style>
+.tools-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    margin-top: 30px;
+}
+
+.tool-card {
+    background: var(--card-bg, #fff);
+    border: 1px solid var(--border-color, #eee);
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+    transition: transform 0.2s;
+}
+
+.tool-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+}
+
+.tool-icon {
+    font-size: 40px;
+    margin-bottom: 15px;
+}
+
+.tool-card h3 {
+    margin-bottom: 10px;
+    color: var(--text-color, #333);
+}
+
+.tool-card p {
+    color: var(--text-muted, #666);
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+    min-height: 40px;
+}
+</style>
+{% endblock %}
