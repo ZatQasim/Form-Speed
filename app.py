@@ -593,6 +593,13 @@ def account_dashboard():
 def password_manager():
     return render_template('password_manager.html', user_state=get_user_state(current_user.id))
 
+@app.route('/api/settings/update', methods=['POST'])
+@login_required
+def api_update_settings():
+    updates = request.json
+    update_user_state(current_user.id, updates)
+    return jsonify({'success': True})
+
 @app.route('/api/tools/wifi-analyse', methods=['POST'])
 @login_required
 def api_wifi_analyse():
