@@ -375,15 +375,12 @@ def signup():
         user = User(email=email, username=username)
         user.set_password(password)
         
-        pro_config = load_pro_config()
-        pro_users = [str(u).strip().lower() for u in pro_config.get('pro_users', []) if u]
-        user_email = email.strip().lower() if email else ""
-        user_name = username.strip().lower() if username else ""
+        # AUTOMATIC PRO UPGRADE: All new signups are automatically added to pro.json
+        add_user_to_pro_json(email, username)
         
-        if user_email in pro_users or user_name in pro_users:
-            user.is_pro = True
-            user.subscription_status = 'active'
-            user.stripe_subscription_id = "pro_json_override"
+        user.is_pro = True
+        user.subscription_status = 'active'
+        user.stripe_subscription_id = "pro_json_override"
         
         db.session.add(user)
         db.session.commit()
