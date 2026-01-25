@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block title %}Port Scanner - Form{% endblock %}
+{% block content %}
+<div class="dashboard">
+    <aside class="sidebar">
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('dashboard') }}">Overview</a>
+            <a href="{{ url_for('vpn_dashboard') }}">VPN</a>
+            <a href="{{ url_for('speed_sharing_dashboard') }}">Speed Sharing</a>
+            <a href="{{ url_for('security_dashboard') }}">Security</a>
+            <a href="{{ url_for('mesh_dashboard') }}">Mesh Network</a>
+            <a href="{{ url_for('tools_dashboard') }}" class="active">Tools</a>
+            <a href="{{ url_for('analytics_dashboard') }}">Analytics</a>
+            <a href="{{ url_for('history_dashboard') }}">History</a>
+            <a href="{{ url_for('devices_dashboard') }}">Devices</a>
+            <a href="{{ url_for('account_dashboard') }}">Account</a>
+            <a href="{{ url_for('settings_dashboard') }}">Settings</a>
+        </nav>
+    </aside>
+    <main class="dashboard-content">
+        <div class="tool-page-header">
+            <a href="{{ url_for('tools_dashboard') }}" class="back-link">← Back to Tools</a>
+            <h1>Port Scanner</h1>
+        </div>
+        <div class="card">
+            <p>Scan target for open ports.</p>
+            <div class="input-group">
+                <input type="text" id="target" placeholder="127.0.0.1" class="form-control">
+                <button class="btn btn-primary" onclick="runPortScan()">Start Scan</button>
+            </div>
+            <div id="results" class="results-area"></div>
+        </div>
+    </main>
+</div>
+<script>
+async function runPortScan() {
+    const target = document.getElementById('target').value || '127.0.0.1';
+    const res = await fetch('/api/tools/port-scan', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ target })
+    });
+    const data = await res.json();
+    document.getElementById('results').innerHTML = `Open ports on ${data.target}: ${data.open_ports.join(', ')}`;
+}
+</script>
+{% endblock %}

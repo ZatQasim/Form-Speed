@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}WiFi Analyser - Form{% endblock %}
+{% block content %}
+<div class="dashboard">
+    <aside class="sidebar">
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('dashboard') }}">Overview</a>
+            <a href="{{ url_for('vpn_dashboard') }}">VPN</a>
+            <a href="{{ url_for('speed_sharing_dashboard') }}">Speed Sharing</a>
+            <a href="{{ url_for('security_dashboard') }}">Security</a>
+            <a href="{{ url_for('mesh_dashboard') }}">Mesh Network</a>
+            <a href="{{ url_for('tools_dashboard') }}" class="active">Tools</a>
+            <a href="{{ url_for('analytics_dashboard') }}">Analytics</a>
+            <a href="{{ url_for('history_dashboard') }}">History</a>
+            <a href="{{ url_for('devices_dashboard') }}">Devices</a>
+            <a href="{{ url_for('account_dashboard') }}">Account</a>
+            <a href="{{ url_for('settings_dashboard') }}">Settings</a>
+        </nav>
+    </aside>
+    <main class="dashboard-content">
+        <div class="tool-page-header">
+            <a href="{{ url_for('tools_dashboard') }}" class="back-link">← Back to Tools</a>
+            <h1>WiFi Analyser</h1>
+        </div>
+        <div class="card">
+            <p>Analyze nearby WiFi signals and channel congestion.</p>
+            <button class="btn btn-primary" onclick="runWifiAnalyse()">Start Analysis</button>
+            <div id="results" class="results-area"></div>
+        </div>
+    </main>
+</div>
+<script>
+async function runWifiAnalyse() {
+    const res = await fetch('/api/tools/wifi-analyse', {method: 'POST'});
+    const data = await res.json();
+    document.getElementById('results').innerHTML = data.networks.map(n => `
+        <div class="result-item">
+            <strong>${n.ssid}</strong>: ${n.signal}dBm | Ch: ${n.channel} | ${n.security}
+        </div>
+    `).join('');
+}
+</script>
+<style>
+.tool-page-header { margin-bottom: 20px; }
+.back-link { display: block; margin-bottom: 10px; color: #1a73e8; text-decoration: none; }
+.results-area { margin-top: 20px; }
+.result-item { padding: 10px; border-bottom: 1px solid #eee; }
+</style>
+{% endblock %}

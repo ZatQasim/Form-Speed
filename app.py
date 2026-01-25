@@ -483,11 +483,34 @@ def mesh_dashboard():
 @app.route('/dashboard/tools')
 @login_required
 def tools_dashboard():
-    google_maps_key = os.environ.get('GOOGLE_MAPS_KEY', 'YOUR_MOCK_KEY')
     return render_template('tools.html', 
                          metrics=get_real_network_metrics(), 
-                         user_state=get_user_state(current_user.id),
-                         google_maps_key=google_maps_key)
+                         user_state=get_user_state(current_user.id))
+
+@app.route('/dashboard/tools/wifi-analyser')
+@login_required
+def tool_wifi_analyser():
+    return render_template('tools/wifi_analyser.html', user_state=get_user_state(current_user.id))
+
+@app.route('/dashboard/tools/port-scanner')
+@login_required
+def tool_port_scanner():
+    return render_template('tools/port_scanner.html', user_state=get_user_state(current_user.id))
+
+@app.route('/dashboard/tools/cert-scanner')
+@login_required
+def tool_cert_scanner():
+    return render_template('tools/cert_scanner.html', user_state=get_user_state(current_user.id))
+
+@app.route('/dashboard/tools/traceroute-map')
+@login_required
+def tool_traceroute_map():
+    return render_template('tools/traceroute_map.html', user_state=get_user_state(current_user.id))
+
+@app.route('/dashboard/tools/packet-detector')
+@login_required
+def tool_packet_detector():
+    return render_template('tools/packet_detector.html', user_state=get_user_state(current_user.id))
 
 @app.route('/dashboard/diagnostics')
 @login_required

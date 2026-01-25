@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block title %}Certificate Scanner - Form{% endblock %}
+{% block content %}
+<div class="dashboard">
+    <aside class="sidebar">
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('dashboard') }}">Overview</a>
+            <a href="{{ url_for('vpn_dashboard') }}">VPN</a>
+            <a href="{{ url_for('speed_sharing_dashboard') }}">Speed Sharing</a>
+            <a href="{{ url_for('security_dashboard') }}">Security</a>
+            <a href="{{ url_for('mesh_dashboard') }}">Mesh Network</a>
+            <a href="{{ url_for('tools_dashboard') }}" class="active">Tools</a>
+            <a href="{{ url_for('analytics_dashboard') }}">Analytics</a>
+            <a href="{{ url_for('history_dashboard') }}">History</a>
+            <a href="{{ url_for('devices_dashboard') }}">Devices</a>
+            <a href="{{ url_for('account_dashboard') }}">Account</a>
+            <a href="{{ url_for('settings_dashboard') }}">Settings</a>
+        </nav>
+    </aside>
+    <main class="dashboard-content">
+        <div class="tool-page-header">
+            <a href="{{ url_for('tools_dashboard') }}" class="back-link">← Back to Tools</a>
+            <h1>Certificate Scanner</h1>
+        </div>
+        <div class="card">
+            <p>Verify SSL/TLS certificate integrity.</p>
+            <div class="input-group">
+                <input type="text" id="target" placeholder="google.com" class="form-control">
+                <button class="btn btn-primary" onclick="runCertScan()">Start Scan</button>
+            </div>
+            <div id="results" class="results-area"></div>
+        </div>
+    </main>
+</div>
+<script>
+async function runCertScan() {
+    const target = document.getElementById('target').value || 'google.com';
+    const res = await fetch('/api/tools/scan-certs', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ target })
+    });
+    const data = await res.json();
+    document.getElementById('results').innerHTML = `
+        <div class="result-card">
+            <p><strong>Domain:</strong> ${data.domain}</p>
+            <p><strong>Issuer:</strong> ${data.issuer}</p>
+            <p><strong>Status:</strong> ${data.status}</p>
+        </div>
+    `;
+}
+</script>
+{% endblock %}
