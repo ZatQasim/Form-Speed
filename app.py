@@ -255,8 +255,138 @@ class User(UserMixin, db.Model):
         return False
     def get_benefits(self):
         if self.has_active_subscription():
-            return {'vpn_access': True, 'speed_sharing': True, 'mesh_network': True, 'priority_routing': True, 'advanced_analytics': True, 'security_protection': True, 'route_optimization': True}
-        return {'vpn_access': False, 'speed_sharing': False, 'mesh_network': False, 'priority_routing': False, 'advanced_analytics': False, 'security_protection': False, 'route_optimization': False}
+            return {
+                'vpn_access': True, 
+                'speed_sharing': True, 
+                'mesh_network': True, 
+                'priority_routing': True, 
+                'advanced_analytics': True, 
+                'security_protection': True, 
+                'route_optimization': True,
+                'cloud_storage': True,
+                'password_manager': True
+            }
+        return {
+            'vpn_access': False, 
+            'speed_sharing': False, 
+            'mesh_network': False, 
+            'priority_routing': False, 
+            'advanced_analytics': False, 
+            'security_protection': False, 
+            'route_optimization': False,
+            'cloud_storage': False,
+            'password_manager': False
+        }
+
+class CloudFile(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    filename = db.Column(db.String(255), nullable=False)
+    original_name = db.Column(db.String(255), nullable=False)
+    file_type = db.Column(db.String(50)) # 'media', 'data', 'backup'
+    mime_type = db.Column(db.String(100))
+    file_size = db.Column(db.Integer) # in bytes
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class PasswordEntry(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    service_name = db.Column(db.String(100), nullable=False)
+    username_email = db.Column(db.String(150))
+    encrypted_password = db.Column(db.Text, nullable=False)
+    category = db.Column(db.String(50)) # 'password', 'token', 'information'
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+@app.route('/api/cloud/upload', methods=['POST'])
+@login_required
+def cloud_upload():
+    if 'file' not in request.files:
+        return jsonify({'success': False, 'error': 'No file part'}), 400
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'success': False, 'error': 'No selected file'}), 400
+    
+    file_type = request.form.get('type', 'data')
+    
+    upload_folder = os.path.join('storage', str(current_user.id))
+    os.makedirs(upload_folder, exist_ok=True)
+    
+    secure_name = secrets.token_hex(16) + os.path.splitext(file.filename)[1]
+    file_path = os.path.join(upload_folder, secure_name)
+    file.save(file_path)
+    
+    new_file = CloudFile(
+        user_id=current_user.id,
+        filename=secure_name,
+        original_name=file.filename,
+        file_type=file_type,
+        mime_type=file.content_type,
+        file_size=os.path.getsize(file_path)
+    )
+    db.session.add(new_file)
+    db.session.commit()
+    
+    return jsonify({'success': True, 'message': 'File uploaded successfully'})
+
+@app.route('/api/cloud/files')
+@login_required
+def get_cloud_files():
+    files = CloudFile.query.filter_by(user_id=current_user.id).order_by(CloudFile.created_at.desc()).all()
+    return jsonify({
+        'success': True,
+        'files': [{
+            'id': f.id,
+            'name': f.original_name,
+            'type': f.file_type,
+            'size': f.file_size,
+            'created_at': f.created_at.isoformat()
+        } for f in files]
+    })
+
+@app.route('/api/cloud/delete/<int:file_id>', methods=['DELETE'])
+@login_required
+def delete_cloud_file(file_id):
+    file_entry = CloudFile.query.filter_by(id=file_id, user_id=current_user.id).first()
+    if not file_entry:
+        return jsonify({'success': False, 'error': 'File not found'}), 404
+    
+    file_path = os.path.join('storage', str(current_user.id), file_entry.filename)
+    if os.path.exists(file_path):
+        os.remove(file_path)
+    
+    db.session.delete(file_entry)
+    db.session.commit()
+    return jsonify({'success': True})
+
+@app.route('/api/passwords/add', methods=['POST'])
+@login_required
+def add_password():
+    data = request.json
+    new_entry = PasswordEntry(
+        user_id=current_user.id,
+        service_name=data.get('service'),
+        username_email=data.get('username'),
+        encrypted_password=data.get('password'), # In a real app, encrypt this!
+        category=data.get('category', 'password')
+    )
+    db.session.add(new_entry)
+    db.session.commit()
+    return jsonify({'success': True})
+
+@app.route('/api/passwords/list')
+@login_required
+def list_passwords():
+    entries = PasswordEntry.query.filter_by(user_id=current_user.id).all()
+    return jsonify({
+        'success': True,
+        'passwords': [{
+            'id': e.id,
+            'service': e.service_name,
+            'username': e.username_email,
+            'password': e.encrypted_password,
+            'category': e.category
+        } for e in entries]
+    })
 
 @login_manager.user_loader
 def load_user(user_id): return db.session.get(User, int(user_id))

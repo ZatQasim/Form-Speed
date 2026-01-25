@@ -21,54 +21,121 @@
     </aside>
     <main class="dashboard-content">
         <h1>Cloud Storage</h1>
-        <p class="page-description">Securely backup your data, media, emails, and information to your Form account.</p>
+        <p class="page-description">Securely backup your media and manage your data.</p>
         
-        <div class="cloud-grid">
-            <div class="card">
-                <h3>Backups</h3>
-                <div class="backup-stats">
-                    <div class="stat">
-                        <span class="label">Storage Used</span>
-                        <span class="value">0 GB / 100 GB</span>
-                    </div>
-                </div>
-                <button class="btn btn-primary" style="margin-top: 1rem;">New Backup</button>
-            </div>
-            
-            <div class="card">
-                <h3>Media Vault</h3>
-                <p>Encrypted storage for photos and videos.</p>
-                <div class="empty-state">No media files uploaded.</div>
-                <button class="btn btn-outline" style="margin-top: 1rem;">Upload Media</button>
-            </div>
+        <div class="cloud-actions">
+            <input type="file" id="cloud-upload-input" style="display: none;">
+            <button class="btn btn-primary" onclick="document.getElementById('cloud-upload-input').click()">Upload File</button>
+            <select id="filter-type" class="btn btn-outline" onchange="loadFiles()">
+                <option value="all">All Files</option>
+                <option value="media">Media</option>
+                <option value="data">Data</option>
+                <option value="backup">Backup</option>
+            </select>
+        </div>
 
-            <div class="card">
-                <h3>Email Archive</h3>
-                <p>Securely store and index your important communications.</p>
-                <button class="btn btn-outline" style="margin-top: 1rem;">Connect Email</button>
-            </div>
+        <div class="cloud-grid" id="file-list">
+            <!-- Files will be loaded here -->
         </div>
     </main>
 </div>
+
 <style>
+.cloud-actions {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
 .cloud-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 1.5rem;
-    margin-top: 2rem;
 }
-.backup-stats {
+.file-card {
     background: var(--bg-secondary);
+    border-radius: 12px;
     padding: 1rem;
-    border-radius: 8px;
-    margin: 1rem 0;
+    text-align: center;
+    position: relative;
+    border: 1px solid var(--border-light);
 }
-.stat {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+.file-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+.file-name { 
+    font-weight: 600; 
+    white-space: nowrap; 
+    overflow: hidden; 
+    text-overflow: ellipsis;
+    margin-bottom: 0.25rem;
 }
-.stat .label { color: var(--text-secondary); }
-.stat .value { font-weight: 600; color: var(--primary-color); }
+.file-info { font-size: 0.8rem; color: var(--text-secondary); }
+.delete-btn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: none;
+    border: none;
+    color: #ff4d4d;
+    cursor: pointer;
+    font-size: 1.2rem;
+}
 </style>
+
+<script>
+async function loadFiles() {
+    const response = await fetch('/api/cloud/files');
+    const data = await response.json();
+    const list = document.getElementById('file-list');
+    const filter = document.getElementById('filter-type').value;
+    
+    list.innerHTML = '';
+    
+    data.files.filter(f => filter === 'all' || f.type === filter).forEach(file => {
+        const card = document.createElement('div');
+        card.className = 'file-card';
+        const icon = file.type === 'media' ? '🖼️' : (file.type === 'backup' ? '📦' : '📄');
+        card.innerHTML = `
+            <button class="delete-btn" onclick="deleteFile(${file.id})">&times;</button>
+            <div class="file-icon">${icon}</div>
+            <div class="file-name">${file.name}</div>
+            <div class="file-info">${(file.size / 1024 / 1024).toFixed(2)} MB</div>
+        `;
+        list.appendChild(card);
+    });
+}
+
+async function deleteFile(id) {
+    if(!confirm('Delete this file?')) return;
+    await fetch(`/api/cloud/delete/${id}`, { method: 'DELETE' });
+    loadFiles();
+}
+
+document.getElementById('cloud-upload-input').onchange = async function(e) {
+    const file = e.target.files[0];
+    if(!file) return;
+    
+    const type = file.type.startsWith('image/') || file.type.startsWith('video/') ? 'media' : 'data';
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('type', type);
+    
+    const btn = e.target.previousElementSibling;
+    btn.textContent = 'Uploading...';
+    btn.disabled = true;
+    
+    try {
+        await fetch('/api/cloud/upload', {
+            method: 'POST',
+            body: formData
+        });
+        loadFiles();
+    } catch (err) {
+        alert('Upload failed');
+    } finally {
+        btn.textContent = 'Upload File';
+        btn.disabled = false;
+    }
+};
+
+loadFiles();
+</script>
 {% endblock %}
