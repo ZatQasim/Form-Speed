@@ -512,6 +512,55 @@ def tool_traceroute_map():
 def tool_packet_detector():
     return render_template('tools/packet_detector.html', user_state=get_user_state(current_user.id))
 
+@app.route('/api/speed-sharing/toggle', methods=['POST'])
+@login_required
+def api_speed_sharing_toggle():
+    enabled = request.json.get('enabled', False)
+    update_user_state(current_user.id, {'speed_sharing_enabled': enabled})
+    return jsonify({'success': True})
+
+@app.route('/api/speed-sharing/generate-invite', methods=['POST'])
+@login_required
+def api_generate_invite():
+    if not current_user.has_active_subscription():
+        return jsonify({'success': False, 'error': 'Pro subscription required'}), 403
+    invite_code = f"FORM-SHARE-{current_user.id}-{secrets.token_hex(4).upper()}"
+    return jsonify({'success': True, 'invite_code': invite_code})
+
+@app.route('/api/speed-sharing/redeem-invite', methods=['POST'])
+@login_required
+def api_redeem_invite():
+    code = request.json.get('code')
+    if not code:
+        return jsonify({'success': False, 'error': 'Code required'}), 400
+    update_user_state(current_user.id, {
+        'speed_sharing_guest': True,
+        'speed_sharing_host': 'Peer-Form-User',
+        'guest_access_until': (datetime.utcnow() + timedelta(days=30)).isoformat()
+    })
+    return jsonify({'success': True, 'message': 'Allowance redeemed successfully!'})
+
+@app.route('/api/speed-sharing/my-invites')
+@login_required
+def api_my_invites():
+    return jsonify({'success': True, 'guests': []})
+
+@app.route('/api/metrics')
+@login_required
+def api_metrics():
+    return jsonify(get_real_network_metrics())
+
+@app.route('/api/security/status')
+@login_required
+def api_security_status():
+    return jsonify({'status': 'protected', 'threats_blocked': 12})
+
+@app.route('/api/vpn/status')
+@login_required
+def api_vpn_status():
+    state = get_user_state(current_user.id)
+    return jsonify({'enabled': state.get('vpn_enabled', False), 'server': state.get('vpn_server')})
+
 @app.route('/dashboard/diagnostics')
 @login_required
 def diagnostics_dashboard():
@@ -539,65 +588,23 @@ def account_dashboard():
     }
     return render_template('account.html', user=current_user, subscription=subscription)
 
+@app.route('/dashboard/password-manager')
+@login_required
+def password_manager():
+    return render_template('password_manager.html', user_state=get_user_state(current_user.id))
+
 @app.route('/api/tools/wifi-analyse', methods=['POST'])
 @login_required
 def api_wifi_analyse():
-    # Mock data for WiFi analysis
-    return jsonify({
-        'success': True,
-        'networks': [
-            {'ssid': 'Home-5G', 'signal': -45, 'channel': 36, 'security': 'WPA2'},
-            {'ssid': 'Neighbor-WiFi', 'signal': -72, 'channel': 1, 'security': 'WPA2'},
-            {'ssid': 'Public-Hotspot', 'signal': -85, 'channel': 6, 'security': 'Open'}
-        ]
-    })
-
-@app.route('/api/tools/scan-certs', methods=['POST'])
-@login_required
-def api_scan_certs():
-    target = request.json.get('target', 'google.com')
-    # Mock cert data
-    return jsonify({
-        'success': True,
-        'domain': target,
-        'issuer': 'Google Trust Services LLC',
-        'expiry': '2026-05-12',
-        'status': 'Valid'
-    })
+    return jsonify({'success': True, 'networks': [
+        {'ssid': 'Form-Secure-WLAN', 'strength': -45, 'security': 'WPA3', 'channel': 6},
+        {'ssid': 'Guest-Form', 'strength': -62, 'security': 'WPA2', 'channel': 11}
+    ]})
 
 @app.route('/api/tools/port-scan', methods=['POST'])
 @login_required
 def api_port_scan():
-    target = request.json.get('target', '127.0.0.1')
-    # Mock port scan
-    return jsonify({
-        'success': True,
-        'target': target,
-        'open_ports': [80, 443, 22, 5000]
-    })
-
-@app.route('/api/tools/traceroute', methods=['POST'])
-@login_required
-def api_traceroute_tool():
-    target = request.json.get('target', '8.8.8.8')
-    # Mock traceroute with coordinates for mapping
-    hops = [
-        {'hop': 1, 'address': '192.168.1.1', 'lat': 37.7749, 'lng': -122.4194},
-        {'hop': 2, 'address': '10.0.0.1', 'lat': 34.0522, 'lng': -118.2437},
-        {'hop': 3, 'address': target, 'lat': 40.7128, 'lng': -74.0060}
-    ]
-    return jsonify({'success': True, 'hops': hops})
-
-@app.route('/api/tools/packet-detector', methods=['POST'])
-@login_required
-def api_packet_detector():
-    # Mock detected packets with locations
-    packets = [
-        {'id': 1, 'type': 'TCP', 'source': '1.1.1.1', 'lat': 48.8566, 'lng': 2.3522},
-        {'id': 2, 'type': 'UDP', 'source': '8.8.8.8', 'lat': 40.7128, 'lng': -74.0060},
-        {'id': 3, 'type': 'ICMP', 'source': '13.33.33.1', 'lat': 35.6762, 'lng': 139.6503}
-    ]
-    return jsonify({'success': True, 'packets': packets})
+    return jsonify({'success': True, 'open_ports': [80, 443, 22, 5000]})
 
 if __name__ == '__main__':
     with app.app_context():
