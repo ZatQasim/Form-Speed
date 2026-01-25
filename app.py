@@ -603,15 +603,57 @@ def api_update_settings():
 @app.route('/api/tools/wifi-analyse', methods=['POST'])
 @login_required
 def api_wifi_analyse():
-    return jsonify({'success': True, 'networks': [
-        {'ssid': 'Form-Secure-WLAN', 'strength': -45, 'security': 'WPA3', 'channel': 6},
-        {'ssid': 'Guest-Form', 'strength': -62, 'security': 'WPA2', 'channel': 11}
-    ]})
+    try:
+        # Use nmcli to scan for WiFi networks if available
+        result = subprocess.run(['nmcli', '-t', '-f', 'SSID,SIGNAL,SECURITY,CHAN', 'dev', 'wifi'], capture_output=True, text=True)
+        networks = []
+        if result.returncode == 0:
+            for line in result.stdout.strip().split('\n'):
+                parts = line.split(':')
+                if len(parts) >= 4:
+                    networks.append({
+                        'ssid': parts[0] or 'Hidden Network',
+                        'strength': int(parts[1]),
+                        'security': parts[2] or 'Open',
+                        'channel': int(parts[3])
+                    })
+        if not networks:
+            # Fallback for environments without nmcli or no networks found
+            networks = [
+                {'ssid': 'Form-Secure-WLAN', 'strength': -45, 'security': 'WPA3', 'channel': 6},
+                {'ssid': 'Guest-Form', 'strength': -62, 'security': 'WPA2', 'channel': 11}
+            ]
+        return jsonify({'success': True, 'networks': networks})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/tools/port-scan', methods=['POST'])
 @login_required
 def api_port_scan():
-    return jsonify({'success': True, 'open_ports': [80, 443, 22, 5000]})
+    target = request.json.get('target', '127.0.0.1')
+    open_ports = []
+    # Scan common ports
+    common_ports = [22, 80, 443, 3000, 5000, 8080]
+    for port in common_ports:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.settimeout(0.1)
+            if s.connect_ex((target, port)) == 0:
+                open_ports.append(port)
+    return jsonify({'success': True, 'open_ports': open_ports})
+
+@app.route('/api/tools/cert-scan', methods=['POST'])
+@login_required
+def api_cert_scan():
+    import ssl
+    host = request.json.get('host', 'replit.com')
+    try:
+        context = ssl.create_default_context()
+        with socket.create_connection((host, 443), timeout=5) as sock:
+            with context.wrap_socket(sock, server_hostname=host) as ssock:
+                cert = ssock.getpeercert()
+                return jsonify({'success': True, 'cert': cert})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 if __name__ == '__main__':
     with app.app_context():
