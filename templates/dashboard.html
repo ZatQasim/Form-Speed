@@ -1,12 +1,12 @@
 {% extends 'base.html' %}
 
-{% block title %}Dashboard - Form{% endblock %}
+{% block title %}Portal- Form{% endblock %}
 
 {% block content %}
 <div class="dashboard">
     <aside class="sidebar">
         <nav class="sidebar-nav">
-            <a href="{{ url_for('dashboard') }}" class="active">Overview</a>
+            <a href="{{ url_for('dashboard') }}" class="active">Dashboard</a>
             <a href="{{ url_for('vpn_dashboard') }}" {% if not is_pro %}class="locked"{% endif %}>VPN</a>
             <a href="{{ url_for('speed_sharing_dashboard') }}" {% if not is_pro %}class="locked"{% endif %}>Speed Sharing</a>
             <a href="{{ url_for('security_dashboard') }}" {% if not is_pro %}class="locked"{% endif %}>Security</a>
@@ -19,8 +19,8 @@
         </nav>
         {% if not is_pro %}
         <div class="upgrade-prompt">
-            <p>Unlock all features</p>
-            <a href="{{ url_for('subscribe') }}" class="btn btn-primary btn-small">Upgrade to Pro</a>
+            <p>Unlock your network partner</p>
+            <a href="{{ url_for('subscribe') }}" class="btn btn-primary btn-small">Subscribe for Form</a>
         </div>
         {% endif %}
     </aside>
@@ -31,7 +31,7 @@
         {% if is_pro %}
         <div class="pro-status">
             <span class="pro-badge-large">PRO</span>
-            <span>All premium features unlocked</span>
+            <span>Subscription is now active</span>
         </div>
         
         <div class="active-services">

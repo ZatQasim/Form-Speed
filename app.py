@@ -575,7 +575,7 @@ def create_checkout_session():
                     'currency': 'usd',
                     'product_data': {
                         'name': 'Form Subscription',
-                        'description': 'VPN, Speed Sharing, and Premium Features',
+                        'description': 'Have your network the way you like , when you like it',
                     },
                     'unit_amount': pro_config['subscription']['price_usd'] * 100,
                     'recurring': {'interval': 'month'},
