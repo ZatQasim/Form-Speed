@@ -489,6 +489,28 @@ def tools_dashboard():
                          user_state=get_user_state(current_user.id),
                          google_maps_key=google_maps_key)
 
+@app.route('/dashboard/history')
+@login_required
+def history_dashboard():
+    return render_template('history.html', user_state=get_user_state(current_user.id), history=[])
+
+@app.route('/dashboard/devices')
+@login_required
+def devices_dashboard():
+    return render_template('devices.html', user_state=get_user_state(current_user.id), devices=[])
+
+@app.route('/dashboard/account')
+@login_required
+def account_dashboard():
+    subscription = {
+        'is_pro': current_user.has_active_subscription(),
+        'created_at': current_user.created_at.isoformat() if current_user.created_at else None,
+        'price': 5,
+        'is_whitelisted': current_user.stripe_subscription_id == "pro_json_override",
+        'trial_end': current_user.trial_end.isoformat() if current_user.trial_end else None
+    }
+    return render_template('account.html', user=current_user, subscription=subscription)
+
 @app.route('/api/tools/wifi-analyse', methods=['POST'])
 @login_required
 def api_wifi_analyse():
