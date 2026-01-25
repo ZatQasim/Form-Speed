@@ -1,8 +1,5 @@
 {
-  "pro_users": [
-    "qasim",
-    "qasimthemuslimdiscord@gmail.com",
-  ],
+  "pro_users": [],
   "subscription": {
     "price_usd": 5,
     "trial_days": 7,
@@ -10,7 +7,7 @@
       "VPN",
       "Speed Sharing",
       "Mesh Network",
-      "Advanced Analytics",
+      "Advanced Analytics"
     ]
   },
   "stripe_price_id": "price_form_pro_monthly"
