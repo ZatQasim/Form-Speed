@@ -489,6 +489,11 @@ def tools_dashboard():
                          user_state=get_user_state(current_user.id),
                          google_maps_key=google_maps_key)
 
+@app.route('/dashboard/diagnostics')
+@login_required
+def diagnostics_dashboard():
+    return redirect(url_for('tools_dashboard'))
+
 @app.route('/dashboard/history')
 @login_required
 def history_dashboard():
