@@ -13,7 +13,6 @@
             <a href="{{ url_for('mesh_dashboard') }}">Mesh Network</a>
             <a href="{{ url_for('tools_dashboard') }}" class="active">Tools</a>
             <a href="{{ url_for('analytics_dashboard') }}">Analytics</a>
-            <a href="{{ url_for('diagnostics_dashboard') }}">Diagnostics</a>
             <a href="{{ url_for('history_dashboard') }}">History</a>
             <a href="{{ url_for('devices_dashboard') }}">Devices</a>
             <a href="{{ url_for('account_dashboard') }}">Account</a>
@@ -26,87 +25,143 @@
         <p class="page-description">Advanced diagnostic and scanning tools for network optimization.</p>
 
         <div class="tools-grid">
-        <div class="tool-card">
-            <div class="tool-icon">📡</div>
-            <h3>WIFI Analyser</h3>
-            <p>Analyze nearby WiFi signals, channel congestion, and signal strength.</p>
-            <button class="btn btn-primary btn-sm">Start Analysis</button>
+            <div class="tool-card">
+                <div class="tool-icon">📡</div>
+                <h3>WIFI Analyser</h3>
+                <p>Analyze nearby WiFi signals and channel congestion.</p>
+                <button class="btn btn-primary btn-sm" onclick="runWifiAnalyse()">Analyse</button>
+            </div>
+
+            <div class="tool-card">
+                <div class="tool-icon">🔍</div>
+                <h3>Port Scanner</h3>
+                <p>Scan target for open ports.</p>
+                <input type="text" id="port-target" placeholder="127.0.0.1" class="tool-input">
+                <button class="btn btn-primary btn-sm" onclick="runPortScan()">Scan</button>
+            </div>
+
+            <div class="tool-card">
+                <div class="tool-icon">🛡️</div>
+                <h3>Certificate Scanner</h3>
+                <p>Verify SSL/TLS certificate integrity.</p>
+                <input type="text" id="cert-target" placeholder="google.com" class="tool-input">
+                <button class="btn btn-primary btn-sm" onclick="runCertScan()">Scan</button>
+            </div>
+
+            <div class="tool-card">
+                <div class="tool-icon">🌐</div>
+                <h3>Traceroute Map</h3>
+                <p>Map out the physical location of packet hops.</p>
+                <input type="text" id="trace-target" placeholder="8.8.8.8" class="tool-input">
+                <button class="btn btn-primary btn-sm" onclick="runTraceroute()">Trace & Map</button>
+            </div>
+
+            <div class="tool-card">
+                <div class="tool-icon">👁️</div>
+                <h3>Detected Packets</h3>
+                <p>Real-time packet detection and mapping.</p>
+                <button class="btn btn-primary btn-sm" onclick="runPacketDetector()">Detect</button>
+            </div>
         </div>
 
-        <div class="tool-card">
-            <div class="tool-icon">🔍</div>
-            <h3>Port Scanner</h3>
-            <p>Scan a specific target for open ports and services.</p>
-            <button class="btn btn-primary btn-sm">Scan Port</button>
+        <div id="map-container" style="height: 400px; margin-top: 20px; display: none;">
+            <div id="map" style="height: 100%;"></div>
         </div>
 
-        <div class="tool-card">
-            <div class="tool-icon">🛰️</div>
-            <h3>Multi-Port Scanner</h3>
-            <p>Perform a comprehensive scan across a range of ports.</p>
-            <button class="btn btn-primary btn-sm">Full Scan</button>
-        </div>
-
-        <div class="tool-card">
-            <div class="tool-icon">🆔</div>
-            <h3>Whois Lookup</h3>
-            <p>Retrieve registration information for domains and IP addresses.</p>
-            <button class="btn btn-primary btn-sm">Lookup</button>
-        </div>
-
-        <div class="tool-card">
-            <div class="tool-icon">🛡️</div>
-            <h3>DNS Certificate Scanner</h3>
-            <p>Verify SSL/TLS certificates and DNS record integrity.</p>
-            <button class="btn btn-primary btn-sm">Scan DNS</button>
-        </div>
-
-        <div class="tool-card">
-            <div class="tool-icon">🌐</div>
-            <h3>WLAN/LAN Scanner</h3>
-            <p>Discover and map devices on your local network.</p>
-            <button class="btn btn-primary btn-sm">Scan Network</button>
-        </div>
+        <div id="tool-results" class="results-container" style="margin-top: 20px;"></div>
     </main>
 </div>
 
+<script async defer src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_key }}&callback=initMap"></script>
+<script>
+let map;
+function initMap() {
+    map = new google.maps.Map(document.getElementById("map"), {
+        center: { lat: 0, lng: 0 },
+        zoom: 2,
+    });
+}
+
+async function runWifiAnalyse() {
+    const res = await fetch('/api/tools/wifi-analyse', {method: 'POST'});
+    const data = await res.json();
+    showResults('WiFi Analysis', data.networks.map(n => `${n.ssid}: ${n.signal}dBm (Ch ${n.channel})`).join('<br>'));
+}
+
+async function runPortScan() {
+    const target = document.getElementById('port-target').value || '127.0.0.1';
+    const res = await fetch('/api/tools/port-scan', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ target })
+    });
+    const data = await res.json();
+    showResults('Port Scan Result', `Open ports on ${data.target}: ${data.open_ports.join(', ')}`);
+}
+
+async function runCertScan() {
+    const target = document.getElementById('cert-target').value || 'google.com';
+    const res = await fetch('/api/tools/scan-certs', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ target })
+    });
+    const data = await res.json();
+    showResults('Cert Scan Result', `Domain: ${data.domain}<br>Issuer: ${data.issuer}<br>Status: ${data.status}`);
+}
+
+async function runTraceroute() {
+    const target = document.getElementById('trace-target').value || '8.8.8.8';
+    document.getElementById('map-container').style.display = 'block';
+    const res = await fetch('/api/tools/traceroute', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ target })
+    });
+    const data = await res.json();
+    
+    // Clear old markers
+    initMap();
+    const bounds = new google.maps.LatLngBounds();
+    const path = [];
+
+    data.hops.forEach(hop => {
+        const pos = {lat: hop.lat, lng: hop.lng};
+        new google.maps.Marker({ position: pos, map, title: `Hop ${hop.hop}: ${hop.address}` });
+        path.push(pos);
+        bounds.extend(pos);
+    });
+
+    new google.maps.Polyline({ path, map, strokeColor: "#FF0000" });
+    map.fitBounds(bounds);
+    showResults('Traceroute Path', data.hops.map(h => `Hop ${h.hop}: ${h.address}`).join('<br>'));
+}
+
+async function runPacketDetector() {
+    document.getElementById('map-container').style.display = 'block';
+    const res = await fetch('/api/tools/packet-detector', {method: 'POST'});
+    const data = await res.json();
+    
+    initMap();
+    data.packets.forEach(p => {
+        new google.maps.Marker({ 
+            position: {lat: p.lat, lng: p.lng}, 
+            map, 
+            title: `${p.type} from ${p.source}`,
+            icon: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png'
+        });
+    });
+    showResults('Detected Packets', data.packets.map(p => `${p.type} package detected from ${p.source}`).join('<br>'));
+}
+
+function showResults(title, content) {
+    const container = document.getElementById('tool-results');
+    container.innerHTML = `<div class="card"><h3>${title}</h3><p>${content}</p></div>`;
+}
+</script>
+
 <style>
-.tools-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 20px;
-    margin-top: 30px;
-}
-
-.tool-card {
-    background: var(--card-bg, #fff);
-    border: 1px solid var(--border-color, #eee);
-    border-radius: 12px;
-    padding: 24px;
-    text-align: center;
-    transition: transform 0.2s;
-}
-
-.tool-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
-}
-
-.tool-icon {
-    font-size: 40px;
-    margin-bottom: 15px;
-}
-
-.tool-card h3 {
-    margin-bottom: 10px;
-    color: var(--text-color, #333);
-}
-
-.tool-card p {
-    color: var(--text-muted, #666);
-    font-size: 0.9rem;
-    margin-bottom: 20px;
-    min-height: 40px;
-}
+.tool-input { width: 100%; margin-bottom: 10px; padding: 5px; border-radius: 4px; border: 1px solid #ddd; }
+.results-container .card { padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #1a73e8; }
 </style>
 {% endblock %}

@@ -240,6 +240,10 @@ class User(UserMixin, db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     totp_secret = db.Column(db.String(32))
     totp_enabled = db.Column(db.Boolean, default=False)
+
+    def __init__(self, **kwargs):
+        super(User, self).__init__(**kwargs)
+
     def set_password(self, password): self.password_hash = generate_password_hash(password)
     def check_password(self, password): return check_password_hash(self.password_hash, password)
     def has_active_subscription(self):
@@ -479,45 +483,74 @@ def mesh_dashboard():
         return redirect(url_for('subscribe'))
     return render_template('mesh.html', user_state=get_user_state(current_user.id))
 
-@app.route('/dashboard/diagnostics')
-@login_required
-def diagnostics_dashboard():
-    return render_template('diagnostics.html', metrics=get_real_network_metrics(), user_state=get_user_state(current_user.id))
-
-@app.route('/dashboard/history')
-@login_required
-def history_dashboard():
-    return render_template('history.html', user_state=get_user_state(current_user.id), history=[])
-
-@app.route('/dashboard/devices')
-@login_required
-def devices_dashboard():
-    return render_template('devices.html', user_state=get_user_state(current_user.id), devices=[])
-
-@app.route('/dashboard/account')
-@login_required
-def account_dashboard():
-    subscription = {
-        'is_pro': current_user.has_active_subscription(),
-        'created_at': current_user.created_at.isoformat() if current_user.created_at else None,
-        'price': 5,
-        'is_whitelisted': current_user.stripe_subscription_id == "pro_json_override",
-        'trial_end': current_user.trial_end.isoformat() if current_user.trial_end else None
-    }
-    return render_template('account.html', user=current_user, subscription=subscription)
-
-@app.route('/api/metrics')
-@login_required
-def get_metrics_api():
-    return jsonify(get_real_network_metrics())
-
 @app.route('/dashboard/tools')
 @login_required
 def tools_dashboard():
-    if not current_user.has_active_subscription():
-        flash('Advanced tools require a Pro subscription', 'warning')
-        return redirect(url_for('subscribe'))
-    return render_template('tools.html', user_state=get_user_state(current_user.id))
+    google_maps_key = os.environ.get('GOOGLE_MAPS_KEY', 'YOUR_MOCK_KEY')
+    return render_template('tools.html', 
+                         metrics=get_real_network_metrics(), 
+                         user_state=get_user_state(current_user.id),
+                         google_maps_key=google_maps_key)
+
+@app.route('/api/tools/wifi-analyse', methods=['POST'])
+@login_required
+def api_wifi_analyse():
+    # Mock data for WiFi analysis
+    return jsonify({
+        'success': True,
+        'networks': [
+            {'ssid': 'Home-5G', 'signal': -45, 'channel': 36, 'security': 'WPA2'},
+            {'ssid': 'Neighbor-WiFi', 'signal': -72, 'channel': 1, 'security': 'WPA2'},
+            {'ssid': 'Public-Hotspot', 'signal': -85, 'channel': 6, 'security': 'Open'}
+        ]
+    })
+
+@app.route('/api/tools/scan-certs', methods=['POST'])
+@login_required
+def api_scan_certs():
+    target = request.json.get('target', 'google.com')
+    # Mock cert data
+    return jsonify({
+        'success': True,
+        'domain': target,
+        'issuer': 'Google Trust Services LLC',
+        'expiry': '2026-05-12',
+        'status': 'Valid'
+    })
+
+@app.route('/api/tools/port-scan', methods=['POST'])
+@login_required
+def api_port_scan():
+    target = request.json.get('target', '127.0.0.1')
+    # Mock port scan
+    return jsonify({
+        'success': True,
+        'target': target,
+        'open_ports': [80, 443, 22, 5000]
+    })
+
+@app.route('/api/tools/traceroute', methods=['POST'])
+@login_required
+def api_traceroute_tool():
+    target = request.json.get('target', '8.8.8.8')
+    # Mock traceroute with coordinates for mapping
+    hops = [
+        {'hop': 1, 'address': '192.168.1.1', 'lat': 37.7749, 'lng': -122.4194},
+        {'hop': 2, 'address': '10.0.0.1', 'lat': 34.0522, 'lng': -118.2437},
+        {'hop': 3, 'address': target, 'lat': 40.7128, 'lng': -74.0060}
+    ]
+    return jsonify({'success': True, 'hops': hops})
+
+@app.route('/api/tools/packet-detector', methods=['POST'])
+@login_required
+def api_packet_detector():
+    # Mock detected packets with locations
+    packets = [
+        {'id': 1, 'type': 'TCP', 'source': '1.1.1.1', 'lat': 48.8566, 'lng': 2.3522},
+        {'id': 2, 'type': 'UDP', 'source': '8.8.8.8', 'lat': 40.7128, 'lng': -74.0060},
+        {'id': 3, 'type': 'ICMP', 'source': '13.33.33.1', 'lat': 35.6762, 'lng': 139.6503}
+    ]
+    return jsonify({'success': True, 'packets': packets})
 
 if __name__ == '__main__':
     with app.app_context():
