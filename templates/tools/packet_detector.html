@@ -30,25 +30,29 @@
         </div>
     </main>
 </div>
-<script src="https://maps.googleapis.com/maps/api/js?callback=initMap" async defer></script>
+<script src="https://maps.googleapis.com/maps/api/js?callback=initMap&loading=async" async defer></script>
 <script>
 let map;
-function initMap() {
-    map = new google.maps.Map(document.getElementById("map"), {
+async function initMap() {
+    const { Map } = await google.maps.importLibrary("maps");
+    const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
+    
+    map = new Map(document.getElementById("map"), {
         center: { lat: 0, lng: 0 },
         zoom: 2,
+        mapId: "DEMO_MAP_ID"
     });
+    window.AdvancedMarkerElement = AdvancedMarkerElement;
 }
 async function runPacketDetector() {
     const res = await fetch('/api/tools/packet-detector', {method: 'POST'});
     const data = await res.json();
     
     data.packets.forEach(p => {
-        new google.maps.Marker({ 
+        new window.AdvancedMarkerElement({ 
             position: {lat: p.lat, lng: p.lng}, 
             map, 
-            title: `${p.type} from ${p.source}`,
-            icon: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png'
+            title: `${p.type} from ${p.source}`
         });
     });
     document.getElementById('results').innerHTML = data.packets.map(p => `

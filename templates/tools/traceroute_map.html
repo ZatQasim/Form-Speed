@@ -32,14 +32,19 @@
         </div>
     </main>
 </div>
-<script src="https://maps.googleapis.com/maps/api/js?callback=initMap" async defer></script>
+<script src="https://maps.googleapis.com/maps/api/js?callback=initMap&loading=async" async defer></script>
 <script>
 let map;
-function initMap() {
-    map = new google.maps.Map(document.getElementById("map"), {
+async function initMap() {
+    const { Map } = await google.maps.importLibrary("maps");
+    const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
+    
+    map = new Map(document.getElementById("map"), {
         center: { lat: 0, lng: 0 },
         zoom: 2,
+        mapId: "DEMO_MAP_ID"
     });
+    window.AdvancedMarkerElement = AdvancedMarkerElement;
 }
 async function runTraceroute() {
     const target = document.getElementById('target').value || '8.8.8.8';
@@ -54,7 +59,7 @@ async function runTraceroute() {
     const path = [];
     data.hops.forEach(hop => {
         const pos = {lat: hop.lat, lng: hop.lng};
-        new google.maps.Marker({ position: pos, map, title: `Hop ${hop.hop}: ${hop.address}` });
+        new window.AdvancedMarkerElement({ position: pos, map, title: `Hop ${hop.hop}: ${hop.address}` });
         path.push(pos);
         bounds.extend(pos);
     });
