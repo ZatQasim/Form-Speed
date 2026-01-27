@@ -578,7 +578,12 @@ def subscription_success():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    return render_template('dashboard.html', metrics=get_real_network_metrics(), is_pro=current_user.has_active_subscription(), user_state=get_user_state(current_user.id), benefits=current_user.get_benefits())
+    is_pro = current_user.has_active_subscription()
+    return render_template('dashboard.html', 
+                           metrics=get_real_network_metrics(), 
+                           is_pro=is_pro, 
+                           user_state=get_user_state(current_user.id), 
+                           benefits=current_user.get_benefits())
 
 @app.route('/dashboard/vpn')
 @login_required
@@ -785,20 +790,34 @@ def diagnostics_dashboard():
 @app.route('/dashboard/history')
 @login_required
 def history_dashboard():
-    return render_template('history.html', user_state=get_user_state(current_user.id), history=[])
+    is_pro = current_user.has_active_subscription()
+    if not is_pro:
+        flash('Connection History requires a Pro subscription', 'warning')
+        return redirect(url_for('subscribe'))
+    return render_template('history.html', user_state=get_user_state(current_user.id), history=[], is_pro=is_pro)
 
 @app.route('/dashboard/devices')
 @login_required
 def devices_dashboard():
-    return render_template('devices.html', user_state=get_user_state(current_user.id), devices=[])
+    is_pro = current_user.has_active_subscription()
+    if not is_pro:
+        flash('Device Management requires a Pro subscription', 'warning')
+        return redirect(url_for('subscribe'))
+    return render_template('devices.html', user_state=get_user_state(current_user.id), devices=[], is_pro=is_pro)
 
 @app.route('/dashboard/account')
 @login_required
 def account_dashboard():
-    subscription = {
-        'is_pro': current_user.has_active_subscription(),
-        'created_at': current_user.created_at.isoformat() if current_user.created_at else None,
+    is_pro = current_user.has_active_subscription()
+    subscription_data = {
+        'is_pro': is_pro,
+        'status': 'active' if is_pro else 'inactive',
         'price': 5,
+        'created_at': current_user.created_at.isoformat() if current_user.created_at else None,
+        'is_whitelisted': "pro_json_override" == current_user.stripe_subscription_id
+    }
+    return render_template('account.html', user_state=get_user_state(current_user.id), subscription=subscription_data, is_pro=is_pro)
+        'price': "5",
         'is_whitelisted': current_user.stripe_subscription_id == "pro_json_override",
         'trial_end': current_user.trial_end.isoformat() if current_user.trial_end else None
     }
