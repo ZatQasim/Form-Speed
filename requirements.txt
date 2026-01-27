@@ -12,3 +12,5 @@ qrcode
 openai
 openai
 tenacity
+openai
+tenacity

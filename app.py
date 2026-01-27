@@ -651,17 +651,11 @@ def tool_wifi_analyser():
 def tool_port_scanner():
     return render_template('tools/port_scanner.html', user_state=get_user_state(current_user.id))
 
-@app.route('/dashboard/agent')
-@login_required
-def agent_dashboard():
-    if not current_user.has_active_subscription():
-        flash('Form Agent requires a Pro subscription', 'warning')
-        return redirect(url_for('subscribe'))
-    return render_template('agent.html', user_state=get_user_state(current_user.id))
-
 import openai
 from openai import OpenAI
 
+# Initialize OpenAI client with Replit AI Integrations
+# This provides OpenAI-compatible API access without requiring your own API key.
 AI_INTEGRATIONS_OPENAI_API_KEY = os.environ.get("AI_INTEGRATIONS_OPENAI_API_KEY")
 AI_INTEGRATIONS_OPENAI_BASE_URL = os.environ.get("AI_INTEGRATIONS_OPENAI_BASE_URL")
 
@@ -671,6 +665,14 @@ client = OpenAI(
     api_key=AI_INTEGRATIONS_OPENAI_API_KEY,
     base_url=AI_INTEGRATIONS_OPENAI_BASE_URL
 )
+
+@app.route('/dashboard/agent')
+@login_required
+def agent_dashboard():
+    if not current_user.has_active_subscription():
+        flash('Form Agent requires a Pro subscription', 'warning')
+        return redirect(url_for('subscribe'))
+    return render_template('agent.html', user_state=get_user_state(current_user.id))
 
 @app.route('/api/agent/chat', methods=['POST'])
 @login_required
@@ -683,32 +685,31 @@ def agent_chat():
     metrics = get_real_network_metrics()
     
     try:
+        from openai import OpenAI
+        import os
+        
         # the newest OpenAI model is "gpt-5" which was released August 7, 2025.
         # do not change this unless explicitly requested by the user
-        response = client.chat.completions.create(
+        ai_client = OpenAI(
+            api_key=os.environ.get("AI_INTEGRATIONS_OPENAI_API_KEY"),
+            base_url=os.environ.get("AI_INTEGRATIONS_OPENAI_BASE_URL")
+        )
+        
+        response = ai_client.chat.completions.create(
             model="gpt-5",
             messages=[
-                {"role": "system", "content": f"""
-                You are Form Agent, an advanced Large Action Model (LAM) for the Form Network.
-                User: {current_user.username}
-                Carrier: {metrics.get('carrier')}
-                VPN: {'Active' if user_state.get('vpn_enabled') else 'Inactive'}
-                
-                Your goal is to help the user with account management, carrier insights, financial options, and support.
-                You have access to their real-time network metrics.
-                Be concise, authoritative, and direct.
-                """},
+                {"role": "system", "content": f"You are Form Agent, an advanced Large Action Model (LAM) for the Form Network. User: {current_user.username}. Carrier: {metrics.get('carrier')}. VPN: {'Active' if user_state.get('vpn_enabled') else 'Inactive'}. Help with account, carrier info, financial options ($5/mo), and support. Be concise and authoritative."},
                 {"role": "user", "content": user_message}
             ],
             max_completion_tokens=500
         )
         ai_response = response.choices[0].message.content
-        print(f"DEBUG: AI Response: {ai_response[:50]}...")
+        if not ai_response:
+            ai_response = "I'm processing your request, but I don't have a specific answer right now. How else can I help?"
     except Exception as e:
         import traceback
-        error_details = traceback.format_exc()
-        print(f"DEBUG: AI Error: {error_details}")
-        ai_response = f"I'm sorry, I'm having trouble connecting to my brain right now. (Error: {str(e)})"
+        print(f"DEBUG AI ERROR: {traceback.format_exc()}")
+        ai_response = f"I'm having trouble connecting to my AI core. Please check your Pro status or try again. (Error: {str(e)})"
     
     return jsonify({'response': ai_response})
 
