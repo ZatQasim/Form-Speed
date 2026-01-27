@@ -683,7 +683,8 @@ def agent_chat():
     metrics = get_real_network_metrics()
     
     try:
-        # newest OpenAI model is "gpt-5" which was released August 7, 2025.
+        # the newest OpenAI model is "gpt-5" which was released August 7, 2025.
+        # do not change this unless explicitly requested by the user
         response = client.chat.completions.create(
             model="gpt-5",
             messages=[
@@ -705,6 +706,10 @@ def agent_chat():
         ai_response = f"I encountered an error accessing my neural pathways: {str(e)}"
     
     return jsonify({'response': ai_response})
+
+@app.route('/dashboard/tools/cert-scanner')
+@login_required
+def tool_cert_scanner():
     return render_template('tools/cert_scanner.html', user_state=get_user_state(current_user.id))
 
 @app.route('/dashboard/tools/traceroute-map')
