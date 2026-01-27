@@ -429,14 +429,28 @@ def signup():
         if User.query.filter_by(username=username).first(): flash('Username already taken', 'error'); return redirect(url_for('signup'))
         user = User(email=email, username=username)
         user.set_password(password)
-        add_user_to_pro_json(email, username)
-        user.is_pro = True
-        user.subscription_status = 'active'
-        user.stripe_subscription_id = "pro_json_override"
+        
+        # Check if user is in pro.json whitelist
+        pro_config = load_pro_config()
+        pro_users = [str(u).strip().lower() for u in pro_config.get('pro_users', []) if u]
+        
+        is_whitelisted = False
+        if email and email.strip().lower() in pro_users: is_whitelisted = True
+        if username and username.strip().lower() in pro_users: is_whitelisted = True
+        
+        if is_whitelisted:
+            user.is_pro = True
+            user.subscription_status = 'active'
+            user.stripe_subscription_id = "pro_json_override"
+            flash('Welcome! Your Pro account is active via whitelist.', 'success')
+        else:
+            user.is_pro = False
+            user.subscription_status = 'inactive'
+            flash('Account created successfully. Upgrade to Pro to unlock all features.', 'success')
+            
         db.session.add(user)
         db.session.commit()
         login_user(user)
-        flash('Welcome! Your Pro account is active.', 'success')
         return redirect(url_for('dashboard'))
     return render_template('signup.html')
 
