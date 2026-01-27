@@ -9,3 +9,4 @@ stripe
 werkzeug
 pyotp
 qrcode
+openai

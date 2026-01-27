@@ -264,7 +264,8 @@ class User(UserMixin, db.Model):
                 'security_protection': True, 
                 'route_optimization': True,
                 'cloud_storage': True,
-                'password_manager': True
+                'password_manager': True,
+                'form_agent': True
             }
         return {
             'vpn_access': False, 
@@ -275,7 +276,8 @@ class User(UserMixin, db.Model):
             'security_protection': False, 
             'route_optimization': False,
             'cloud_storage': False,
-            'password_manager': False
+            'password_manager': False,
+            'form_agent': False
         }
 
 class CloudFile(db.Model):
@@ -649,9 +651,60 @@ def tool_wifi_analyser():
 def tool_port_scanner():
     return render_template('tools/port_scanner.html', user_state=get_user_state(current_user.id))
 
-@app.route('/dashboard/tools/cert-scanner')
+@app.route('/dashboard/agent')
 @login_required
-def tool_cert_scanner():
+def agent_dashboard():
+    if not current_user.has_active_subscription():
+        flash('Form Agent requires a Pro subscription', 'warning')
+        return redirect(url_for('subscribe'))
+    return render_template('agent.html', user_state=get_user_state(current_user.id))
+
+import openai
+from openai import OpenAI
+
+AI_INTEGRATIONS_OPENAI_API_KEY = os.environ.get("AI_INTEGRATIONS_OPENAI_API_KEY")
+AI_INTEGRATIONS_OPENAI_BASE_URL = os.environ.get("AI_INTEGRATIONS_OPENAI_BASE_URL")
+
+# newest OpenAI model is "gpt-5" which was released August 7, 2025.
+# do not change this unless explicitly requested by the user
+client = OpenAI(
+    api_key=AI_INTEGRATIONS_OPENAI_API_KEY,
+    base_url=AI_INTEGRATIONS_OPENAI_BASE_URL
+)
+
+@app.route('/api/agent/chat', methods=['POST'])
+@login_required
+def agent_chat():
+    if not current_user.has_active_subscription():
+        return jsonify({'error': 'Pro required'}), 403
+    
+    user_message = request.json.get('message', '')
+    user_state = get_user_state(current_user.id)
+    metrics = get_real_network_metrics()
+    
+    try:
+        # newest OpenAI model is "gpt-5" which was released August 7, 2025.
+        response = client.chat.completions.create(
+            model="gpt-5",
+            messages=[
+                {"role": "system", "content": f"""
+                You are Form Agent, an advanced Large Action Model (LAM) for the Form Network.
+                User: {current_user.username}
+                Carrier: {metrics.get('carrier')}
+                VPN: {'Active' if user_state.get('vpn_enabled') else 'Inactive'}
+                
+                Help with account, carrier info, financial options ($5/mo), and support.
+                Be concise and authoritative.
+                """},
+                {"role": "user", "content": user_message}
+            ],
+            max_completion_tokens=500
+        )
+        ai_response = response.choices[0].message.content
+    except Exception as e:
+        ai_response = f"I encountered an error accessing my neural pathways: {str(e)}"
+    
+    return jsonify({'response': ai_response})
     return render_template('tools/cert_scanner.html', user_state=get_user_state(current_user.id))
 
 @app.route('/dashboard/tools/traceroute-map')
