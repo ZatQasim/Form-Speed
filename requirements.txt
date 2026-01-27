@@ -10,3 +10,5 @@ werkzeug
 pyotp
 qrcode
 openai
+openai
+tenacity

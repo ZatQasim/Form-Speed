@@ -694,16 +694,21 @@ def agent_chat():
                 Carrier: {metrics.get('carrier')}
                 VPN: {'Active' if user_state.get('vpn_enabled') else 'Inactive'}
                 
-                Help with account, carrier info, financial options ($5/mo), and support.
-                Be concise and authoritative.
+                Your goal is to help the user with account management, carrier insights, financial options, and support.
+                You have access to their real-time network metrics.
+                Be concise, authoritative, and direct.
                 """},
                 {"role": "user", "content": user_message}
             ],
             max_completion_tokens=500
         )
         ai_response = response.choices[0].message.content
+        print(f"DEBUG: AI Response: {ai_response[:50]}...")
     except Exception as e:
-        ai_response = f"I encountered an error accessing my neural pathways: {str(e)}"
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"DEBUG: AI Error: {error_details}")
+        ai_response = f"I'm sorry, I'm having trouble connecting to my brain right now. (Error: {str(e)})"
     
     return jsonify({'response': ai_response})
 
