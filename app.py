@@ -650,66 +650,6 @@ def create_checkout_session():
     except Exception as e: 
         return jsonify({'error': str(e)}), 400
 
-@app.route('/subscription-success')
-@login_required
-def subscription_success():
-    sid = request.args.get('session_id')
-    if sid:
-        try:
-            s = stripe.checkout.Session.retrieve(sid)
-            current_user.stripe_subscription_id = s.subscription
-            current_user.subscription_status = 'active'
-            current_user.trial_end = datetime.utcnow() + timedelta(days=7)
-            current_user.is_pro = True
-            db.session.commit()
-            add_user_to_pro_json(current_user.email, current_user.username)
-        except Exception as e: 
-            flash(f'Error processing subscription: {str(e)}', 'error')
-    flash('Welcome to Form! Your Pro account is active.', 'success')
-    return redirect(url_for('dashboard'))
-
-@app.route('/dashboard')
-@login_required
-def dashboard():
-    is_pro = current_user.has_active_subscription()
-    return render_template('dashboard.html',
-        metrics=get_real_network_metrics(),
-        is_pro=is_pro,
-        user_state=get_user_state(current_user.id),
-        benefits=current_user.get_benefits())
-
-@app.route('/dashboard/vpn')
-@login_required
-def vpn_dashboard():
-    if not current_user.has_active_subscription(): 
-        flash('VPN requires Pro', 'warning')
-        return redirect(url_for('subscribe'))
-    return render_template('vpn.html', user_state=get_user_state(current_user.id), servers=VPN_SERVERS)
-
-@app.route('/dashboard/speed-sharing')
-@login_required
-def speed_sharing_dashboard():
-    metrics = get_real_network_metrics()
-    user_state = get_user_state(current_user.id)
-    return render_template('speed_sharing.html',
-        metrics=metrics,
-        is_pro=current_user.has_active_subscription(),
-        user_state=user_state)
-
-@app.route('/dashboard/security')
-@login_required
-def security_dashboard():
-    if not current_user.has_active_subscription():
-        flash('Security features require a Pro subscription', 'warning')
-        return redirect(url_for('subscribe'))
-    user_state = get_user_state(current_user.id)
-    return render_template('security.html', user_state=user_state)
-
-@app.route('/dashboard/plans')
-@login_required
-def plans_page():
-    return render_template('plans.html')
-
 @app.route('/api/plans/select', methods=['POST'])
 @login_required
 def api_select_plan():
@@ -721,9 +661,10 @@ def api_select_plan():
     pro_config = load_pro_config()
     price_id = pro_config.get('price_ids', {}).get(plan)
     
-    if not price_id:
-        flash('Payment configuration error', 'error')
-        return redirect(url_for('plans_page'))
+    # In development, if Stripe keys are missing or price IDs are placeholders, simulate success
+    if not price_id or price_id in ["price_regular_monthly_id", "price_premier_monthly_id"]:
+        flash(f'Simulating Form One {plan} activation for development.', 'info')
+        return redirect(url_for('subscription_success', session_id='dev_simulated', plan=plan))
 
     try:
         checkout_session = stripe.checkout.Session.create(
@@ -734,48 +675,55 @@ def api_select_plan():
                 'quantity': 1,
             }],
             mode='subscription',
-            success_url=url_for('subscription_success', _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
+            success_url=url_for('subscription_success', _external=True) + '?session_id={CHECKOUT_SESSION_ID}&plan=' + plan,
             cancel_url=url_for('plans_page', _external=True),
             metadata={'plan': plan, 'user_id': current_user.id}
         )
         return redirect(checkout_session.url, code=303)
     except Exception as e:
         print(f"Stripe Error: {str(e)}")
-        flash('Could not initiate payment. Please try again.', 'error')
+        flash('Stripe configuration missing or invalid. Check your environment variables.', 'error')
         return redirect(url_for('plans_page'))
 
-@app.route('/subscription/success')
+@app.route('/subscription-success')
 @login_required
 def subscription_success():
     session_id = request.args.get('session_id')
+    plan_from_url = request.args.get('plan', 'Regular')
+    
     if session_id:
         try:
-            checkout_session = stripe.checkout.Session.retrieve(session_id)
-            plan = checkout_session.metadata.get('plan')
-            user_id = checkout_session.metadata.get('user_id')
+            plan = plan_from_url
+            if session_id != 'dev_simulated':
+                checkout_session = stripe.checkout.Session.retrieve(session_id)
+                plan = checkout_session.metadata.get('plan', plan_from_url)
+                user_id = checkout_session.metadata.get('user_id')
+                if checkout_session.payment_status != 'paid' or user_id != str(current_user.id):
+                    flash('Payment verification failed.', 'error')
+                    return redirect(url_for('plans_page'))
             
-            if checkout_session.payment_status == 'paid' and user_id == str(current_user.id):
-                user = db.session.get(User, current_user.id)
-                user.is_pro = True
-                user.subscription_status = 'active'
-                user.plan_tag = plan
-                user.stripe_subscription_id = checkout_session.subscription
-                
-                # Update pro.json
-                pro_config = load_pro_config()
-                pro_users = pro_config.get('pro_users', [])
-                pro_users = [u for u in pro_users if not (
-                    (isinstance(u, dict) and (u.get('email') == user.email or u.get('username') == user.username)) or
-                    (isinstance(u, str) and (u == user.email or u == user.username))
-                )]
-                pro_users.append({'email': user.email, 'username': user.username, 'plan': plan})
-                pro_config['pro_users'] = pro_users
-                save_pro_config_file(pro_config)
-                
-                db.session.commit()
-                flash(f'Successfully subscribed to Form One {plan}!', 'success')
+            user = db.session.get(User, current_user.id)
+            user.is_pro = True
+            user.subscription_status = 'active'
+            user.plan_tag = plan
+            
+            # Sync to pro.json
+            pro_config = load_pro_config()
+            pro_users = pro_config.get('pro_users', [])
+            # Remove old entries for this user
+            pro_users = [u for u in pro_users if not (
+                (isinstance(u, dict) and (u.get('email') == user.email or u.get('username') == user.username)) or
+                (isinstance(u, str) and (u == user.email or u == user.username))
+            )]
+            pro_users.append({'email': user.email, 'username': user.username, 'plan': plan})
+            pro_config['pro_users'] = pro_users
+            save_pro_config_file(pro_config)
+            
+            db.session.commit()
+            flash(f'Welcome to Form One {plan}! Your Pro features are now active.', 'success')
         except Exception as e:
-            print(f"Success Error: {str(e)}")
+            print(f"Success Processing Error: {str(e)}")
+            flash(f'Error activating subscription: {str(e)}', 'error')
             
     return redirect(url_for('dashboard'))
 
@@ -999,19 +947,6 @@ def api_vpn_optimize_route():
         'route_path': route_path
     })
 
-@app.route('/api/speed-sharing/my-invites')
-@login_required
-def api_my_invites_new():
-    # Placeholder for invite tracking
-    return jsonify({'success': True, 'guests': []})
-
-@app.route('/api/settings/update', methods=['POST'])
-@login_required
-def api_settings_update():
-    updates = request.json
-    update_user_state(current_user.id, updates)
-    return jsonify({'success': True})
-
 @app.route('/dashboard/diagnostics')
 @login_required
 def diagnostics_dashboard():
@@ -1050,16 +985,6 @@ def account_dashboard():
     return render_template('account.html', user=current_user, user_state=get_user_state(current_user.id), subscription=subscription_data, is_pro=is_pro)
 
 @app.route('/dashboard/password-manager')
-@login_required
-def password_manager():
-    return render_template('password_manager.html', user_state=get_user_state(current_user.id))
-
-@app.route('/api/settings/update', methods=['POST'])
-@login_required
-def api_update_settings():
-    updates = request.json
-    update_user_state(current_user.id, updates)
-    return jsonify({'success': True})
 
 @app.route('/api/tools/wifi-analyse', methods=['POST'])
 @login_required

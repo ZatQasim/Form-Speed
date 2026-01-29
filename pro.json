@@ -1,8 +1,13 @@
 {
   "pro_users": [
-    "{'email': 'qasimthemuslimdiscord@gmail.com', 'plan': 'Premier'}",
-    "{'username': 'qasim', 'plan': 'Premier'}",
-    "{'email': 'sunsetamarat0@gmail.com', 'username': 'qasim', 'plan': 'Regular'}",
+    {
+      "email": "qasimthemuslimdiscord@gmail.com",
+      "plan": "Premier"
+    },
+    {
+      "username": "qasim",
+      "plan": "Premier"
+    },
     {
       "email": "sunsetamarat0@gmail.com",
       "username": "qasim",
