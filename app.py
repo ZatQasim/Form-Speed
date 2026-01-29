@@ -710,6 +710,46 @@ def security_dashboard():
 def plans_page():
     return render_template('plans.html')
 
+@app.route('/api/plans/select', methods=['POST'])
+@login_required
+def api_select_plan():
+    plan = request.form.get('plan')
+    if plan not in ['Regular', 'Premier']:
+        flash('Invalid plan selected', 'error')
+        return redirect(url_for('plans_page'))
+    
+    # Update user in DB
+    user = db.session.get(User, current_user.id)
+    user.is_pro = True
+    user.subscription_status = 'active'
+    user.plan_tag = plan
+    if not user.stripe_subscription_id:
+        user.stripe_subscription_id = "manual_selection"
+    
+    # Update pro.json
+    pro_config = load_pro_config()
+    pro_users = pro_config.get('pro_users', [])
+    
+    # Remove existing entries for this user
+    pro_users = [u for u in pro_users if not (
+        (isinstance(u, dict) and (u.get('email') == user.email or u.get('username') == user.username)) or
+        (isinstance(u, str) and (u == user.email or u == user.username))
+    )]
+    
+    # Add new entry
+    pro_users.append({
+        'email': user.email,
+        'username': user.username,
+        'plan': plan
+    })
+    
+    pro_config['pro_users'] = pro_users
+    save_pro_config_file(pro_config)
+    
+    db.session.commit()
+    flash(f'Successfully subscribed to Form One {plan}!', 'success')
+    return redirect(url_for('plans_page'))
+
 @app.route('/dashboard/settings')
 @login_required
 def settings_dashboard():

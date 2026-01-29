@@ -40,7 +40,10 @@
                     <li><span class="icon">✓</span> Device Defense</li>
                     <li><span class="icon">✓</span> 50GB Cloud Storage</li>
                 </ul>
-                <button class="btn btn-primary btn-full">Select Regular</button>
+                <form action="{{ url_for('api_select_plan') }}" method="POST">
+                    <input type="hidden" name="plan" value="Regular">
+                    <button type="submit" class="btn btn-primary btn-full">Select Regular</button>
+                </form>
             </div>
 
             <div class="plan-card premier">
@@ -54,7 +57,10 @@
                     <li><span class="icon">✓</span> 500GB Cloud Storage</li>
                     <li><span class="icon">✓</span> Priority Support</li>
                 </ul>
-                <button class="btn btn-primary btn-full">Select Premier</button>
+                <form action="{{ url_for('api_select_plan') }}" method="POST">
+                    <input type="hidden" name="plan" value="Premier">
+                    <button type="submit" class="btn btn-primary btn-full">Select Premier</button>
+                </form>
             </div>
         </div>
 
