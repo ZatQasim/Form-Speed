@@ -796,7 +796,17 @@ def tool_packet_detector():
 @login_required
 def api_speed_sharing_toggle():
     enabled = request.json.get('enabled', False)
-    update_user_state(current_user.id, {'speed_sharing_enabled': enabled})
+    # Enhanced Speed Sharing: defend device and optimize route
+    updates = {
+        'speed_sharing_enabled': enabled,
+        'route_optimization_enabled': enabled,
+        'security_enabled': enabled
+    }
+    if enabled:
+        updates['shared_bandwidth_mbps'] = 100 # Simulated enhanced bandwidth
+        updates['protected_since'] = datetime.utcnow().isoformat()
+        
+    update_user_state(current_user.id, updates)
     return jsonify({'success': True})
 
 @app.route('/api/speed-sharing/generate-invite', methods=['POST'])
@@ -835,11 +845,68 @@ def api_metrics():
 def api_security_status():
     return jsonify({'status': 'protected', 'threats_blocked': 12})
 
-@app.route('/api/vpn/status')
+@app.route('/api/vpn/connect', methods=['POST'])
 @login_required
-def api_vpn_status():
+def api_vpn_connect():
+    server_id = request.json.get('server_id')
+    server = next((s for s in VPN_SERVERS if s['id'] == server_id), None)
+    if not server:
+        return jsonify({'success': False, 'error': 'Invalid server'}), 400
+    
+    assigned_ip = f"10.8.0.{current_user.id % 254 + 2}"
+    update_user_state(current_user.id, {
+        'vpn_enabled': True,
+        'vpn_server': server,
+        'vpn_connected_at': datetime.utcnow().isoformat(),
+        'assigned_ip': assigned_ip,
+        'route_optimization_enabled': True
+    })
+    return jsonify({'success': True})
+
+@app.route('/api/vpn/disconnect', methods=['POST'])
+@login_required
+def api_vpn_disconnect():
+    update_user_state(current_user.id, {
+        'vpn_enabled': False,
+        'vpn_server': None,
+        'assigned_ip': None,
+        'route_optimization_enabled': False
+    })
+    return jsonify({'success': True})
+
+@app.route('/api/vpn/optimize-route', methods=['POST'])
+@login_required
+def api_vpn_optimize_route():
     state = get_user_state(current_user.id)
-    return jsonify({'enabled': state.get('vpn_enabled', False), 'server': state.get('vpn_server')})
+    if not state.get('vpn_enabled'):
+        return jsonify({'success': False, 'error': 'VPN not connected'}), 400
+    
+    # Simulated optimization
+    improvements = {
+        'latency': {'before': 120, 'after': 45, 'improvement': '62%'},
+        'speed': {'before': 15, 'after': 85, 'improvement': '466%'}
+    }
+    route_path = ["Your Device", "Local ISP", "Form Edge Node", state['vpn_server']['location'], "Internet"]
+    
+    update_user_state(current_user.id, {'route_optimization_enabled': True})
+    return jsonify({
+        'success': True,
+        'improvements': improvements,
+        'route_path': route_path
+    })
+
+@app.route('/api/speed-sharing/my-invites')
+@login_required
+def api_my_invites():
+    # Placeholder for invite tracking
+    return jsonify({'success': True, 'guests': []})
+
+@app.route('/api/settings/update', methods=['POST'])
+@login_required
+def api_settings_update():
+    updates = request.json
+    update_user_state(current_user.id, updates)
+    return jsonify({'success': True})
 
 @app.route('/dashboard/diagnostics')
 @login_required
