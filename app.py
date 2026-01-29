@@ -683,6 +683,14 @@ def security_dashboard():
 def settings_dashboard():
     return render_template('settings.html', user=current_user, user_state=get_user_state(current_user.id), benefits=current_user.get_benefits())
 
+@app.route('/subscription/cancel')
+@login_required
+def cancel_subscription():
+    # Placeholder for subscription cancellation logic
+    # In a real app, this would interface with Stripe
+    flash('Subscription cancellation is not yet implemented.', 'info')
+    return redirect(url_for('settings_dashboard'))
+
 @app.route('/dashboard/cloud')
 @login_required
 def cloud_dashboard():
