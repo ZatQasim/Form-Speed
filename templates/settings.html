@@ -19,6 +19,7 @@
             <a href="{{ url_for('devices_dashboard') }}">Devices</a>
             <a href="{{ url_for('account_dashboard') }}">Account</a>
             <a href="{{ url_for('settings_dashboard') }}" class="active">Settings</a>
+            <a href="{{ url_for('plans_page') }}">Form One Plans</a>
         </nav>
     </aside>
     
@@ -28,6 +29,10 @@
         <div class="settings-section">
             <h2>Account</h2>
             <div class="settings-card">
+                <div class="setting-row">
+                    <label>Current Plan</label>
+                    <span class="badge">{{ current_user.plan_tag }}</span>
+                </div>
                 <div class="setting-row">
                     <label>Username</label>
                     <span>{{ current_user.username }}</span>

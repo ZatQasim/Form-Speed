@@ -1,8 +1,13 @@
 {
   "pro_users": [
-    "qasimthemuslimdiscord@gmail.com",
-    "qasim",
-    
+    {
+      "email": "qasimthemuslimdiscord@gmail.com",
+      "plan": "Premier"
+    },
+    {
+      "username": "qasim",
+      "plan": "Premier"
+    }
   ],
   "subscription": {
     "price_usd": 5,

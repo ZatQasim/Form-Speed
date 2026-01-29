@@ -227,6 +227,7 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
     is_pro = db.Column(db.Boolean, default=False)
+    plan_tag = db.Column(db.String(50), default='Free')
     stripe_customer_id = db.Column(db.String(100))
     stripe_subscription_id = db.Column(db.String(100))
     trial_end = db.Column(db.DateTime)
@@ -407,21 +408,39 @@ def sync_pro_users():
     with app.app_context():
         try:
             pro_config = load_pro_config()
-            pro_users = [u.strip().lower() for u in pro_config.get('pro_users', []) if isinstance(u, str)]
+            pro_users = pro_config.get('pro_users', [])
+            
+            # Map pro_users to dictionary for easier plan lookup
+            pro_map = {}
+            for u in pro_users:
+                if isinstance(u, dict):
+                    email = u.get('email', '').strip().lower()
+                    username = u.get('username', '').strip().lower()
+                    plan = u.get('plan', 'Regular')
+                    if email: pro_map[email] = plan
+                    if username: pro_map[username] = plan
+                elif isinstance(u, str):
+                    pro_map[u.strip().lower()] = 'Regular'
+
             all_users = User.query.all()
             for user in all_users:
                 u_email = user.email.strip().lower() if user.email else ""
                 u_name = user.username.strip().lower() if user.username else ""
-                if u_email in pro_users or u_name in pro_users:
-                    if not user.is_pro or user.subscription_status != 'active':
+                
+                plan = pro_map.get(u_email) or pro_map.get(u_name)
+                
+                if plan:
+                    if not user.is_pro or user.subscription_status != 'active' or user.plan_tag != plan:
                         user.is_pro = True
                         user.subscription_status = 'active'
+                        user.plan_tag = plan
                         if not user.stripe_subscription_id: 
                             user.stripe_subscription_id = "pro_json_override"
                 else:
                     if user.is_pro and (not user.stripe_subscription_id or user.stripe_subscription_id == "pro_json_override"):
                         user.is_pro = False
                         user.subscription_status = 'inactive'
+                        user.plan_tag = 'Free'
                         user.stripe_subscription_id = None
             db.session.commit()
         except Exception as e: 
@@ -685,6 +704,11 @@ def security_dashboard():
         return redirect(url_for('subscribe'))
     user_state = get_user_state(current_user.id)
     return render_template('security.html', user_state=user_state)
+
+@app.route('/dashboard/plans')
+@login_required
+def plans_page():
+    return render_template('plans.html')
 
 @app.route('/dashboard/settings')
 @login_required
