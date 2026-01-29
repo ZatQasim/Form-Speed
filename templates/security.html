@@ -23,11 +23,11 @@
     </aside>
     
     <main class="dashboard-content">
-        <h1>Security Protection</h1>
+        <h1>Security Settings</h1>
         
         <div class="security-status-card">
             <div class="security-status {% if user_state.security_enabled %}protected{% else %}unprotected{% endif %}">
-                <div class="shield-icon">{% if user_state.security_enabled %}🛡️{% else %}⚠️{% endif %}</div>
+                <div class="shield-icon">{% if user_state.security_enabled %}{% else %}▪︎{% endif %}</div>
                 <div class="status-text">
                     <h2>{% if user_state.security_enabled %}Protected{% else %}Not Protected{% endif %}</h2>
                     {% if user_state.security_enabled and user_state.protected_since %}
@@ -45,8 +45,8 @@
         
         <div class="threats-summary">
             <div class="threat-stat">
-                <div class="stat-value" id="threats-blocked">{{ user_state.threats_blocked or 0 }}</div>
-                <div class="stat-label">Threats Blocked</div>
+                <div class="stat-value" id="threats-blocked">{{ user_state.threats_blocked or 0 }} + </div>
+                <div class="stat-label">Connections being scanned</div>
             </div>
             <div class="threat-stat">
                 <div class="stat-value status-active">Active</div>
@@ -62,7 +62,7 @@
             <h2>Protection Features</h2>
             <div class="features-grid-security">
                 <div class="protection-item">
-                    <div class="protection-icon">🦠</div>
+                    <div class="protection-icon">●</div>
                     <div class="protection-info">
                         <h3>Malware Protection</h3>
                         <p>Blocks malicious software and downloads</p>
@@ -70,7 +70,7 @@
                     <div class="protection-status active">Active</div>
                 </div>
                 <div class="protection-item">
-                    <div class="protection-icon">🎣</div>
+                    <div class="protection-icon">●</div>
                     <div class="protection-info">
                         <h3>Phishing Protection</h3>
                         <p>Protects against fake websites and scams</p>
@@ -78,7 +78,7 @@
                     <div class="protection-status active">Active</div>
                 </div>
                 <div class="protection-item">
-                    <div class="protection-icon">🔐</div>
+                    <div class="protection-icon">●</div>
                     <div class="protection-info">
                         <h3>DNS Leak Protection</h3>
                         <p>Prevents DNS queries from leaking</p>
@@ -86,7 +86,7 @@
                     <div class="protection-status active">Active</div>
                 </div>
                 <div class="protection-item">
-                    <div class="protection-icon">🌐</div>
+                    <div class="protection-icon">●</div>
                     <div class="protection-info">
                         <h3>IP Leak Protection</h3>
                         <p>Hides your real IP address</p>
@@ -94,7 +94,7 @@
                     <div class="protection-status active">Active</div>
                 </div>
                 <div class="protection-item">
-                    <div class="protection-icon">👁️</div>
+                    <div class="protection-icon">●</div>
                     <div class="protection-info">
                         <h3>Tracker Blocking</h3>
                         <p>Blocks online trackers and cookies</p>
@@ -102,7 +102,7 @@
                     <div class="protection-status active">Active</div>
                 </div>
                 <div class="protection-item">
-                    <div class="protection-icon">📢</div>
+                    <div class="protection-icon">●</div>
                     <div class="protection-info">
                         <h3>Ad Blocking</h3>
                         <p>Removes intrusive advertisements</p>
@@ -120,7 +120,7 @@
         </div>
         
         <div class="security-info">
-            <h2>Your Security</h2>
+            <h2>Offers</h2>
             <div class="info-grid">
                 <div class="info-card">
                     <h3>Secure DNS</h3>

@@ -6,25 +6,25 @@
 <section class="hero">
     <div class="hero-content">
         <img src="{{ url_for('static', filename='logo.png') }}" alt="Form Logo" class="hero-logo">
-        <h1>Form Network</h1>
+        <h1>Form</h1>
         <p class="hero-subtitle">Power up your mobile.</p>
         <div class="hero-features">
             <div class="feature">
-                <h3>VPN Protection</h3>
-                <p>Military-grade encryption with server access in 6+ locations worldwide</p>
+                <h3>Form Agent</h3>
+            Agent to help with your carrier needs</p>
             </div>
             <div class="feature">
                 <h3>Speed Sharing</h3>
-                <p>Peer-to-peer bandwidth optimization for faster connections</p>
+                <p>Share your special routing with families and friends</p>
             </div>
             <div class="feature">
-                <h3>Mesh Network</h3>
-                <p>Decentralized routing for reliability and redundancy</p>
+                <h3>Subscription</h3>
+                <p>$5/month for Form Plus</p>
             </div>
         </div>
         <div class="hero-cta">
-            <a href="{{ url_for('signup') }}" class="btn btn-primary btn-large">Start Free Trial</a>
-            <p class="trial-info">7-day free trial, then $5 per month. Cancel anytime and anywhere.</p>
+            <a href="{{ url_for('signup') }}" class="btn btn-primary btn-large">Subscribe to Form Plus</a>
+            <p class="trial-info">Claim a 7 day trial to see if you like it or cancel</p>
         </div>
     </div>
 </section>
@@ -32,7 +32,7 @@
 <section class="pricing">
     <h2></h2>
     <div class="price-card">
-        <h3>Form Subscription</h3>
+        <h3>Form Plus</h3>
         <div class="price">$5<span>/month</span></div>
         <ul class="features-list">
             <li>VPN Access to All Servers</li>
@@ -42,7 +42,7 @@
             <li>Advanced Analytics</li>
             <li>24/7 Support</li>
         </ul>
-        <a href="{{ url_for('signup') }}" class="btn btn-primary btn-large btn-full">Start 7-Day Free Trial</a>
+        <a href="{{ url_for('signup') }}" class="btn btn-primary btn-large btn-full">Check!</a>
     </div>
 </section>
 {% endblock %}

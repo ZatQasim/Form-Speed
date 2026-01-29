@@ -16,7 +16,9 @@ import secrets
 import string
 import re
 from datetime import datetime, timedelta
+import ssl
 
+# --- App Configuration ---
 app = Flask(__name__, static_folder='static', template_folder='templates')
 app.config['SECRET_KEY'] = os.environ.get('SESSION_SECRET', 'dev-secret-key')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///form.db')
@@ -32,6 +34,8 @@ PRO_CONFIG_PATH = 'pro.json'
 USER_STATE_PATH = 'device_client/cache/user_states.json'
 NETWORK_DATA_PATH = 'device_client/cache/network_data.json'
 
+# --- Helper Functions ---
+
 def load_pro_config():
     try:
         if not os.path.exists(PRO_CONFIG_PATH):
@@ -39,8 +43,8 @@ def load_pro_config():
         with open(PRO_CONFIG_PATH, 'r') as f:
             content = f.read().strip()
             if not content: return {"pro_users": [], "subscription": {"price_usd": 5, "trial_days": 7, "features": []}}
-            content = re.sub(r',\s*\]', ']', content)
-            content = re.sub(r',\s*\}', '}', content)
+            content = re.sub(r',\s*]', ']', content)
+            content = re.sub(r',\s*}', '}', content)
             config = json.loads(content)
             if 'pro_users' not in config: config['pro_users'] = []
             config['pro_users'] = [str(u).strip() for u in config['pro_users'] if u]
@@ -84,18 +88,6 @@ def save_user_states(states):
     os.makedirs(os.path.dirname(USER_STATE_PATH), exist_ok=True)
     with open(USER_STATE_PATH, 'w') as f:
         json.dump(states, f, indent=2)
-
-def load_network_data():
-    try:
-        with open(NETWORK_DATA_PATH, 'r') as f:
-            return json.load(f)
-    except:
-        return {"peers": [], "threats": [], "metrics_history": []}
-
-def save_network_data(data):
-    os.makedirs(os.path.dirname(NETWORK_DATA_PATH), exist_ok=True)
-    with open(NETWORK_DATA_PATH, 'w') as f:
-        json.dump(data, f, indent=2)
 
 def get_user_state(user_id):
     states = load_user_states()
@@ -227,6 +219,8 @@ VPN_SERVERS = [
     {'id': 'germany', 'name': 'Germany', 'location': 'Frankfurt', 'ip': '167.99.0.1', 'ipsec_id': 'form-germany-01', 'capacity': 82, 'protocols': ['IPSec', 'WireGuard']}
 ]
 
+# --- Database Models ---
+
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
@@ -241,8 +235,12 @@ class User(UserMixin, db.Model):
     totp_secret = db.Column(db.String(32))
     totp_enabled = db.Column(db.Boolean, default=False)
 
-    def set_password(self, password): self.password_hash = generate_password_hash(password)
-    def check_password(self, password): return check_password_hash(self.password_hash, password)
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+    
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+    
     def has_active_subscription(self):
         try:
             pro_config = load_pro_config()
@@ -253,27 +251,28 @@ class User(UserMixin, db.Model):
         if self.subscription_status == 'active': return True
         if self.trial_end and self.trial_end > datetime.utcnow(): return True
         return False
+    
     def get_benefits(self):
         if self.has_active_subscription():
             return {
-                'vpn_access': True, 
-                'speed_sharing': True, 
-                'mesh_network': True, 
-                'priority_routing': True, 
-                'advanced_analytics': True, 
-                'security_protection': True, 
+                'vpn_access': True,
+                'speed_sharing': True,
+                'mesh_network': True,
+                'priority_routing': True,
+                'advanced_analytics': True,
+                'security_protection': True,
                 'route_optimization': True,
                 'cloud_storage': True,
                 'password_manager': True,
                 'form_agent': True
             }
         return {
-            'vpn_access': False, 
-            'speed_sharing': False, 
-            'mesh_network': False, 
-            'priority_routing': False, 
-            'advanced_analytics': False, 
-            'security_protection': False, 
+            'vpn_access': False,
+            'speed_sharing': False,
+            'mesh_network': False,
+            'priority_routing': False,
+            'advanced_analytics': False,
+            'security_protection': False,
             'route_optimization': False,
             'cloud_storage': False,
             'password_manager': False,
@@ -299,6 +298,8 @@ class PasswordEntry(db.Model):
     category = db.Column(db.String(50)) # 'password', 'token', 'information'
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+# --- Routes and Views ---
+
 @app.route('/api/cloud/upload', methods=['POST'])
 @login_required
 def cloud_upload():
@@ -307,16 +308,16 @@ def cloud_upload():
     file = request.files['file']
     if file.filename == '':
         return jsonify({'success': False, 'error': 'No selected file'}), 400
-    
+
     file_type = request.form.get('type', 'data')
-    
+
     upload_folder = os.path.join('storage', str(current_user.id))
     os.makedirs(upload_folder, exist_ok=True)
-    
+
     secure_name = secrets.token_hex(16) + os.path.splitext(file.filename)[1]
     file_path = os.path.join(upload_folder, secure_name)
     file.save(file_path)
-    
+
     new_file = CloudFile(
         user_id=current_user.id,
         filename=secure_name,
@@ -327,7 +328,7 @@ def cloud_upload():
     )
     db.session.add(new_file)
     db.session.commit()
-    
+
     return jsonify({'success': True, 'message': 'File uploaded successfully'})
 
 @app.route('/api/cloud/files')
@@ -351,11 +352,11 @@ def delete_cloud_file(file_id):
     file_entry = CloudFile.query.filter_by(id=file_id, user_id=current_user.id).first()
     if not file_entry:
         return jsonify({'success': False, 'error': 'File not found'}), 404
-    
+
     file_path = os.path.join('storage', str(current_user.id), file_entry.filename)
     if os.path.exists(file_path):
         os.remove(file_path)
-    
+
     db.session.delete(file_entry)
     db.session.commit()
     return jsonify({'success': True})
@@ -391,7 +392,8 @@ def list_passwords():
     })
 
 @login_manager.user_loader
-def load_user(user_id): return db.session.get(User, int(user_id))
+def load_user(user_id): 
+    return db.session.get(User, int(user_id))
 
 def sync_pro_users():
     with app.app_context():
@@ -406,65 +408,89 @@ def sync_pro_users():
                     if not user.is_pro or user.subscription_status != 'active':
                         user.is_pro = True
                         user.subscription_status = 'active'
-                        if not user.stripe_subscription_id: user.stripe_subscription_id = "pro_json_override"
+                        if not user.stripe_subscription_id: 
+                            user.stripe_subscription_id = "pro_json_override"
                 else:
                     if user.is_pro and (not user.stripe_subscription_id or user.stripe_subscription_id == "pro_json_override"):
                         user.is_pro = False
                         user.subscription_status = 'inactive'
                         user.stripe_subscription_id = None
             db.session.commit()
-        except Exception as e: print(f"Sync ERROR: {str(e)}")
+        except Exception as e: 
+            print(f"Sync ERROR: {str(e)}")
 
 @app.before_request
 def auto_sync_pro():
-    if not request.path.startswith('/static'): sync_pro_users()
+    if request.path and not request.path.startswith('/static'): 
+        sync_pro_users()
 
 @app.route('/')
-def index(): return render_template('index.html')
+def index(): 
+    return render_template('index.html')
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
-    if current_user.is_authenticated: return redirect(url_for('dashboard'))
+    if current_user.is_authenticated: 
+        return redirect(url_for('dashboard'))
+    
     if request.method == 'POST':
-        email, username, password = request.form.get('email'), request.form.get('username'), request.form.get('password')
-        if User.query.filter_by(email=email).first(): flash('Email already registered', 'error'); return redirect(url_for('signup'))
-        if User.query.filter_by(username=username).first(): flash('Username already taken', 'error'); return redirect(url_for('signup'))
+        email = request.form.get('email')
+        username = request.form.get('username')
+        password = request.form.get('password')
+        
+        if User.query.filter_by(email=email).first(): 
+            flash('Email already registered', 'error')
+            return redirect(url_for('signup'))
+        if User.query.filter_by(username=username).first(): 
+            flash('Username already taken', 'error')
+            return redirect(url_for('signup'))
+            
         user = User(email=email, username=username)
         user.set_password(password)
-        
+
         # Check if user is in pro.json whitelist
         pro_config = load_pro_config()
         pro_users = [str(u).strip().lower() for u in pro_config.get('pro_users', []) if u]
-        
+
         is_whitelisted = False
         if email and email.strip().lower() in pro_users: is_whitelisted = True
         if username and username.strip().lower() in pro_users: is_whitelisted = True
-        
+
         if is_whitelisted:
             user.is_pro = True
             user.subscription_status = 'active'
             user.stripe_subscription_id = "pro_json_override"
-            flash('Welcome! Your Pro account is active via whitelist.', 'success')
+            flash('Welcome! Your account is active via whitelist.', 'success')
         else:
             user.is_pro = False
             user.subscription_status = 'inactive'
-            flash('Account created successfully. Upgrade to Pro to unlock all features.', 'success')
-            
+            flash('Account created successfully. Subscribe to make your account active with the benefits.', 'success')
+
         db.session.add(user)
         db.session.commit()
         login_user(user)
         return redirect(url_for('dashboard'))
+
     return render_template('signup.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if current_user.is_authenticated: return redirect(url_for('dashboard'))
+    if current_user.is_authenticated: 
+        return redirect(url_for('dashboard'))
+    
     if request.method == 'POST':
-        email, password = request.form.get('email'), request.form.get('password')
+        email = request.form.get('email')
+        password = request.form.get('password')
         user = User.query.filter_by(email=email).first()
+        
         if user and user.check_password(password):
-            if user.totp_enabled: session['pending_2fa_user_id'] = user.id; return render_template('verify_2fa.html', email=email)
-            login_user(user); flash('Welcome back!', 'success'); return redirect(url_for('dashboard'))
+            if user.totp_enabled: 
+                session['pending_2fa_user_id'] = user.id
+                return render_template('verify_2fa.html', email=email)
+            login_user(user)
+            flash('Welcome back!', 'success')
+            return redirect(url_for('dashboard'))
+            
         flash('Invalid email or password', 'error')
     return render_template('login.html')
 
@@ -476,8 +502,12 @@ def verify_2fa():
     totp_code = request.form.get('totp_code')
     if user and user.totp_enabled and totp_code:
         if pyotp.TOTP(user.totp_secret).verify(totp_code):
-            login_user(user); session.pop('pending_2fa_user_id', None); flash('Welcome back!', 'success'); return redirect(url_for('dashboard'))
-        flash('Invalid 2FA code', 'error'); return render_template('verify_2fa.html', email=user.email)
+            login_user(user)
+            session.pop('pending_2fa_user_id', None)
+            flash('Welcome back!', 'success')
+            return redirect(url_for('dashboard'))
+        flash('Invalid 2FA code', 'error')
+        return render_template('verify_2fa.html', email=user.email)
     return redirect(url_for('login'))
 
 @app.route('/setup-2fa', methods=['GET', 'POST'])
@@ -487,17 +517,23 @@ def setup_2fa():
         totp_code = request.form.get('totp_code')
         secret = session.get('pending_totp_secret')
         if secret and totp_code and pyotp.TOTP(secret).verify(totp_code):
-            current_user.totp_secret, current_user.totp_enabled = secret, True
-            db.session.commit(); session.pop('pending_totp_secret', None)
-            flash('Two-factor authentication enabled!', 'success'); return redirect(url_for('settings_dashboard'))
+            current_user.totp_secret = secret
+            current_user.totp_enabled = True
+            db.session.commit()
+            session.pop('pending_totp_secret', None)
+            flash('Two-factor authentication enabled!', 'success')
+            return redirect(url_for('settings_dashboard'))
         flash('Invalid code. Please try again.', 'error')
+
     secret = pyotp.random_base32()
     session['pending_totp_secret'] = secret
     uri = pyotp.TOTP(secret).provisioning_uri(name=current_user.email, issuer_name='Form Network')
     qr = qrcode.QRCode(version=1, box_size=10, border=5)
-    qr.add_data(uri); qr.make(fit=True)
+    qr.add_data(uri)
+    qr.make(fit=True)
     img = qr.make_image(fill_color='black', back_color='white')
-    buf = io.BytesIO(); img.save(buf, format='PNG')
+    buf = io.BytesIO()
+    img.save(buf, format='PNG')
     return render_template('setup_2fa.html', secret=secret, qr_code=base64.b64encode(buf.getvalue()).decode())
 
 @app.route('/disable-2fa', methods=['POST'])
@@ -505,9 +541,12 @@ def setup_2fa():
 def disable_2fa():
     code = request.form.get('totp_code')
     if current_user.totp_enabled and code and pyotp.TOTP(current_user.totp_secret).verify(code):
-        current_user.totp_enabled, current_user.totp_secret = False, None
-        db.session.commit(); flash('Two-factor authentication disabled', 'success')
-    else: flash('Invalid code', 'error')
+        current_user.totp_enabled = False
+        current_user.totp_secret = None
+        db.session.commit()
+        flash('Two-factor authentication disabled', 'success')
+    else: 
+        flash('Invalid code', 'error')
     return redirect(url_for('settings_dashboard'))
 
 @app.route('/api/account/delete', methods=['POST'])
@@ -516,26 +555,37 @@ def delete_account():
     user = db.session.get(User, current_user.id)
     if user:
         if user.stripe_subscription_id and user.stripe_subscription_id != "pro_json_override":
-            try: stripe.Subscription.delete(user.stripe_subscription_id)
-            except: pass
+            try: 
+                stripe.Subscription.delete(user.stripe_subscription_id)
+            except: 
+                pass
+        
         pro_config = load_pro_config()
         if 'pro_users' in pro_config:
             e, u = user.email.lower(), user.username.lower()
             pro_config['pro_users'] = [x for x in pro_config['pro_users'] if x.strip().lower() not in [e, u]]
             save_pro_config_file(pro_config)
-        db.session.delete(user); db.session.commit(); logout_user()
+            
+        db.session.delete(user)
+        db.session.commit()
+        logout_user()
         flash('Your account has been permanently deleted.', 'info')
         return jsonify({'success': True, 'redirect': url_for('index')})
     return jsonify({'success': False}), 404
 
 @app.route('/logout')
 @login_required
-def logout(): logout_user(); flash('You have been logged out', 'info'); return redirect(url_for('index'))
+def logout(): 
+    logout_user()
+    flash('You have been logged out', 'info')
+    return redirect(url_for('index'))
 
 @app.route('/subscribe')
 @login_required
 def subscribe():
-    if current_user.has_active_subscription(): flash('You already have an active subscription!', 'info'); return redirect(url_for('dashboard'))
+    if current_user.has_active_subscription(): 
+        flash('You already have an active subscription!', 'info')
+        return redirect(url_for('dashboard'))
     cfg = load_pro_config()
     return render_template('subscribe.html', price=cfg['subscription']['price_usd'], trial_days=cfg['subscription']['trial_days'], features=cfg['subscription']['features'])
 
@@ -548,17 +598,30 @@ def create_checkout_session():
             customer = stripe.Customer.create(email=current_user.email, metadata={'user_id': current_user.id})
             current_user.stripe_customer_id = customer.id
             db.session.commit()
+            
         domain = os.environ.get('REPLIT_DEV_DOMAIN', 'localhost:5000')
         proto = 'https' if 'replit' in domain else 'http'
+        
         session = stripe.checkout.Session.create(
-            customer=current_user.stripe_customer_id, payment_method_types=['card'],
-            line_items=[{'price_data': {'currency': 'usd', 'product_data': {'name': 'Form Subscription'}, 'unit_amount': cfg['subscription']['price_usd'] * 100, 'recurring': {'interval': 'month'}}, 'quantity': 1}],
-            mode='subscription', subscription_data={'trial_period_days': cfg['subscription']['trial_days']},
+            customer=current_user.stripe_customer_id, 
+            payment_method_types=['card'],
+            line_items=[{
+                'price_data': {
+                    'currency': 'usd', 
+                    'product_data': {'name': 'Form Subscription'}, 
+                    'unit_amount': cfg['subscription']['price_usd'] * 100, 
+                    'recurring': {'interval': 'month'}
+                }, 
+                'quantity': 1
+            }],
+            mode='subscription', 
+            subscription_data={'trial_period_days': cfg['subscription']['trial_days']},
             success_url=f'{proto}://{domain}/subscription-success?session_id={{CHECKOUT_SESSION_ID}}',
             cancel_url=f'{proto}://{domain}/subscribe'
         )
         return jsonify({'url': session.url})
-    except Exception as e: return jsonify({'error': str(e)}), 400
+    except Exception as e: 
+        return jsonify({'error': str(e)}), 400
 
 @app.route('/subscription-success')
 @login_required
@@ -567,11 +630,14 @@ def subscription_success():
     if sid:
         try:
             s = stripe.checkout.Session.retrieve(sid)
-            current_user.stripe_subscription_id, current_user.subscription_status = s.subscription, 'active'
-            current_user.trial_end, current_user.is_pro = datetime.utcnow() + timedelta(days=7), True
+            current_user.stripe_subscription_id = s.subscription
+            current_user.subscription_status = 'active'
+            current_user.trial_end = datetime.utcnow() + timedelta(days=7)
+            current_user.is_pro = True
             db.session.commit()
             add_user_to_pro_json(current_user.email, current_user.username)
-        except Exception as e: flash(f'Error processing subscription: {str(e)}', 'error')
+        except Exception as e: 
+            flash(f'Error processing subscription: {str(e)}', 'error')
     flash('Welcome to Form! Your Pro account is active.', 'success')
     return redirect(url_for('dashboard'))
 
@@ -579,16 +645,18 @@ def subscription_success():
 @login_required
 def dashboard():
     is_pro = current_user.has_active_subscription()
-    return render_template('dashboard.html', 
-                           metrics=get_real_network_metrics(), 
-                           is_pro=is_pro, 
-                           user_state=get_user_state(current_user.id), 
-                           benefits=current_user.get_benefits())
+    return render_template('dashboard.html',
+        metrics=get_real_network_metrics(),
+        is_pro=is_pro,
+        user_state=get_user_state(current_user.id),
+        benefits=current_user.get_benefits())
 
 @app.route('/dashboard/vpn')
 @login_required
 def vpn_dashboard():
-    if not current_user.has_active_subscription(): flash('VPN requires Pro', 'warning'); return redirect(url_for('subscribe'))
+    if not current_user.has_active_subscription(): 
+        flash('VPN requires Pro', 'warning')
+        return redirect(url_for('subscribe'))
     return render_template('vpn.html', user_state=get_user_state(current_user.id), servers=VPN_SERVERS)
 
 @app.route('/dashboard/speed-sharing')
@@ -596,10 +664,10 @@ def vpn_dashboard():
 def speed_sharing_dashboard():
     metrics = get_real_network_metrics()
     user_state = get_user_state(current_user.id)
-    return render_template('speed_sharing.html', 
-                      metrics=metrics, 
-                      is_pro=current_user.has_active_subscription(),
-                      user_state=user_state)
+    return render_template('speed_sharing.html',
+        metrics=metrics,
+        is_pro=current_user.has_active_subscription(),
+        user_state=user_state)
 
 @app.route('/dashboard/security')
 @login_required
@@ -642,9 +710,9 @@ def mesh_dashboard():
 @app.route('/dashboard/tools')
 @login_required
 def tools_dashboard():
-    return render_template('tools.html', 
-                         metrics=get_real_network_metrics(), 
-                         user_state=get_user_state(current_user.id))
+    return render_template('tools.html',
+        metrics=get_real_network_metrics(),
+        user_state=get_user_state(current_user.id))
 
 @app.route('/dashboard/tools/wifi-analyser')
 @login_required
@@ -655,21 +723,6 @@ def tool_wifi_analyser():
 @login_required
 def tool_port_scanner():
     return render_template('tools/port_scanner.html', user_state=get_user_state(current_user.id))
-
-import openai
-from openai import OpenAI
-
-# Initialize OpenAI client with Replit AI Integrations
-# This provides OpenAI-compatible API access without requiring your own API key.
-AI_INTEGRATIONS_OPENAI_API_KEY = os.environ.get("AI_INTEGRATIONS_OPENAI_API_KEY")
-AI_INTEGRATIONS_OPENAI_BASE_URL = os.environ.get("AI_INTEGRATIONS_OPENAI_BASE_URL")
-
-# newest OpenAI model is "gpt-5" which was released August 7, 2025.
-# do not change this unless explicitly requested by the user
-client = OpenAI(
-    api_key=AI_INTEGRATIONS_OPENAI_API_KEY,
-    base_url=AI_INTEGRATIONS_OPENAI_BASE_URL
-)
 
 @app.route('/dashboard/agent')
 @login_required
@@ -684,38 +737,36 @@ def agent_dashboard():
 def agent_chat():
     if not current_user.has_active_subscription():
         return jsonify({'error': 'Pro required'}), 403
-    
+
     user_message = request.json.get('message', '')
     user_state = get_user_state(current_user.id)
     metrics = get_real_network_metrics()
-    
+
     try:
         from openai import OpenAI
-        import os
         
-        # the newest OpenAI model is "gpt-5" which was released August 7, 2025.
-        # do not change this unless explicitly requested by the user
-        ai_client = OpenAI(
-            api_key=os.environ.get("AI_INTEGRATIONS_OPENAI_API_KEY"),
-            base_url=os.environ.get("AI_INTEGRATIONS_OPENAI_BASE_URL")
-        )
-        
-        response = ai_client.chat.completions.create(
-            model="gpt-5",
-            messages=[
-                {"role": "system", "content": f"You are Form Agent, an advanced Large Action Model (LAM) for the Form Network. User: {current_user.username}. Carrier: {metrics.get('carrier')}. VPN: {'Active' if user_state.get('vpn_enabled') else 'Inactive'}. Help with account, carrier info, financial options ($5/mo), and support. Be concise and authoritative."},
-                {"role": "user", "content": user_message}
-            ],
-            max_completion_tokens=500
-        )
-        ai_response = response.choices[0].message.content
-        if not ai_response:
+        ai_client = OpenAI(    
+            api_key=os.environ.get("AI_INTEGRATIONS_OPENAI_API_KEY"),    
+            base_url=os.environ.get("AI_INTEGRATIONS_OPENAI_BASE_URL")    
+        )    
+            
+        response = ai_client.chat.completions.create(    
+            model="gpt-5",    
+            messages=[    
+                {"role": "system", "content": f"You are Form Agent, an advanced Large Action Model (LAM) for the Form Network. User: {current_user.username}. Carrier: {metrics.get('carrier')}. VPN: {'Active' if user_state.get('vpn_enabled') else 'Inactive'}. Help with account, carrier info, financial options ($5/mo), and support. Be concise and authoritative."},    
+                {"role": "user", "content": user_message}    
+            ],    
+            max_completion_tokens=500    
+        )    
+        ai_response = response.choices[0].message.content    
+        if not ai_response:    
             ai_response = "I'm processing your request, but I don't have a specific answer right now. How else can I help?"
+
     except Exception as e:
         import traceback
         print(f"DEBUG AI ERROR: {traceback.format_exc()}")
         ai_response = f"I'm having trouble connecting to my AI core. Please check your Pro status or try again. (Error: {str(e)})"
-    
+
     return jsonify({'response': ai_response})
 
 @app.route('/dashboard/tools/cert-scanner')
@@ -814,14 +865,10 @@ def account_dashboard():
         'status': 'active' if is_pro else 'inactive',
         'price': 5,
         'created_at': current_user.created_at.isoformat() if current_user.created_at else None,
-        'is_whitelisted': "pro_json_override" == current_user.stripe_subscription_id
-    }
-    return render_template('account.html', user_state=get_user_state(current_user.id), subscription=subscription_data, is_pro=is_pro)
-        'price': "5",
         'is_whitelisted': current_user.stripe_subscription_id == "pro_json_override",
         'trial_end': current_user.trial_end.isoformat() if current_user.trial_end else None
     }
-    return render_template('account.html', user=current_user, subscription=subscription)
+    return render_template('account.html', user=current_user, user_state=get_user_state(current_user.id), subscription=subscription_data, is_pro=is_pro)
 
 @app.route('/dashboard/password-manager')
 @login_required
@@ -852,6 +899,7 @@ def api_wifi_analyse():
                         'security': parts[2] or 'Open',
                         'channel': int(parts[3])
                     })
+        
         if not networks:
             # Fallback for environments without nmcli or no networks found
             networks = [
@@ -867,28 +915,32 @@ def api_wifi_analyse():
 def api_port_scan():
     target = request.json.get('target', '127.0.0.1')
     open_ports = []
+
     # Scan common ports
     common_ports = [22, 80, 443, 3000, 5000, 8080]
     for port in common_ports:
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.settimeout(0.1)
-            if s.connect_ex((target, port)) == 0:
-                open_ports.append(port)
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.settimeout(0.1)
+                if s.connect_ex((target, port)) == 0:
+                    open_ports.append(port)
+        except: pass
     return jsonify({'success': True, 'open_ports': open_ports})
 
 @app.route('/api/tools/cert-scan', methods=['POST'])
 @login_required
 def api_cert_scan():
-    import ssl
     host = request.json.get('host', 'replit.com')
     try:
         context = ssl.create_default_context()
         with socket.create_connection((host, 443), timeout=5) as sock:
             with context.wrap_socket(sock, server_hostname=host) as ssock:
                 cert = ssock.getpeercert()
-                return jsonify({'success': True, 'cert': cert})
+        return jsonify({'success': True, 'cert': cert})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+
+# --- Main Entry Point ---
 
 if __name__ == '__main__':
     with app.app_context():

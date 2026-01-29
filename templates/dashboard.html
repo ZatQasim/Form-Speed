@@ -34,7 +34,7 @@
         
         {% if is_pro %}
         <div class="pro-status">
-            <span class="pro-badge-large">PRO</span>
+            <span class="pro-badge-large">Subscribed</span>
             <span>Subscription is now active</span>
         </div>
         
@@ -117,8 +117,8 @@
                 <div class="metric-value metric-text">{{ metrics.get('network_type', 'N/A') }}</div>
             </div>
             <div class="metric-card">
-                <h3>Interface</h3>
-                <div class="metric-value metric-text">{{ metrics.get('interface', 'N/A') }}</div>
+                <h3>Administrator detected errors</h3>
+                <div class="metric-value metric-text">{{ metrics.get('interface', 'None detected') }}</div>
             </div>
         </div>
         
@@ -156,15 +156,15 @@
                 {% else %}
                 <div class="action-card locked">
                     <h3>Connect VPN</h3>
-                    <p>Upgrade to Pro</p>
+                    <p>Upgrade to Form Plus</p>
                 </div>
                 <div class="action-card locked">
                     <h3>Speed Sharing</h3>
-                    <p>Upgrade to Pro</p>
+                    <p>Upgrade to Form Plus</p>
                 </div>
                 <div class="action-card locked">
                     <h3>Security</h3>
-                    <p>Upgrade to Pro</p>
+                    <p>Upgrade to Form Plus</p>
                 </div>
                 {% endif %}
                 <a href="{{ url_for('analytics_dashboard') }}" class="action-card">

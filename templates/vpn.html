@@ -81,24 +81,24 @@
                 <h3>Traffic Route</h3>
                 <div class="route-visualization">
                     <div class="route-node you">
-                        <span class="node-icon">📱</span>
+                        <span class="node-icon"></span>
                         <span class="node-label">Your Device</span>
                     </div>
                     <div class="route-arrow">→</div>
                     <div class="route-node form">
-                        <span class="node-icon">🔒</span>
+                        <span class="node-icon"></span>
                         <span class="node-label">Form VPN</span>
-                        <span class="node-detail">Encrypted Tunnel</span>
+                        <span class="node-detail"></span>
                     </div>
                     <div class="route-arrow">→</div>
                     <div class="route-node server">
-                        <span class="node-icon">🌐</span>
+                        <span class="node-icon"></span>
                         <span class="node-label">{{ user_state.vpn_server.location if user_state.vpn_server else 'VPN Server' }}</span>
                         <span class="node-detail">{{ user_state.assigned_ip if user_state.assigned_ip else 'Protected IP' }}</span>
                     </div>
                     <div class="route-arrow">→</div>
                     <div class="route-node internet">
-                        <span class="node-icon">🌍</span>
+                        <span class="node-icon"></span>
                         <span class="node-label">Internet</span>
                     </div>
                 </div>
@@ -137,19 +137,19 @@
             <h2>VPN Features</h2>
             <div class="features-grid">
                 <div class="feature-item active">
-                    <span class="feature-icon">🔒</span>
+                    <span class="feature-icon">¤</span>
                     <span>AES-256 Encryption</span>
                 </div>
                 <div class="feature-item active">
-                    <span class="feature-icon">🌐</span>
+                    <span class="feature-icon">¤</span>
                     <span>DNS Leak Protection</span>
                 </div>
                 <div class="feature-item active">
-                    <span class="feature-icon">🚀</span>
+                    <span class="feature-icon">¤</span>
                     <span>Route Optimization</span>
                 </div>
                 <div class="feature-item active">
-                    <span class="feature-icon">🛡️</span>
+                    <span class="feature-icon">¤</span>
                     <span>Kill Switch</span>
                 </div>
             </div>

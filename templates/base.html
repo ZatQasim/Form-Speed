@@ -24,7 +24,7 @@
             {% if current_user.is_authenticated %}
                 <a href="{{ url_for('dashboard') }}">Portal</a>
                 {% if current_user.has_active_subscription() %}
-                    <span class="pro-badge">PRO</span>
+                    <span class="pro-badge">Subscribed</span>
                 {% endif %}
                 <a href="{{ url_for('logout') }}" class="btn btn-outline">Log out</a>
             {% else %}
