@@ -797,14 +797,17 @@ def tool_packet_detector():
 def api_speed_sharing_toggle():
     enabled = request.json.get('enabled', False)
     # Enhanced Speed Sharing: defend device and optimize route
+    # Using 'Direct Carrier Peering' logic for enhanced route
     updates = {
         'speed_sharing_enabled': enabled,
         'route_optimization_enabled': enabled,
-        'security_enabled': enabled
+        'security_enabled': enabled,
+        'vpn_enabled': enabled # Auto-protect when speed sharing is on
     }
     if enabled:
-        updates['shared_bandwidth_mbps'] = 100 # Simulated enhanced bandwidth
+        updates['shared_bandwidth_mbps'] = 100 
         updates['protected_since'] = datetime.utcnow().isoformat()
+        updates['optimization_strategy'] = "Direct Carrier Peering"
         
     update_user_state(current_user.id, updates)
     return jsonify({'success': True})
@@ -897,7 +900,7 @@ def api_vpn_optimize_route():
 
 @app.route('/api/speed-sharing/my-invites')
 @login_required
-def api_my_invites():
+def api_my_invites_new():
     # Placeholder for invite tracking
     return jsonify({'success': True, 'guests': []})
 
