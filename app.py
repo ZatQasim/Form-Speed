@@ -718,37 +718,66 @@ def api_select_plan():
         flash('Invalid plan selected', 'error')
         return redirect(url_for('plans_page'))
     
-    # Update user in DB
-    user = db.session.get(User, current_user.id)
-    user.is_pro = True
-    user.subscription_status = 'active'
-    user.plan_tag = plan
-    if not user.stripe_subscription_id:
-        user.stripe_subscription_id = "manual_selection"
-    
-    # Update pro.json
     pro_config = load_pro_config()
-    pro_users = pro_config.get('pro_users', [])
+    price_id = pro_config.get('price_ids', {}).get(plan)
     
-    # Remove existing entries for this user
-    pro_users = [u for u in pro_users if not (
-        (isinstance(u, dict) and (u.get('email') == user.email or u.get('username') == user.username)) or
-        (isinstance(u, str) and (u == user.email or u == user.username))
-    )]
-    
-    # Add new entry
-    pro_users.append({
-        'email': user.email,
-        'username': user.username,
-        'plan': plan
-    })
-    
-    pro_config['pro_users'] = pro_users
-    save_pro_config_file(pro_config)
-    
-    db.session.commit()
-    flash(f'Successfully subscribed to Form One {plan}!', 'success')
-    return redirect(url_for('plans_page'))
+    if not price_id:
+        flash('Payment configuration error', 'error')
+        return redirect(url_for('plans_page'))
+
+    try:
+        checkout_session = stripe.checkout.Session.create(
+            customer=current_user.stripe_customer_id,
+            payment_method_types=['card'],
+            line_items=[{
+                'price': price_id,
+                'quantity': 1,
+            }],
+            mode='subscription',
+            success_url=url_for('subscription_success', _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
+            cancel_url=url_for('plans_page', _external=True),
+            metadata={'plan': plan, 'user_id': current_user.id}
+        )
+        return redirect(checkout_session.url, code=303)
+    except Exception as e:
+        print(f"Stripe Error: {str(e)}")
+        flash('Could not initiate payment. Please try again.', 'error')
+        return redirect(url_for('plans_page'))
+
+@app.route('/subscription/success')
+@login_required
+def subscription_success():
+    session_id = request.args.get('session_id')
+    if session_id:
+        try:
+            checkout_session = stripe.checkout.Session.retrieve(session_id)
+            plan = checkout_session.metadata.get('plan')
+            user_id = checkout_session.metadata.get('user_id')
+            
+            if checkout_session.payment_status == 'paid' and user_id == str(current_user.id):
+                user = db.session.get(User, current_user.id)
+                user.is_pro = True
+                user.subscription_status = 'active'
+                user.plan_tag = plan
+                user.stripe_subscription_id = checkout_session.subscription
+                
+                # Update pro.json
+                pro_config = load_pro_config()
+                pro_users = pro_config.get('pro_users', [])
+                pro_users = [u for u in pro_users if not (
+                    (isinstance(u, dict) and (u.get('email') == user.email or u.get('username') == user.username)) or
+                    (isinstance(u, str) and (u == user.email or u == user.username))
+                )]
+                pro_users.append({'email': user.email, 'username': user.username, 'plan': plan})
+                pro_config['pro_users'] = pro_users
+                save_pro_config_file(pro_config)
+                
+                db.session.commit()
+                flash(f'Successfully subscribed to Form One {plan}!', 'success')
+        except Exception as e:
+            print(f"Success Error: {str(e)}")
+            
+    return redirect(url_for('dashboard'))
 
 @app.route('/dashboard/settings')
 @login_required
