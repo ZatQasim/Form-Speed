@@ -123,13 +123,18 @@ document.getElementById('cloud-upload-input').onchange = async function(e) {
     btn.disabled = true;
     
     try {
-        await fetch('/api/cloud/upload', {
+        const result = await fetch('/api/cloud/upload', {
             method: 'POST',
             body: formData
         });
-        loadFiles();
+        const data = await result.json();
+        if (data.success) {
+            loadFiles();
+        } else {
+            alert('Upload failed: ' + (data.error || 'Unknown error'));
+        }
     } catch (err) {
-        alert('Upload failed');
+        alert('Upload failed: ' + err.message);
     } finally {
         btn.textContent = 'Upload File';
         btn.disabled = false;

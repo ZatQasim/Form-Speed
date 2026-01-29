@@ -312,11 +312,19 @@ def cloud_upload():
     file_type = request.form.get('type', 'data')
 
     upload_folder = os.path.join('storage', str(current_user.id))
-    os.makedirs(upload_folder, exist_ok=True)
+    try:
+        os.makedirs(upload_folder, exist_ok=True)
+    except Exception as e:
+        print(f"Error creating upload folder: {e}")
+        return jsonify({'success': False, 'error': 'Could not create storage directory'}), 500
 
     secure_name = secrets.token_hex(16) + os.path.splitext(file.filename)[1]
     file_path = os.path.join(upload_folder, secure_name)
-    file.save(file_path)
+    try:
+        file.save(file_path)
+    except Exception as e:
+        print(f"Error saving file: {e}")
+        return jsonify({'success': False, 'error': 'Failed to save file to disk'}), 500
 
     new_file = CloudFile(
         user_id=current_user.id,
