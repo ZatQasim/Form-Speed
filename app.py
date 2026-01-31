@@ -437,8 +437,30 @@ def list_passwords():
     })
 
 @login_manager.user_loader
-def load_user(user_id): 
-    return db.session.get(User, int(user_id))
+def load_user(user_id):
+    user = db.session.get(User, int(user_id))
+    if user:
+        # Automated Pro Access Sync
+        try:
+            with open('pro.json', 'r') as f:
+                pro_data = json.load(f)
+                pro_emails = pro_data.get('emails', [])
+                if user.email in pro_emails and not user.is_pro:
+                    user.is_pro = True
+                    db.session.commit()
+                    print(f"[Auto-Pro] Granted access to {user.email}")
+        except Exception as e:
+            # Fallback check for common paths if root fail
+            try:
+                with open('form_config/pro.json', 'r') as f:
+                    pro_data = json.load(f)
+                    pro_emails = pro_data.get('emails', [])
+                    if user.email in pro_emails and not user.is_pro:
+                        user.is_pro = True
+                        db.session.commit()
+            except:
+                pass
+    return user
 
 def sync_pro_users():
     with app.app_context():
