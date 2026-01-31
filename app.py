@@ -515,6 +515,26 @@ def auto_sync_pro():
     if request.path and not request.path.startswith('/static'): 
         sync_pro_users()
 
+@app.context_processor
+def inject_user_state():
+    if current_user.is_authenticated:
+        user_states = load_user_states()
+        user_state = user_states.get(str(current_user.id), {
+            'vpn_enabled': False,
+            'speed_sharing_enabled': False,
+            'route_optimization_enabled': False,
+            'assigned_ip': None,
+            'vpn_server': None
+        })
+        return dict(user_state=user_state)
+    return dict(user_state={
+        'vpn_enabled': False,
+        'speed_sharing_enabled': False,
+        'route_optimization_enabled': False,
+        'assigned_ip': None,
+        'vpn_server': None
+    })
+
 @app.route('/')
 def index(): 
     return render_template('index.html')
