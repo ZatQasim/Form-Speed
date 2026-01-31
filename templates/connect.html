@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow border-0">
+                <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center py-3">
+                    <h3 class="mb-0">Connect Hub</h3>
+                    <span class="badge bg-success">Mesh Mode Active</span>
+                </div>
+                <div class="card-body p-4 text-center" id="hubContainer">
+                    <div id="permissionRequest">
+                        <i class="fas fa-satellite-dish fa-5x mb-4 text-primary"></i>
+                        <h2>Transform this Computer into a Hub</h2>
+                        <p class="lead">To route other devices through your mesh network, we need local access.</p>
+                        <button class="btn btn-primary btn-lg mt-3" onclick="requestPermissions()">
+                            <i class="fas fa-shield-alt mr-2"></i> Grant Bluetooth & GPS Access
+                        </button>
+                    </div>
+
+                    <div id="scanningMode" class="d-none">
+                        <div class="spinner-border text-primary mb-4" style="width: 4rem; height: 4rem;" role="status"></div>
+                        <h3>Scanning for Devices...</h3>
+                        <p class="text-muted">Open Bluetooth settings on your phone or other device and look for "Form-Mesh-Hub"</p>
+                        
+                        <div id="deviceFound" class="mt-5 d-none">
+                            <div class="card bg-light border-primary">
+                                <div class="card-body d-flex justify-content-between align-items-center">
+                                    <div class="text-left">
+                                        <h5 class="mb-0"><i class="fas fa-mobile-alt mr-2"></i> iPhone 15 Pro</h5>
+                                        <small class="text-muted">Requesting Mesh Access</small>
+                                    </div>
+                                    <div>
+                                        <button class="btn btn-success mr-2" onclick="handleDevice('Accept')">Accept</button>
+                                        <button class="btn btn-danger" onclick="handleDevice('Deny')">Deny</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="connectedMode" class="d-none">
+                        <div class="alert alert-success py-4">
+                            <i class="fas fa-check-circle fa-4x mb-3"></i>
+                            <h2>Device Connected & Routed</h2>
+                            <p>Routing through Speed Sharing Advanced Network (Tier 1 Priority)</p>
+                            <hr>
+                            <div class="row text-left">
+                                <div class="col-md-6">
+                                    <p><strong>Status:</strong> Active Hub</p>
+                                    <p><strong>Device:</strong> iPhone 15 Pro</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Location Spoofing:</strong> Brazil (Cheaper Subscriptions Enabled)</p>
+                                    <p><strong>Encryption:</strong> Post-Quantum Tunneling</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function requestPermissions() {
+    // Simulate OS API calls
+    if (confirm("Allow 'Form' to access Bluetooth and GPS to discover nearby devices?")) {
+        document.getElementById('permissionRequest').classList.add('d-none');
+        document.getElementById('scanningMode').classList.remove('d-none');
+        
+        // Simulate finding a device after 3 seconds
+        setTimeout(() => {
+            document.getElementById('deviceFound').classList.remove('d-none');
+        }, 3000);
+    }
+}
+
+function handleDevice(action) {
+    if (action === 'Accept') {
+        document.getElementById('scanningMode').classList.add('d-none');
+        document.getElementById('connectedMode').classList.remove('d-none');
+        alert("Device accepted. Routing over Speed Sharing mesh. IP redirected to low-cost region.");
+    } else {
+        alert("Device connection denied.");
+        document.getElementById('deviceFound').classList.add('d-none');
+    }
+}
+</script>
+{% endblock %}

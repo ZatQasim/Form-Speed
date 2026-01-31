@@ -653,6 +653,15 @@ def delete_account():
         return jsonify({'success': True, 'redirect': url_for('index')})
     return jsonify({'success': False}), 404
 
+@app.route('/download')
+def download_page():
+    return render_template('download.html')
+
+@app.route('/connect')
+@login_required
+def connect_hub():
+    return render_template('connect.html')
+
 @app.route('/logout')
 @login_required
 def logout(): 

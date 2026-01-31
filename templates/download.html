@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg border-0 rounded-lg">
+                <div class="card-header bg-primary text-white text-center py-4">
+                    <h2 class="mb-0">Download Form</h2>
+                    <p class="mb-0 mt-2">Get the powerful mesh network app for your devices</p>
+                </div>
+                <div class="card-body p-5">
+                    <div class="row text-center">
+                        <div class="col-md-4 mb-4">
+                            <div class="p-4 border rounded-3 hover-shadow transition">
+                                <i class="fab fa-windows fa-4x mb-3 text-primary"></i>
+                                <h4>Windows</h4>
+                                <p class="text-muted small">v2.4.0 (64-bit)</p>
+                                <a href="#" class="btn btn-primary w-100" onclick="simulateInstall('Windows')">Download .zip</a>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-4">
+                            <div class="p-4 border rounded-3 hover-shadow transition">
+                                <i class="fab fa-apple fa-4x mb-3 text-dark"></i>
+                                <h4>macOS</h4>
+                                <p class="text-muted small">v2.4.0 (Universal)</p>
+                                <a href="#" class="btn btn-dark w-100" onclick="simulateInstall('Mac')">Download .dmg</a>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-4">
+                            <div class="p-4 border rounded-3 hover-shadow transition">
+                                <i class="fab fa-android fa-4x mb-3 text-success"></i>
+                                <h4>Android</h4>
+                                <p class="text-muted small">v2.4.0 (APK)</p>
+                                <a href="#" class="btn btn-success w-100" onclick="simulateInstall('Android')">Download APK</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="installStatus" class="mt-4 d-none">
+                        <div class="alert alert-info">
+                            <h5 id="statusTitle">Preparing Download...</h5>
+                            <div class="progress mt-2" style="height: 10px;">
+                                <div id="installProgress" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+                            </div>
+                            <p id="statusMsg" class="mt-2 mb-0 small"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function simulateInstall(os) {
+    const statusDiv = document.getElementById('installStatus');
+    const progressBar = document.getElementById('installProgress');
+    const statusTitle = document.getElementById('statusTitle');
+    const statusMsg = document.getElementById('statusMsg');
+    
+    statusDiv.classList.remove('d-none');
+    let progress = 0;
+    
+    const interval = setInterval(() => {
+        progress += 5;
+        progressBar.style.width = progress + '%';
+        
+        if (progress < 30) {
+            statusTitle.innerText = `Downloading Form for ${os}...`;
+            statusMsg.innerText = "Connecting to high-speed mesh nodes...";
+        } else if (progress < 60) {
+            statusTitle.innerText = `Extracting packages...`;
+            statusMsg.innerText = "Configuring local environment and dependencies...";
+        } else if (progress < 90) {
+            statusTitle.innerText = `Running setup.exe...`;
+            statusMsg.innerText = "Linking folders, routing files, and establishing local hub...";
+        } else if (progress >= 100) {
+            clearInterval(interval);
+            statusTitle.innerText = "Installation Complete!";
+            statusMsg.innerText = "Form app is now running locally. Connecting to Speed Sharing network...";
+            progressBar.classList.remove('progress-bar-animated');
+            progressBar.classList.add('bg-success');
+            
+            setTimeout(() => {
+                alert("Form App has started locally. System linked successfully with NO errors.");
+                window.location.href = "/dashboard";
+            }, 1000);
+        }
+    }, 150);
+}
+</script>
+
+<style>
+.hover-shadow:hover {
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    transform: translateY(-5px);
+}
+.transition {
+    transition: all 0.3s ease;
+}
+</style>
+{% endblock %}
