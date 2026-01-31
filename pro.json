@@ -1,11 +1,23 @@
 {
   "pro_users": [
-    "{'email': 'qasimthemuslimdiscord@gmail.com', 'plan': 'Premier'}",
-    "{'username': 'sunsetamarat0', 'plan': 'Premier'}",
-    "{'email': 'qasimthemuslimdiscord@gmail.com', 'username': 'sunsetamarat0', 'plan': 'Premier'}",
     {
+      "username": "Unknown",
       "email": "qasimthemuslimdiscord@gmail.com",
+      "plan": "Premier"
+    },
+    {
       "username": "sunsetamarat0",
+      "email": "Unknown",
+      "plan": "Premier"
+    },
+    {
+      "username": "sunsetamarat0",
+      "email": "qasimthemuslimdiscord@gmail.com",
+      "plan": "Premier"
+    },
+    {
+      "username": "sunsetamarat0",
+      "email": "qasimthemuslimdiscord@gmail.com",
       "plan": "Premier"
     }
   ],

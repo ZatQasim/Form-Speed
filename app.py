@@ -764,20 +764,43 @@ def subscription_success():
             # Sync to pro.json
             pro_config = load_pro_config()
             pro_users = pro_config.get('pro_users', [])
-            # Remove old entries for this user
+            
+            # Remove old entries for this user and standardize format
             new_pro_users = []
             for u in pro_users:
                 match = False
-                if isinstance(u, dict):
-                    if (user.email and u.get('email') == user.email) or (user.username and u.get('username') == user.username):
+                # Standardize current entry to dict if it's a string
+                if isinstance(u, str):
+                    if (user.email and u.lower() == user.email.lower()) or (user.username and u.lower() == user.username.lower()):
                         match = True
-                elif isinstance(u, str):
-                    if (user.email and u == user.email) or (user.username and u == user.username):
+                elif isinstance(u, dict):
+                    if (user.email and str(u.get('email', '')).lower() == user.email.lower()) or \
+                       (user.username and str(u.get('username', '')).lower() == user.username.lower()):
                         match = True
+                
                 if not match:
-                    new_pro_users.append(u)
+                    # Clean up existing entry to only have the three required keys
+                    if isinstance(u, dict):
+                        new_pro_users.append({
+                            'username': u.get('username', 'Unknown'),
+                            'email': u.get('email', 'Unknown'),
+                            'plan': u.get('plan', 'Regular')
+                        })
+                    else:
+                        # Convert string entry to dict format
+                        new_pro_users.append({
+                            'username': u,
+                            'email': u if '@' in u else 'Unknown',
+                            'plan': 'Regular'
+                        })
             
-            new_pro_users.append({'email': user.email, 'username': user.username, 'plan': plan})
+            # Add the new subscription entry in standardized format
+            new_pro_users.append({
+                'username': user.username,
+                'email': user.email,
+                'plan': plan
+            })
+            
             pro_config['pro_users'] = new_pro_users
             save_pro_config_file(pro_config)
             
