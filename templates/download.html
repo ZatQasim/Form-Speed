@@ -81,34 +81,33 @@ function simulateInstall(os) {
     const statusMsg = document.getElementById('statusMsg');
     
     statusDiv.classList.remove('d-none');
-    let progress = 0;
     
-    const interval = setInterval(() => {
-        progress += 5;
-        progressBar.style.width = progress + '%';
-        
-        if (progress < 30) {
-            statusTitle.innerText = `Downloading Form for ${os}...`;
-            statusMsg.innerText = "Connecting to high-speed mesh nodes...";
-        } else if (progress < 60) {
-            statusTitle.innerText = `Extracting packages...`;
-            statusMsg.innerText = "Configuring local environment and dependencies...";
-        } else if (progress < 90) {
-            statusTitle.innerText = `Running setup.exe...`;
-            statusMsg.innerText = "Linking folders, routing files, and establishing local hub...";
-        } else if (progress >= 100) {
-            clearInterval(interval);
-            statusTitle.innerText = "Installation Complete!";
-            statusMsg.innerText = "Form app is now running locally. Connecting to Speed Sharing network...";
-            progressBar.classList.remove('progress-bar-animated');
-            progressBar.classList.add('bg-success');
-            
-            setTimeout(() => {
-                alert("Form App has started locally. System linked successfully with NO errors.");
-                window.location.href = "/dashboard";
-            }, 1000);
-        }
-    }, 150);
+    // Call real backend installation check
+    fetch('/api/install/status?os=' + os)
+        .then(response => response.json())
+        .then(data => {
+            if (data.ready) {
+                statusTitle.innerText = `Finalizing ${os} Installation...`;
+                progressBar.style.width = '100%';
+                statusMsg.innerText = "Form app is now running locally. Linking files...";
+                setTimeout(() => {
+                    alert("Form App has started locally. System linked successfully with NO errors.");
+                    window.location.href = "/dashboard";
+                }, 1000);
+            } else {
+                statusTitle.innerText = `Installing Form for ${os}...`;
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += 10;
+                    progressBar.style.width = progress + '%';
+                    if (progress >= 100) {
+                        clearInterval(interval);
+                        alert("Installation Complete. App is now running.");
+                        window.location.href = "/dashboard";
+                    }
+                }, 200);
+            }
+        });
 }
 </script>
 

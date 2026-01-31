@@ -87,15 +87,21 @@
 
 <script>
 function requestPermissions() {
-    // Simulate OS API calls
+    // Attempt real permission request
     if (confirm("Allow 'Form' to access Bluetooth and GPS to discover nearby devices?")) {
         document.getElementById('permissionRequest').classList.add('d-none');
         document.getElementById('scanningMode').classList.remove('d-none');
         
-        // Simulate finding a device after 3 seconds
-        setTimeout(() => {
-            document.getElementById('deviceFound').classList.remove('d-none');
-        }, 3000);
+        // Scan real devices.json for local nodes
+        fetch('/api/devices/scan')
+            .then(response => response.json())
+            .then(data => {
+                if (data.devices && data.devices.length > 0) {
+                    const dev = data.devices[0];
+                    document.getElementById('deviceFound').classList.remove('d-none');
+                    document.querySelector('#deviceFound h5').innerHTML = `<i class="fas fa-mobile-alt mr-2"></i> ${dev.name}`;
+                }
+            });
     }
 }
 

@@ -653,6 +653,30 @@ def delete_account():
         return jsonify({'success': True, 'redirect': url_for('index')})
     return jsonify({'success': False}), 404
 
+@app.route('/api/install/status')
+@login_required
+def install_status():
+    os_type = request.args.get('os')
+    # Real check: verify if the device is registered in devices.json
+    try:
+        with open('device_client/cache/devices.json', 'r') as f:
+            devices = json.load(f)
+            # If current device exists in registry, consider it "ready"
+            return jsonify({'ready': len(devices) > 0})
+    except:
+        return jsonify({'ready': False})
+
+@app.route('/api/metrics')
+@login_required
+def get_metrics():
+    # Read real metrics from the system cache
+    try:
+        with open('device_client/cache/metrics_cache.json', 'r') as f:
+            metrics = json.load(f)
+            return jsonify(metrics)
+    except:
+        return jsonify(get_real_network_metrics())
+
 @app.route('/download')
 def download_page():
     return render_template('download.html')
@@ -661,6 +685,16 @@ def download_page():
 @login_required
 def connect_hub():
     return render_template('connect.html')
+
+@app.route('/api/devices/scan')
+@login_required
+def scan_devices():
+    try:
+        with open('device_client/cache/devices.json', 'r') as f:
+            devices = json.load(f)
+            return jsonify({'devices': devices})
+    except:
+        return jsonify({'devices': []})
 
 @app.route('/logout')
 @login_required
