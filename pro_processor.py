@@ -6,30 +6,36 @@ EMAIL_REGEX = re.compile(
     r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'
 )
 
-def extract_emails_from_config(config: dict) -> set:
+def extract_emails_from_config(config: dict) -> dict:
     """
-    Recursively scan pro.json for ANY emails (gmail or otherwise).
+    Recursively scan pro.json for emails and their associated plans.
+    Returns a dict mapping email -> plan.
     """
-    found_emails = set()
+    email_plans = {}
 
-    def scan(value):
+    def scan(value, current_plan='Regular'):
         if isinstance(value, str):
             for email in EMAIL_REGEX.findall(value):
-                found_emails.add(email.strip().lower())
+                email_plans[email.strip().lower()] = current_plan
         elif isinstance(value, list):
             for item in value:
-                scan(item)
+                scan(item, current_plan)
         elif isinstance(value, dict):
-            for v in value.values():
-                scan(v)
+            plan = value.get('plan', current_plan)
+            for k, v in value.items():
+                if k == 'email' and isinstance(v, str):
+                    for email in EMAIL_REGEX.findall(v):
+                        email_plans[email.strip().lower()] = plan
+                else:
+                    scan(v, plan)
 
     scan(config)
-    return found_emails
+    return email_plans
 
 
 def grant_pro_benefits():
     """
-    Analyze pro.json and ensure all matching users receive Pro status.
+    Analyze pro.json and ensure all matching users receive Pro status and correct plan.
     """
     print("Starting Pro Status Analysis...")
 
@@ -37,21 +43,27 @@ def grant_pro_benefits():
         try:
             config = load_pro_config()
 
-            # Extract emails from anywhere in pro.json
-            email_matches = extract_emails_from_config(config)
+            # Extract emails and plans
+            email_plans = extract_emails_from_config(config)
 
-            # Also keep legacy username list if it exists
-            username_matches = {
-                str(u).strip().lower()
-                for u in config.get("pro_users", [])
-                if u
-            }
+            # Map usernames to plans from pro_users list
+            user_plans = {}
+            pro_users = config.get("pro_users", [])
+            for u in pro_users:
+                if isinstance(u, dict):
+                    email = u.get('email', '').strip().lower()
+                    username = u.get('username', '').strip().lower()
+                    plan = u.get('plan', 'Regular')
+                    if email: email_plans[email] = plan
+                    if username: user_plans[username] = plan
+                elif isinstance(u, str):
+                    user_plans[u.strip().lower()] = 'Regular'
 
-            if not email_matches and not username_matches:
+            if not email_plans and not user_plans:
                 print("No emails or usernames found in pro.json.")
                 return
 
-            print(f"Found {len(email_matches)} email(s) and {len(username_matches)} username(s).")
+            print(f"Found {len(email_plans)} email(s) and {len(user_plans)} username(s) in pro.json.")
 
             granted_count = 0
             all_users = User.query.all()
@@ -60,17 +72,20 @@ def grant_pro_benefits():
                 user_email = user.email.strip().lower() if user.email else ""
                 user_name = user.username.strip().lower() if user.username else ""
 
-                if user_email in email_matches or user_name in username_matches:
-                    if not user.is_pro or user.subscription_status != "active":
+                plan = email_plans.get(user_email) or user_plans.get(user_name)
+
+                if plan:
+                    if not user.is_pro or user.subscription_status != "active" or user.plan_tag != plan:
                         user.is_pro = True
                         user.subscription_status = "active"
+                        user.plan_tag = plan
 
                         if not user.stripe_subscription_id:
                             user.stripe_subscription_id = "pro_json_override"
 
                         db.session.add(user)
                         granted_count += 1
-                        print(f"GRANTED: {user.username} ({user.email})")
+                        print(f"GRANTED/UPDATED: {user.username} ({user.email}) - Plan: {plan}")
 
             db.session.commit()
             print(f"Analysis complete. Total users updated: {granted_count}")

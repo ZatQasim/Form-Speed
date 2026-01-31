@@ -43,11 +43,33 @@ def load_pro_config():
         with open(PRO_CONFIG_PATH, 'r') as f:
             content = f.read().strip()
             if not content: return {"pro_users": [], "subscription": {"price_usd": 5, "trial_days": 7, "features": []}}
+            # Clean common JSON errors
             content = re.sub(r',\s*]', ']', content)
             content = re.sub(r',\s*}', '}', content)
-            config = json.loads(content)
+            try:
+                config = json.loads(content)
+            except json.JSONDecodeError:
+                # Handle cases where users might have pasted strings that look like dicts
+                # But for now, let's just try to be more robust
+                config = json.loads(content)
+
             if 'pro_users' not in config: config['pro_users'] = []
-            config['pro_users'] = [str(u).strip() for u in config['pro_users'] if u]
+            
+            # Sanitize pro_users: handle strings and dicts correctly
+            sanitized = []
+            for u in config['pro_users']:
+                if isinstance(u, str):
+                    u = u.strip()
+                    if u.startswith('{') and u.endswith('}'):
+                        try:
+                            # Attempt to parse pseudo-json string if it exists
+                            import ast
+                            u = ast.literal_eval(u)
+                        except:
+                            pass
+                if u:
+                    sanitized.append(u)
+            config['pro_users'] = sanitized
             return config
     except Exception as e:
         print(f"Config LOAD ERROR: {str(e)}")
@@ -245,9 +267,19 @@ class User(UserMixin, db.Model):
     def has_active_subscription(self):
         try:
             pro_config = load_pro_config()
-            pro_users = [str(u).strip().lower() for u in pro_config.get('pro_users', []) if u]
-            if self.email and self.email.strip().lower() in pro_users: return True
-            if self.username and self.username.strip().lower() in pro_users: return True
+            pro_users = pro_config.get('pro_users', [])
+            u_email = self.email.strip().lower() if self.email else ""
+            u_username = self.username.strip().lower() if self.username else ""
+            
+            for u in pro_users:
+                if isinstance(u, dict):
+                    e = u.get('email', '').strip().lower()
+                    un = u.get('username', '').strip().lower()
+                    if (u_email and e == u_email) or (u_username and un == u_username):
+                        return True
+                elif isinstance(u, str):
+                    if u.lower() == u_email or u.lower() == u_username:
+                        return True
         except: pass
         if self.subscription_status == 'active': return True
         if self.trial_end and self.trial_end > datetime.utcnow(): return True
@@ -481,20 +513,36 @@ def signup():
 
         # Check if user is in pro.json whitelist
         pro_config = load_pro_config()
-        pro_users = [str(u).strip().lower() for u in pro_config.get('pro_users', []) if u]
+        pro_users = pro_config.get('pro_users', [])
 
         is_whitelisted = False
-        if email and email.strip().lower() in pro_users: is_whitelisted = True
-        if username and username.strip().lower() in pro_users: is_whitelisted = True
+        plan = 'Regular'
+        u_email = email.strip().lower() if email else ""
+        u_username = username.strip().lower() if username else ""
+
+        for u in pro_users:
+            if isinstance(u, dict):
+                e = u.get('email', '').strip().lower()
+                un = u.get('username', '').strip().lower()
+                if (u_email and e == u_email) or (u_username and un == u_username):
+                    is_whitelisted = True
+                    plan = u.get('plan', 'Regular')
+                    break
+            elif isinstance(u, str):
+                if u.lower() == u_email or u.lower() == u_username:
+                    is_whitelisted = True
+                    break
 
         if is_whitelisted:
             user.is_pro = True
             user.subscription_status = 'active'
+            user.plan_tag = plan
             user.stripe_subscription_id = "pro_json_override"
-            flash('Welcome! Your account is active via whitelist.', 'success')
+            flash(f'Welcome! Your account is active via whitelist ({plan} plan).', 'success')
         else:
             user.is_pro = False
             user.subscription_status = 'inactive'
+            user.plan_tag = 'Free'
             flash('Account created successfully. Subscribe to make your account active with the benefits.', 'success')
 
         db.session.add(user)
