@@ -32,17 +32,13 @@ args = "Form Network"
 name = "Form Network"
 author = "agent"
 
+[workflows.workflow.metadata]
+outputType = "webview"
+
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "python app.py"
 waitForPort = 5000
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "python pro_processor.py"
-
-[workflows.workflow.metadata]
-outputType = "webview"
 
 [[workflows.workflow]]
 name = "Pro Processor"
