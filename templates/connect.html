@@ -182,6 +182,13 @@ function handleDevice(action) {
         document.getElementById('connectedProtocol').textContent = "Form-P2P/1.0";
         document.getElementById('connectedThroughput').textContent = (Math.random() * 0.8 + 0.8).toFixed(1) + " Gbps";
         
+        // Show Global Connection Banner
+        const banner = document.getElementById('connection-banner');
+        if (banner) {
+            banner.classList.remove('d-none');
+            document.getElementById('banner-text').textContent = `This device is being connected to the Internet through Form (Hub Mode: ${deviceName})`;
+        }
+        
         // Start live throughput animation
         setInterval(() => {
             const val = (Math.random() * 0.5 + 0.9).toFixed(1);

@@ -13,6 +13,15 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
+    {% if current_user.is_authenticated %}
+    <div id="connection-banner" class="connection-banner d-none">
+        <div class="banner-content">
+            <i class="fas fa-shield-check mr-2"></i>
+            <span id="banner-text">This device is being connected to the Internet through Form</span>
+            <span class="banner-pulse"></span>
+        </div>
+    </div>
+    {% endif %}
     <nav class="navbar">
         <div class="nav-brand">
             <a href="{{ url_for('index') }}">
@@ -51,5 +60,18 @@
     <footer>
         <p>Form - your carrier's partner</p>
     </footer>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if VPN or Connect is active on load
+            const vpnActive = {{ 'true' if user_state.vpn_enabled else 'false' }};
+            if (vpnActive) {
+                const banner = document.getElementById('connection-banner');
+                if (banner) {
+                    banner.classList.remove('d-none');
+                    document.getElementById('banner-text').textContent = "This device is being connected to the Internet through Form (VPN Active)";
+                }
+            }
+        });
+    </script>
 </body>
 </html>
