@@ -16,9 +16,8 @@
     {% if current_user.is_authenticated %}
     <div id="connection-banner" class="connection-banner d-none">
         <div class="banner-content">
-            <i class="fas fa-shield-check mr-2"></i>
-            <span id="banner-text">This device is being connected to the Internet through Form</span>
-            <span class="banner-pulse"></span>
+            <span id="banner-text">This device is connected to the Internet through Form</span>
+            <i class="fas fa-link ml-2" style="font-size: 0.8rem; opacity: 0.8;"></i>
         </div>
     </div>
     {% endif %}
@@ -68,7 +67,6 @@
                 const banner = document.getElementById('connection-banner');
                 if (banner) {
                     banner.classList.remove('d-none');
-                    document.getElementById('banner-text').textContent = "This device is being connected to the Internet through Form (VPN Active)";
                 }
             }
         });
