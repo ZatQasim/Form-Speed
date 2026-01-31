@@ -777,6 +777,31 @@ def security_dashboard():
     user_state = get_user_state(current_user.id)
     return render_template('security.html', user_state=user_state)
 
+@app.route('/dashboard/plans')
+@login_required
+def plans_page():
+    return render_template('plans.html')
+
+@app.route('/dashboard/settings')
+@login_required
+def settings_dashboard():
+    return render_template('settings.html', user=current_user, user_state=get_user_state(current_user.id), benefits=current_user.get_benefits())
+
+@app.route('/subscription/cancel')
+@login_required
+def cancel_subscription():
+    flash('Subscription cancellation is not yet implemented.', 'info')
+    return redirect(url_for('settings_dashboard'))
+
+@app.route('/dashboard/cloud')
+@login_required
+def cloud_dashboard():
+    benefits = current_user.get_benefits()
+    if not benefits.get('cloud_storage'):
+        flash('Cloud Storage requires a subscription', 'warning')
+        return redirect(url_for('subscribe'))
+    return render_template('cloud.html', user_state=get_user_state(current_user.id))
+
 @app.route('/dashboard/analytics')
 @login_required
 def analytics_dashboard():
