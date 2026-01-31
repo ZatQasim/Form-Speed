@@ -1,12 +1,12 @@
 {
   "pro_users": [
     "{'email': 'qasimthemuslimdiscord@gmail.com', 'plan': 'Premier'}",
-    "{'username': 'qasim', 'plan': 'Premier'}",
-    "{'email': 'sunsetamarat0@gmail.com', 'username': 'qasim', 'plan': 'Premier'}",
+    "{'username': 'sunsetamarat0', 'plan': 'Premier'}",
+    "{'email': 'qasimthemuslimdiscord@gmail.com', 'username': 'sunsetamarat0', 'plan': 'Premier'}",
     {
       "email": "qasimthemuslimdiscord@gmail.com",
       "username": "sunsetamarat0",
-      "plan": "Regular"
+      "plan": "Premier"
     }
   ],
   "price_ids": {

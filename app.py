@@ -667,7 +667,7 @@ def api_select_plan():
     
     # In development, if Stripe keys are missing or price IDs are placeholders, simulate success
     if not price_id or price_id in ["price_regular_monthly_id", "price_premier_monthly_id"]:
-        flash(f'Simulating Form One {plan} activation for development.', 'info')
+        flash(f'{plan}.', 'info')
         return redirect(url_for('subscription_success', session_id='dev_simulated', plan=plan))
 
     try:
