@@ -23,6 +23,16 @@
         <h1>Cloud Storage</h1>
         <p class="page-description">Securely backup your media and manage your data.</p>
         
+        <div class="storage-info" style="margin-bottom: 1rem; padding: 1rem; background: var(--bg-secondary); border-radius: 8px; border: 1px solid var(--border-light);">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                <span>Storage Usage</span>
+                <span id="storage-text">Loading...</span>
+            </div>
+            <div style="width: 100%; height: 8px; background: var(--border-light); border-radius: 4px; overflow: hidden;">
+                <div id="storage-bar" style="width: 0%; height: 100%; background: var(--primary-color); transition: width 0.3s;"></div>
+            </div>
+        </div>
+        
         <div class="cloud-actions">
             <input type="file" id="cloud-upload-input" style="display: none;">
             <button class="btn btn-primary" onclick="document.getElementById('cloud-upload-input').click()">Upload File</button>
@@ -87,6 +97,16 @@ async function loadFiles() {
     const list = document.getElementById('file-list');
     const filter = document.getElementById('filter-type').value;
     
+    // Update storage info
+    const totalSize = data.files.reduce((acc, f) => acc + f.size, 0);
+    const limitGb = {{ current_user.get_benefits().get('cloud_storage_limit_gb', 0) }};
+    const limitBytes = limitGb * 1024 * 1024 * 1024;
+    const usagePercent = limitBytes > 0 ? (totalSize / limitBytes * 100) : 0;
+    
+    document.getElementById('storage-text').textContent = `${(totalSize / 1024 / 1024 / 1024).toFixed(2)} GB of ${limitGb} GB used`;
+    document.getElementById('storage-bar').style.width = `${Math.min(usagePercent, 100)}%`;
+    if (usagePercent > 90) document.getElementById('storage-bar').style.background = '#ff4d4d';
+
     list.innerHTML = '';
     
     data.files.filter(f => filter === 'all' || f.type === filter).forEach(file => {

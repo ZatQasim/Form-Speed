@@ -254,30 +254,21 @@ class User(UserMixin, db.Model):
         return False
     
     def get_benefits(self):
-        if self.has_active_subscription():
-            return {
-                'vpn_access': True,
-                'speed_sharing': True,
-                'mesh_network': True,
-                'priority_routing': True,
-                'advanced_analytics': True,
-                'security_protection': True,
-                'route_optimization': True,
-                'cloud_storage': True,
-                'password_manager': True,
-                'form_agent': True
-            }
+        is_premier = (self.plan_tag == 'Premier')
+        is_regular = (self.plan_tag == 'Regular')
+        has_sub = self.has_active_subscription()
+        
         return {
-            'vpn_access': False,
-            'speed_sharing': False,
-            'mesh_network': False,
-            'priority_routing': False,
-            'advanced_analytics': False,
-            'security_protection': False,
-            'route_optimization': False,
-            'cloud_storage': False,
-            'password_manager': False,
-            'form_agent': False
+            'vpn_access': has_sub,
+            'speed_sharing': has_sub,
+            'device_defense': has_sub,
+            'cloud_storage': has_sub,
+            'cloud_storage_limit_gb': 500 if is_premier else (50 if is_regular else 0),
+            'mesh_network': is_premier,
+            'advanced_analytics': is_premier,
+            'priority_routing': is_premier,
+            'password_manager': has_sub,
+            'form_agent': has_sub
         }
 
 class CloudFile(db.Model):
@@ -304,11 +295,24 @@ class PasswordEntry(db.Model):
 @app.route('/api/cloud/upload', methods=['POST'])
 @login_required
 def cloud_upload():
+    benefits = current_user.get_benefits()
+    if not benefits.get('cloud_storage'):
+        return jsonify({'success': False, 'error': 'Cloud storage requires a subscription'}), 403
+    
+    limit_gb = benefits.get('cloud_storage_limit_gb', 0)
+    limit_bytes = limit_gb * 1024 * 1024 * 1024
+    
+    current_usage = db.session.query(db.func.sum(CloudFile.file_size)).filter_by(user_id=current_user.id).scalar() or 0
+    
     if 'file' not in request.files:
         return jsonify({'success': False, 'error': 'No file part'}), 400
     file = request.files['file']
     if file.filename == '':
         return jsonify({'success': False, 'error': 'No selected file'}), 400
+
+    file_size = request.content_length or 0
+    if current_usage + file_size > limit_bytes:
+        return jsonify({'success': False, 'error': f'Storage limit reached ({limit_gb}GB). Please upgrade for more space.'}), 403
 
     file_type = request.form.get('type', 'data')
 
@@ -743,14 +747,19 @@ def dashboard():
 @app.route('/dashboard/vpn')
 @login_required
 def vpn_dashboard():
-    if not current_user.has_active_subscription(): 
-        flash('VPN requires Pro', 'warning')
+    benefits = current_user.get_benefits()
+    if not benefits.get('vpn_access'):
+        flash('VPN requires a subscription', 'warning')
         return redirect(url_for('subscribe'))
     return render_template('vpn.html', user_state=get_user_state(current_user.id), servers=VPN_SERVERS)
 
 @app.route('/dashboard/speed-sharing')
 @login_required
 def speed_sharing_dashboard():
+    benefits = current_user.get_benefits()
+    if not benefits.get('speed_sharing'):
+        flash('Speed Sharing requires a subscription', 'warning')
+        return redirect(url_for('subscribe'))
     metrics = get_real_network_metrics()
     user_state = get_user_state(current_user.id)
     return render_template('speed_sharing.html',
@@ -761,49 +770,28 @@ def speed_sharing_dashboard():
 @app.route('/dashboard/security')
 @login_required
 def security_dashboard():
-    if not current_user.has_active_subscription():
-        flash('Security features require a Pro subscription', 'warning')
+    benefits = current_user.get_benefits()
+    if not benefits.get('device_defense'):
+        flash('Device Defense requires a subscription', 'warning')
         return redirect(url_for('subscribe'))
     user_state = get_user_state(current_user.id)
     return render_template('security.html', user_state=user_state)
 
-@app.route('/dashboard/plans')
-@login_required
-def plans_page():
-    return render_template('plans.html')
-
-@app.route('/dashboard/settings')
-@login_required
-def settings_dashboard():
-    return render_template('settings.html', user=current_user, user_state=get_user_state(current_user.id), benefits=current_user.get_benefits())
-
-@app.route('/subscription/cancel')
-@login_required
-def cancel_subscription():
-    flash('Subscription cancellation is not yet implemented.', 'info')
-    return redirect(url_for('settings_dashboard'))
-
-@app.route('/dashboard/cloud')
-@login_required
-def cloud_dashboard():
-    if not current_user.has_active_subscription():
-        flash('Cloud Storage requires a Pro subscription', 'warning')
-        return redirect(url_for('subscribe'))
-    return render_template('cloud.html', user_state=get_user_state(current_user.id))
-
 @app.route('/dashboard/analytics')
 @login_required
 def analytics_dashboard():
-    if not current_user.has_active_subscription():
-        flash('Advanced Analytics require a Pro subscription', 'warning')
+    benefits = current_user.get_benefits()
+    if not benefits.get('advanced_analytics'):
+        flash('Advanced Analytics require a Premier subscription', 'warning')
         return redirect(url_for('subscribe'))
     return render_template('analytics.html', metrics=get_real_network_metrics(), user_state=get_user_state(current_user.id), history=[])
 
 @app.route('/dashboard/mesh')
 @login_required
 def mesh_dashboard():
-    if not current_user.has_active_subscription():
-        flash('Mesh Networking requires a Pro subscription', 'warning')
+    benefits = current_user.get_benefits()
+    if not benefits.get('mesh_network'):
+        flash('Mesh Networking requires a Premier subscription', 'warning')
         return redirect(url_for('subscribe'))
     return render_template('mesh.html', user_state=get_user_state(current_user.id))
 
