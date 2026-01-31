@@ -64,17 +64,19 @@
                     <div id="connectedMode" class="d-none">
                         <div class="alert alert-success py-4">
                             <i class="fas fa-check-circle fa-4x mb-3"></i>
-                            <h2>Device Connected & Routed</h2>
+                            <h2 id="connectedHeader">Device Connected & Routed</h2>
                             <p>Routing through Speed Sharing Advanced Network (Tier 1 Priority)</p>
                             <hr>
                             <div class="row text-left">
                                 <div class="col-md-6">
-                                    <p><strong>Status:</strong> Active Hub</p>
-                                    <p><strong>Device:</strong> iPhone 15 Pro</p>
+                                    <p><strong>Status:</strong> <span class="badge badge-success">Active Hub</span></p>
+                                    <p><strong>Device ID:</strong> <span id="connectedDeviceId">--</span></p>
+                                    <p><strong>Device Name:</strong> <span id="connectedDeviceName">--</span></p>
                                 </div>
                                 <div class="col-md-6">
-                                    <p><strong>Location Spoofing:</strong> Brazil (Cheaper Subscriptions Enabled)</p>
-                                    <p><strong>Encryption:</strong> Post-Quantum Tunneling</p>
+                                    <p><strong>Routing Region:</strong> <span id="connectedRegion">Brazil (Optimized)</span></p>
+                                    <p><strong>Encryption:</strong> <span class="badge badge-info">Post-Quantum</span></p>
+                                    <p><strong>Protocol:</strong> <span id="connectedProtocol">Form-P2P/1.0</span></p>
                                 </div>
                             </div>
                         </div>
@@ -126,9 +128,19 @@ function requestPermissions() {
 
 function handleDevice(action) {
     if (action === 'Accept') {
+        const foundDiv = document.getElementById('deviceFound');
+        const deviceName = foundDiv.querySelector('h5').textContent.trim();
+        
         document.getElementById('scanningMode').classList.add('d-none');
         document.getElementById('connectedMode').classList.remove('d-none');
-        alert("Device accepted. Routing over Speed Sharing mesh. IP redirected to low-cost region.");
+        
+        // Update live data in the UI
+        document.getElementById('connectedDeviceName').textContent = deviceName;
+        document.getElementById('connectedDeviceId').textContent = Math.random().toString(36).substr(2, 9).toUpperCase();
+        document.getElementById('connectedRegion').textContent = "Brazil (Optimized)";
+        document.getElementById('connectedProtocol').textContent = "Form-P2P/1.0";
+        
+        alert(`Mesh link established with ${deviceName}. Traffic is now being routed through this computer.`);
     } else {
         alert("Device connection denied.");
         document.getElementById('deviceFound').classList.add('d-none');
