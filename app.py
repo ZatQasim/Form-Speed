@@ -438,28 +438,33 @@ def list_passwords():
 
 @login_manager.user_loader
 def load_user(user_id):
-    user = db.session.get(User, int(user_id))
+    try:
+        user = db.session.get(User, int(user_id))
+    except Exception as e:
+        print(f"User loader DB error: {e}")
+        return None
+        
     if user:
         # Automated Pro Access Sync
         try:
-            with open('pro.json', 'r') as f:
-                pro_data = json.load(f)
-                pro_emails = pro_data.get('emails', [])
-                if user.email in pro_emails and not user.is_pro:
-                    user.is_pro = True
-                    db.session.commit()
-                    print(f"[Auto-Pro] Granted access to {user.email}")
-        except Exception as e:
-            # Fallback check for common paths if root fail
-            try:
+            if os.path.exists('pro.json'):
+                with open('pro.json', 'r') as f:
+                    pro_data = json.load(f)
+                    pro_emails = pro_data.get('emails', [])
+                    if user.email in pro_emails and not user.is_pro:
+                        user.is_pro = True
+                        db.session.commit()
+                        print(f"[Auto-Pro] Granted access to {user.email}")
+            elif os.path.exists('form_config/pro.json'):
                 with open('form_config/pro.json', 'r') as f:
                     pro_data = json.load(f)
                     pro_emails = pro_data.get('emails', [])
                     if user.email in pro_emails and not user.is_pro:
                         user.is_pro = True
                         db.session.commit()
-            except:
-                pass
+        except Exception as e:
+            print(f"User loader Pro sync error: {e}")
+            
     return user
 
 def sync_pro_users():
