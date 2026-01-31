@@ -691,18 +691,19 @@ def subscription_success():
     session_id = request.args.get('session_id')
     plan_from_url = request.args.get('plan', 'Regular')
     
-    if session_id:
-        try:
+    try:
+        if session_id != 'dev_simulated':
+            checkout_session = stripe.checkout.Session.retrieve(session_id)
+            plan = checkout_session.metadata.get('plan', plan_from_url)
+            user_id = checkout_session.metadata.get('user_id')
+            if checkout_session.payment_status != 'paid' or user_id != str(current_user.id):
+                flash('Payment verification failed.', 'error')
+                return redirect(url_for('plans_page'))
+        else:
             plan = plan_from_url
-            if session_id != 'dev_simulated':
-                checkout_session = stripe.checkout.Session.retrieve(session_id)
-                plan = checkout_session.metadata.get('plan', plan_from_url)
-                user_id = checkout_session.metadata.get('user_id')
-                if checkout_session.payment_status != 'paid' or user_id != str(current_user.id):
-                    flash('Payment verification failed.', 'error')
-                    return redirect(url_for('plans_page'))
-            
-            user = db.session.get(User, current_user.id)
+        
+        user = db.session.get(User, current_user.id)
+        if user:
             user.is_pro = True
             user.subscription_status = 'active'
             user.plan_tag = plan
@@ -721,11 +722,55 @@ def subscription_success():
             
             db.session.commit()
             flash(f'Welcome to Form One {plan}! Your Pro features are now active.', 'success')
-        except Exception as e:
+        else:
+            flash('User not found.', 'error')
+    except Exception as e:
             print(f"Success Processing Error: {str(e)}")
             flash(f'Error activating subscription: {str(e)}', 'error')
             
     return redirect(url_for('dashboard'))
+
+@app.route('/dashboard')
+@login_required
+def dashboard():
+    is_pro = current_user.has_active_subscription()
+    return render_template('dashboard.html',
+        metrics=get_real_network_metrics(),
+        is_pro=is_pro,
+        user_state=get_user_state(current_user.id),
+        benefits=current_user.get_benefits())
+
+@app.route('/dashboard/vpn')
+@login_required
+def vpn_dashboard():
+    if not current_user.has_active_subscription(): 
+        flash('VPN requires Pro', 'warning')
+        return redirect(url_for('subscribe'))
+    return render_template('vpn.html', user_state=get_user_state(current_user.id), servers=VPN_SERVERS)
+
+@app.route('/dashboard/speed-sharing')
+@login_required
+def speed_sharing_dashboard():
+    metrics = get_real_network_metrics()
+    user_state = get_user_state(current_user.id)
+    return render_template('speed_sharing.html',
+        metrics=metrics,
+        is_pro=current_user.has_active_subscription(),
+        user_state=user_state)
+
+@app.route('/dashboard/security')
+@login_required
+def security_dashboard():
+    if not current_user.has_active_subscription():
+        flash('Security features require a Pro subscription', 'warning')
+        return redirect(url_for('subscribe'))
+    user_state = get_user_state(current_user.id)
+    return render_template('security.html', user_state=user_state)
+
+@app.route('/dashboard/plans')
+@login_required
+def plans_page():
+    return render_template('plans.html')
 
 @app.route('/dashboard/settings')
 @login_required
@@ -735,8 +780,6 @@ def settings_dashboard():
 @app.route('/subscription/cancel')
 @login_required
 def cancel_subscription():
-    # Placeholder for subscription cancellation logic
-    # In a real app, this would interface with Stripe
     flash('Subscription cancellation is not yet implemented.', 'info')
     return redirect(url_for('settings_dashboard'))
 
@@ -985,6 +1028,9 @@ def account_dashboard():
     return render_template('account.html', user=current_user, user_state=get_user_state(current_user.id), subscription=subscription_data, is_pro=is_pro)
 
 @app.route('/dashboard/password-manager')
+@login_required
+def password_manager():
+    return render_template('password_manager.html', user_state=get_user_state(current_user.id))
 
 @app.route('/api/tools/wifi-analyse', methods=['POST'])
 @login_required

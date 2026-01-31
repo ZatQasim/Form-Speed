@@ -16,8 +16,8 @@
             <a href="{{ url_for('analytics_dashboard') }}">Analytics</a>
             <a href="{{ url_for('password_manager') }}">Passwords</a>
             <a href="{{ url_for('agent_dashboard') }}">Form Agent</a>
-            <a href="{{ url_for('history_dashboard') }}" {% if not is_pro %}class="locked"{% endif %}>History</a>
-            <a href="{{ url_for('devices_dashboard') }}" {% if not is_pro %}class="locked"{% endif %}>Devices</a>
+            <a href="{{ url_for('history_dashboard') }}" {% if not current_user.has_active_subscription() %}class="locked"{% endif %}>History</a>
+            <a href="{{ url_for('devices_dashboard') }}" {% if not current_user.has_active_subscription() %}class="locked"{% endif %}>Devices</a>
             <a href="{{ url_for('account_dashboard') }}">Account</a>
             <a href="{{ url_for('settings_dashboard') }}">Settings</a>
         </nav>
