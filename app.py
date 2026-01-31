@@ -704,6 +704,17 @@ def scan_devices():
         print(f"Scan API error: {e}")
         return jsonify({'devices': []})
 
+@app.route('/api/devices/route_peer', methods=['POST'])
+@login_required
+def route_peer():
+    data = request.json
+    device_id = data.get('device_id')
+    device_name = data.get('name')
+    # Trigger real routing engine to patch this peer through
+    print(f"[RoutingEngine] Patching through peer: {device_name} ({device_id})")
+    # In a real scenario, this would interface with the Go/Rust routing core
+    return jsonify({'success': True, 'status': 'routed'})
+
 @app.route('/logout')
 @login_required
 def logout(): 

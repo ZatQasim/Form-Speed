@@ -87,34 +87,41 @@
 
 <script>
 function requestPermissions() {
-    // Attempt real permission request
-    if (confirm("Allow 'Form' to access Bluetooth and GPS to discover nearby devices?")) {
+    // Check if Bluetooth is enabled via Web Bluetooth API
+    if (!navigator.bluetooth) {
+        alert("Bluetooth is NOT supported on this browser or computer. Please enable Bluetooth to allow peer-to-peer routing.");
+        return;
+    }
+
+    navigator.bluetooth.getAvailability().then(available => {
+        if (!available) {
+            alert("Bluetooth is disabled. Please turn on Bluetooth in your computer settings to use the Connect feature.");
+            return;
+        }
+
         document.getElementById('permissionRequest').classList.add('d-none');
         document.getElementById('scanningMode').classList.remove('d-none');
         
-        // Scan real devices.json for local nodes
-        fetch('/api/devices/scan')
-            .then(response => response.json())
-            .then(data => {
-                const foundDiv = document.getElementById('deviceFound');
-                const title = foundDiv.querySelector('h5');
-                
-                if (data.devices && data.devices.length > 0) {
-                    // Filter out the current device (usually the web browser) to find actual external devices
-                    const externalDevices = data.devices.filter(d => d.type !== 'web');
-                    const targetDevice = externalDevices.length > 0 ? externalDevices[0] : data.devices[0];
-                    
-                    foundDiv.classList.remove('d-none');
-                    title.innerHTML = `<i class="fas fa-link mr-2"></i> ${targetDevice.name}`;
-                } else {
-                    // Fallback to "Searching" if no registry found
-                    setTimeout(() => {
-                        title.innerHTML = `<i class="fas fa-satellite-dish mr-2"></i> Nearby Node Detected`;
-                        foundDiv.classList.remove('d-none');
-                    }, 2000);
-                }
+        // Scan for ALL nearby Bluetooth devices
+        navigator.bluetooth.requestDevice({
+            acceptAllDevices: true
+        }).then(device => {
+            const foundDiv = document.getElementById('deviceFound');
+            const title = foundDiv.querySelector('h5');
+            
+            foundDiv.classList.remove('d-none');
+            title.innerHTML = `<i class="fab fa-bluetooth-b mr-2"></i> ${device.name || 'Unknown Device'}`;
+            
+            // Auto-route logic: When paired, inform the backend to start routing for this MAC/ID
+            fetch('/api/devices/route_peer', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ device_id: device.id, name: device.name })
             });
-    }
+        }).catch(error => {
+            console.log("Bluetooth scan cancelled or failed: " + error);
+        });
+    });
 }
 
 function handleDevice(action) {

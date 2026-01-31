@@ -82,32 +82,35 @@ function simulateInstall(os) {
     
     statusDiv.classList.remove('d-none');
     
-    // Call real backend installation check
-    fetch('/api/install/status?os=' + os)
-        .then(response => response.json())
-        .then(data => {
-            if (data.ready) {
-                statusTitle.innerText = `Finalizing ${os} Installation...`;
-                progressBar.style.width = '100%';
-                statusMsg.innerText = "System linked successfully.";
-                setTimeout(() => {
-                    alert("Form App linked successfully.");
-                    window.location.href = "/dashboard";
-                }, 1000);
-            } else {
-                statusTitle.innerText = `Preparing ${os} Package...`;
-                let progress = 0;
-                const interval = setInterval(() => {
-                    progress += 10;
-                    progressBar.style.width = progress + '%';
-                    if (progress >= 100) {
-                        clearInterval(interval);
-                        alert("Package ready for local execution.");
-                        window.location.href = "/dashboard";
-                    }
-                }, 200);
-            }
-        });
+    // Determine file path
+    let filePath = '';
+    if (os === 'Windows') filePath = '/static/downloads/form_installer_win.zip';
+    else if (os === 'Mac') filePath = '/static/downloads/form_installer_mac.dmg';
+    else if (os === 'Android') filePath = '/static/downloads/form_installer_android.apk';
+
+    statusTitle.innerText = `Preparing ${os} Download...`;
+    let progress = 0;
+    const interval = setInterval(() => {
+        progress += 20;
+        progressBar.style.width = progress + '%';
+        if (progress >= 100) {
+            clearInterval(interval);
+            statusMsg.innerText = "Download starting...";
+            
+            // Real browser download trigger
+            const link = document.createElement('a');
+            link.href = filePath;
+            link.download = filePath.split('/').pop();
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            setTimeout(() => {
+                alert("Download started. Please run the installer to link your device.");
+                window.location.href = "/dashboard";
+            }, 1000);
+        }
+    }, 100);
 }
 </script>
 
