@@ -473,7 +473,8 @@ def sync_pro_users():
                         if not user.stripe_subscription_id: 
                             user.stripe_subscription_id = "pro_json_override"
                 else:
-                    if user.is_pro and (not user.stripe_subscription_id or user.stripe_subscription_id == "pro_json_override"):
+                    # Only remove pro status if it was set via pro_json_override
+                    if user.is_pro and user.stripe_subscription_id == "pro_json_override":
                         user.is_pro = False
                         user.subscription_status = 'inactive'
                         user.plan_tag = 'Free'
@@ -764,12 +765,20 @@ def subscription_success():
             pro_config = load_pro_config()
             pro_users = pro_config.get('pro_users', [])
             # Remove old entries for this user
-            pro_users = [u for u in pro_users if not (
-                (isinstance(u, dict) and (u.get('email') == user.email or u.get('username') == user.username)) or
-                (isinstance(u, str) and (u == user.email or u == user.username))
-            )]
-            pro_users.append({'email': user.email, 'username': user.username, 'plan': plan})
-            pro_config['pro_users'] = pro_users
+            new_pro_users = []
+            for u in pro_users:
+                match = False
+                if isinstance(u, dict):
+                    if (user.email and u.get('email') == user.email) or (user.username and u.get('username') == user.username):
+                        match = True
+                elif isinstance(u, str):
+                    if (user.email and u == user.email) or (user.username and u == user.username):
+                        match = True
+                if not match:
+                    new_pro_users.append(u)
+            
+            new_pro_users.append({'email': user.email, 'username': user.username, 'plan': plan})
+            pro_config['pro_users'] = new_pro_users
             save_pro_config_file(pro_config)
             
             db.session.commit()
