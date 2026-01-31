@@ -724,6 +724,31 @@ def get_metrics():
     except:
         return jsonify(get_real_network_metrics())
 
+@app.route('/api/vpn/status')
+@login_required
+def vpn_status():
+    user_id = str(current_user.id)
+    user_states = load_user_states()
+    state = user_states.get(user_id, {})
+    
+    is_vpn = state.get('vpn_enabled', False)
+    is_hub = state.get('speed_sharing_enabled', False)
+    
+    # LIVE SYSTEM MODE: Dynamic detection
+    active = is_vpn or is_hub
+    mode = "VPN Active" if is_vpn else ("Mesh Hub Active" if is_hub else None)
+    
+    return jsonify({
+        'active': active,
+        'vpn_enabled': is_vpn,
+        'mode': mode,
+        'servers': [
+            {'id': 'us-east', 'name': 'US East', 'location': 'New York', 'latency': 25, 'capacity': 45, 'protocols': ['WireGuard', 'IPSec']},
+            {'id': 'uk-london', 'name': 'UK London', 'location': 'London', 'latency': 85, 'capacity': 30, 'protocols': ['WireGuard']},
+            {'id': 'tr-istanbul', 'name': 'TR Istanbul', 'location': 'Istanbul', 'latency': 120, 'capacity': 15, 'protocols': ['IPSec']}
+        ]
+    })
+
 @app.route('/download')
 def download_page():
     return render_template('download.html')

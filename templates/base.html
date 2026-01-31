@@ -60,15 +60,33 @@
         <p>Form - your carrier's partner</p>
     </footer>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Check if VPN or Connect is active on load
-            const vpnActive = {{ 'true' if user_state.vpn_enabled else 'false' }};
-            if (vpnActive) {
+        async function checkConnectionStatus() {
+            try {
+                const response = await fetch('/api/vpn/status');
+                const data = await response.json();
                 const banner = document.getElementById('connection-banner');
-                if (banner) {
-                    banner.classList.remove('d-none');
+                const bannerText = document.getElementById('banner-text');
+                if (banner && bannerText) {
+                    if (data.active || data.vpn_enabled) {
+                        banner.classList.remove('d-none');
+                        // LIVE SYSTEM MODE: Actual real-time text sync
+                        if (data.mode) {
+                            bannerText.textContent = `This device is connected to the Internet through Form (${data.mode})`;
+                        } else {
+                            bannerText.textContent = "This device is connected to the Internet through Form";
+                        }
+                    } else {
+                        banner.classList.add('d-none');
+                    }
                 }
+            } catch (e) {
+                console.error("Status check failed", e);
             }
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            checkConnectionStatus();
+            // SYSTEM-LEVEL SYNC: 1s polling for exact native feel
+            setInterval(checkConnectionStatus, 1000); 
         });
     </script>
 </body>
