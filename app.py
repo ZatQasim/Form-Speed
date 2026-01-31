@@ -691,9 +691,17 @@ def connect_hub():
 def scan_devices():
     try:
         with open('device_client/cache/devices.json', 'r') as f:
-            devices = json.load(f)
-            return jsonify({'devices': devices})
-    except:
+            full_registry = json.load(f)
+            # Standardize registry lookup (handle both dict with user IDs and flat lists)
+            user_devices = []
+            if isinstance(full_registry, dict):
+                user_devices = full_registry.get(str(current_user.id), [])
+            elif isinstance(full_registry, list):
+                user_devices = full_registry
+                
+            return jsonify({'devices': user_devices})
+    except Exception as e:
+        print(f"Scan API error: {e}")
         return jsonify({'devices': []})
 
 @app.route('/logout')

@@ -89,20 +89,20 @@ function simulateInstall(os) {
             if (data.ready) {
                 statusTitle.innerText = `Finalizing ${os} Installation...`;
                 progressBar.style.width = '100%';
-                statusMsg.innerText = "Form app is now running locally. Linking files...";
+                statusMsg.innerText = "System linked successfully.";
                 setTimeout(() => {
-                    alert("Form App has started locally. System linked successfully with NO errors.");
+                    alert("Form App linked successfully.");
                     window.location.href = "/dashboard";
                 }, 1000);
             } else {
-                statusTitle.innerText = `Installing Form for ${os}...`;
+                statusTitle.innerText = `Preparing ${os} Package...`;
                 let progress = 0;
                 const interval = setInterval(() => {
                     progress += 10;
                     progressBar.style.width = progress + '%';
                     if (progress >= 100) {
                         clearInterval(interval);
-                        alert("Installation Complete. App is now running.");
+                        alert("Package ready for local execution.");
                         window.location.href = "/dashboard";
                     }
                 }, 200);

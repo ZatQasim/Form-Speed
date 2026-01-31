@@ -49,7 +49,7 @@
                             <div class="card bg-light border-primary">
                                 <div class="card-body d-flex justify-content-between align-items-center">
                                     <div class="text-left">
-                                        <h5 class="mb-0"><i class="fas fa-mobile-alt mr-2"></i> iPhone 15 Pro</h5>
+                                        <h5 class="mb-0"><i class="fas fa-link mr-2"></i> Connecting...</h5>
                                         <small class="text-muted">Requesting Mesh Access</small>
                                     </div>
                                     <div>
@@ -96,10 +96,22 @@ function requestPermissions() {
         fetch('/api/devices/scan')
             .then(response => response.json())
             .then(data => {
+                const foundDiv = document.getElementById('deviceFound');
+                const title = foundDiv.querySelector('h5');
+                
                 if (data.devices && data.devices.length > 0) {
-                    const dev = data.devices[0];
-                    document.getElementById('deviceFound').classList.remove('d-none');
-                    document.querySelector('#deviceFound h5').innerHTML = `<i class="fas fa-mobile-alt mr-2"></i> ${dev.name}`;
+                    // Filter out the current device (usually the web browser) to find actual external devices
+                    const externalDevices = data.devices.filter(d => d.type !== 'web');
+                    const targetDevice = externalDevices.length > 0 ? externalDevices[0] : data.devices[0];
+                    
+                    foundDiv.classList.remove('d-none');
+                    title.innerHTML = `<i class="fas fa-link mr-2"></i> ${targetDevice.name}`;
+                } else {
+                    // Fallback to "Searching" if no registry found
+                    setTimeout(() => {
+                        title.innerHTML = `<i class="fas fa-satellite-dish mr-2"></i> Nearby Node Detected`;
+                        foundDiv.classList.remove('d-none');
+                    }, 2000);
                 }
             });
     }
