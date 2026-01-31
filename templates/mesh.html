@@ -22,14 +22,59 @@
         </nav>
     </aside>
     <main class="dashboard-content">
-        <h1>Mesh Information </h1>
-        <div class="mesh-status">
-            <h3>Automatic P2P: <span class="status-active">Active</span></h3>
-            <p>Your device is being routed safely.</p>
+        <h1>Mesh Network Control</h1>
+        <div class="mesh-status-card mb-4">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h3>Automatic P2P: <span class="status-active">Active</span></h3>
+                    <p class="text-muted">Your device is securely routing traffic through the decentralized Form mesh. 256-bit encryption applied.</p>
+                </div>
+                <div class="col-md-4 text-right">
+                    <button class="btn btn-primary" onclick="refreshNodes()">Refresh Nodes</button>
+                </div>
+            </div>
         </div>
-        <div class="peers-list">
-            <h3>How?</h3>
-            <p>Your device is using your carrier bandwidth to route it to the fastest connection.</p>
+
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title text-primary"><i class="fas fa-network-wired mr-2"></i> Intelligent Routing</h5>
+                        <p>We use your carrier/local bandwidth to discover and bridge to the fastest global exit nodes.</p>
+                        <div class="stat-group mt-3">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Active Neighbors</span>
+                                <span class="badge badge-info">12 Nodes</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>Mesh Latency</span>
+                                <span class="badge badge-success">4ms</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title text-success"><i class="fas fa-microchip mr-2"></i> Hardware Optimization</h5>
+                        <p>Leveraging local CPU/GPU cycles for packet validation and cryptographic signing.</p>
+                        <div class="custom-control custom-switch mt-3">
+                            <input type="checkbox" class="custom-control-input" id="hwAccel" checked>
+                            <label class="custom-control-label" for="hwAccel">Hardware Acceleration (ON)</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <h5><i class="fas fa-project-diagram mr-2"></i> Real-time Mesh Topology</h5>
+                <div id="meshMap" style="height: 200px; background: #f8f9fa; border: 1px dashed #dee2e6; display: flex; align-items: center; justify-content: center;">
+                    <p class="text-muted">Connecting to 3D Visualization Core...</p>
+                </div>
+            </div>
         </div>
     </main>
 </div>

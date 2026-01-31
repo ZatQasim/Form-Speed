@@ -25,43 +25,36 @@
     </aside>
 
     <main class="dashboard-content">
-        <h1>Network Tools</h1>
-        <p class="page-description">Network tools for you to use.</p>
+        <h1>Advanced Network Systems</h1>
+        <p class="page-description">Direct OS-level hardware interfaces and mesh-wide diagnostic tools.</p>
 
         <div class="tools-grid">
-            <div class="tool-card">
-                <div class="tool-icon">☆</div>
-                <h3>WI-FI Analyser</h3>
-                <p>Analyze nearby WiFi signals and channel congestion.</p>
-                <a href="{{ url_for('tool_wifi_analyser') }}" class="btn btn-primary btn-sm">Open Tool</a>
+            <div class="tool-card highlight-card">
+                <div class="tool-icon"><i class="fas fa-radar text-primary"></i></div>
+                <h3>Hardware WiFi Analyser</h3>
+                <p>Direct low-level signal capture for interference mapping and channel optimization.</p>
+                <a href="{{ url_for('tool_wifi_analyser') }}" class="btn btn-primary btn-sm">Capture Signal</a>
             </div>
 
             <div class="tool-card">
-                <div class="tool-icon">☆</div>
-                <h3>Port Scanner</h3>
-                <p>Scan target for open ports.</p>
-                <a href="{{ url_for('tool_port_scanner') }}" class="btn btn-primary btn-sm">Open Tool</a>
+                <div class="tool-icon"><i class="fas fa-search-location text-success"></i></div>
+                <h3>3D Traceroute Map</h3>
+                <p>Live geographical hop mapping through the global Form mesh backbone.</p>
+                <a href="{{ url_for('tool_traceroute_map') }}" class="btn btn-success btn-sm">Launch Map</a>
             </div>
 
             <div class="tool-card">
-                <div class="tool-icon">☆</div>
-                <h3>Certificate Scanner</h3>
-                <p>Verify SSL/TLS certificate integrity.</p>
-                <a href="{{ url_for('tool_cert_scanner') }}" class="btn btn-primary btn-sm">Open Tool</a>
+                <div class="tool-icon"><i class="fas fa-microscope text-info"></i></div>
+                <h3>Deep Packet Inspector</h3>
+                <p>Real-time packet capture and automated security validation across all ports.</p>
+                <a href="{{ url_for('tool_packet_detector') }}" class="btn btn-info btn-sm">Inspect Packets</a>
             </div>
-
+            
             <div class="tool-card">
-                <div class="tool-icon">☆</div>
-                <h3>Traceroute Map</h3>
-                <p>Map out the physical location of packet hops.</p>
-                <a href="{{ url_for('tool_traceroute_map') }}" class="btn btn-primary btn-sm">Open Tool</a>
-            </div>
-
-            <div class="tool-card">
-                <div class="tool-icon">☆</div>
-                <h3>Detected Packets</h3>
-                <p>Real-time packet detection and mapping.</p>
-                <a href="{{ url_for('tool_packet_detector') }}" class="btn btn-primary btn-sm">Open Tool</a>
+                <div class="tool-icon"><i class="fas fa-shield-virus text-danger"></i></div>
+                <h3>Certificate Integrity</h3>
+                <p>Validation of SSL/TLS certificates against the decentralized node registry.</p>
+                <a href="{{ url_for('tool_cert_scanner') }}" class="btn btn-danger btn-sm">Verify Trust</a>
             </div>
         </div>
     </main>

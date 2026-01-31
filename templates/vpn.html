@@ -76,7 +76,14 @@
             <div class="optimization-section">
                 <h3>Network Optimization</h3>
                 <p>Find the fastest route to speed up your connection</p>
-                <button class="btn btn-primary" id="optimize-btn">Optimize Route</button>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <button class="btn btn-primary w-100" id="optimize-btn">Optimize Route</button>
+                    </div>
+                    <div class="col-md-6">
+                        <button class="btn btn-outline-success w-100" onclick="enableRegionSavings()">Region Cost Savings</button>
+                    </div>
+                </div>
                 <div id="optimization-result" class="optimization-result hidden"></div>
             </div>
             

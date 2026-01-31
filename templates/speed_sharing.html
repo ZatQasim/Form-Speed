@@ -26,8 +26,44 @@
     </aside>
     
     <main class="dashboard-content">
-        <h1>Speed Sharing</h1>
-        <p class="page-description">Share bandwidth with trusted connections using allowance codes</p>
+        <h1>Speed Sharing & Aggregation</h1>
+        <p class="page-description">Boost your connection by merging multiple network paths.</p>
+        
+        <div class="aggregation-card mb-4 p-4" style="background: linear-gradient(135deg, #1a73e8, #34a853); color: white; border-radius: 15px;">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h2>Smart Bandwidth Aggregation</h2>
+                    <p>Combine your ISP, Mobile Data, and Mesh Nodes for ultra-high-speed routing.</p>
+                </div>
+                <div class="col-md-4 text-right">
+                    <button class="btn btn-light btn-lg" onclick="startAggregation()">Initialize Hyper-Speed</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card mb-4 text-center p-3">
+                    <i class="fas fa-wifi fa-2x text-primary mb-2"></i>
+                    <h6>WiFi Path</h6>
+                    <div class="progress" style="height: 8px;"><div class="progress-bar bg-primary" style="width: 85%"></div></div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card mb-4 text-center p-3">
+                    <i class="fas fa-signal fa-2x text-success mb-2"></i>
+                    <h6>Cellular Path</h6>
+                    <div class="progress" style="height: 8px;"><div class="progress-bar bg-success" style="width: 45%"></div></div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card mb-4 text-center p-3">
+                    <i class="fas fa-share-alt fa-2x text-info mb-2"></i>
+                    <h6>Mesh Path</h6>
+                    <div class="progress" style="height: 8px;"><div class="progress-bar bg-info" style="width: 65%"></div></div>
+                </div>
+            </div>
+        </div>
         
         <div class="your-network-info">
             <h3>Your Network</h3>
