@@ -170,12 +170,18 @@ function requestPermissions() {
             document.getElementById('peerPower').textContent = (Math.random() * 50 + 50).toFixed(0) + ' GFLOPS';
             document.getElementById('meshHops').textContent = Math.floor(Math.random() * 3 + 1);
 
-            // Auto-route logic: When paired, inform the backend to start routing for this MAC/ID
-            fetch('/api/devices/route_peer', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ device_id: device.id, name: device.name })
-            });
+        // Auto-route logic: When paired, inform the backend to start routing for this MAC/ID
+        fetch('/api/devices/route_peer', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ device_id: device.id, name: device.name })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log("Backend routing confirmed");
+            }
+        });
         }).catch(error => {
             console.log("Bluetooth scan cancelled or failed: " + error);
         });
