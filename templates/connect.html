@@ -208,27 +208,39 @@ function handleDevice(action) {
             banner.classList.remove('d-none');
         }
         
-        // Start live throughput animation
-        setInterval(() => {
-            const up = (Math.random() * 200 + 300).toFixed(0);
-            const down = (Math.random() * 400 + 600).toFixed(0);
-            const latency = (Math.random() * 5 + 8).toFixed(0);
-            const total = ((parseFloat(up) + parseFloat(down)) / 1000).toFixed(1);
+        // APN Configuration Simulation
+        const apnStatus = document.createElement('div');
+        apnStatus.id = 'apnConfigStatus';
+        apnStatus.className = 'alert alert-info mt-3';
+        apnStatus.innerHTML = '<i class="fas fa-cog fa-spin mr-2"></i> Configuring Direct Form APN...';
+        document.getElementById('connectedMode').appendChild(apnStatus);
+
+        setTimeout(() => {
+            apnStatus.className = 'alert alert-success mt-3';
+            apnStatus.innerHTML = '<i class="fas fa-check-double mr-2"></i> Direct Form APN Configured Successfully (APN: form.speed.net)';
             
-            const elThroughput = document.getElementById('connectedThroughput');
-            const elLatency = document.getElementById('connectedLatency');
-            const elUp = document.getElementById('uploadSpeed');
-            const elDown = document.getElementById('downloadSpeed');
-            const elBar = document.getElementById('uploadProgress');
-            
-            if (elThroughput) elThroughput.textContent = total + " Gbps";
-            if (elLatency) elLatency.textContent = latency + "ms";
-            if (elUp) elUp.textContent = up + " Mbps";
-            if (elDown) elDown.textContent = down + " Mbps";
-            if (elBar) elBar.style.width = ((up / (parseFloat(up) + parseFloat(down))) * 100) + "%";
-        }, 1500);
+            // Start live throughput animation
+            setInterval(() => {
+                const up = (Math.random() * 200 + 300).toFixed(0);
+                const down = (Math.random() * 400 + 600).toFixed(0);
+                const latency = (Math.random() * 5 + 8).toFixed(0);
+                const total = ((parseFloat(up) + parseFloat(down)) / 1000).toFixed(1);
+                
+                const elThroughput = document.getElementById('connectedThroughput');
+                const elLatency = document.getElementById('connectedLatency');
+                const elUp = document.getElementById('uploadSpeed');
+                const elDown = document.getElementById('downloadSpeed');
+                const elBar = document.getElementById('uploadProgress');
+                
+                if (elThroughput) elThroughput.textContent = total + " Gbps";
+                if (elLatency) elLatency.textContent = latency + "ms";
+                if (elUp) elUp.textContent = up + " Mbps";
+                if (elDown) elDown.textContent = down + " Mbps";
+                if (elBar) elBar.style.width = ((up / (parseFloat(up) + parseFloat(down))) * 100) + "%";
+            }, 1500);
+        }, 3000);
         
-        alert(`Mesh link established with ${deviceName}. Traffic is now being routed through this computer.`);
+        alert(`Mesh link established with ${deviceName}. Direct Form APN configuration pushed.`);
     } else {
         alert("Device connection denied.");
         document.getElementById('deviceFound').classList.add('d-none');
