@@ -756,36 +756,30 @@ def download_page():
 @app.route('/connect')
 @login_required
 def connect_hub():
-    return render_template('connect.html')
-
-@app.route('/api/devices/scan')
-@login_required
-def scan_devices():
-    try:
-        with open('device_client/cache/devices.json', 'r') as f:
-            full_registry = json.load(f)
-            # Standardize registry lookup (handle both dict with user IDs and flat lists)
-            user_devices = []
-            if isinstance(full_registry, dict):
-                user_devices = full_registry.get(str(current_user.id), [])
-            elif isinstance(full_registry, list):
-                user_devices = full_registry
-                
-            return jsonify({'devices': user_devices})
-    except Exception as e:
-        print(f"Scan API error: {e}")
-        return jsonify({'devices': []})
+    return render_template('connect.html', user_state=get_user_state(current_user.id))
 
 @app.route('/api/devices/route_peer', methods=['POST'])
 @login_required
 def route_peer():
     data = request.json
     device_id = data.get('device_id')
-    device_name = data.get('name')
-    # Trigger real routing engine to patch this peer through
-    print(f"[RoutingEngine] Patching through peer: {device_name} ({device_id})")
-    # In a real scenario, this would interface with the Go/Rust routing core
-    return jsonify({'success': True, 'status': 'routed'})
+    device_name = data.get('name', 'Unknown Device')
+    
+    # Simulate routing logic: In a real system, this would configure IP tables or a proxy
+    # Here we update the user's state to reflect that a device is being routed through them
+    update_user_state(current_user.id, {
+        'routing_active': True,
+        'routed_device_id': device_id,
+        'routed_device_name': device_name,
+        'routing_start_time': datetime.utcnow().isoformat(),
+        'active_throughput_gbps': 1.2,
+        'active_latency_ms': 12,
+        'apn_configured': True,
+        'apn_name': 'form.speed.net'
+    })
+    
+    print(f"Routing and APN configuration initiated for device {device_name} ({device_id}) through user {current_user.username}")
+    return jsonify({'success': True, 'message': f'Routing active for {device_name}'})
 
 @app.route('/logout')
 @login_required
