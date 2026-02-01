@@ -586,7 +586,7 @@ def signup():
             user.subscription_status = 'active'
             user.plan_tag = plan
             user.stripe_subscription_id = "pro_json_override"
-            flash(f'Welcome! Your account is active via whitelist ({plan} plan).', 'success')
+            flash(f'Welcome customer! Your account is active({plan} plan).', 'success')
         else:
             user.is_pro = False
             user.subscription_status = 'inactive'

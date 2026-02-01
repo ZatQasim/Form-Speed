@@ -1,19 +1,19 @@
 {
   "pro_users": [
     {
+      "username": "",
+      "email": "",
+      "plan": ""
+    },
+    {
+      "username": "",
+      "email": "",
+      "plan": ""
+    },
+    {
       "username": "sunsetamarat0",
       "email": "qasimthemuslimdiscord@gmail.com",
       "plan": "Premier"
-    },
-    {
-      "username": "",
-      "email": "",
-      "plan": ""
-    },
-    {
-      "username": "",
-      "email": "",
-      "plan": ""
     }
   ],
   "price_ids": {
