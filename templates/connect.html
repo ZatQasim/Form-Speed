@@ -107,8 +107,22 @@
                                 <div class="col-md-4">
                                     <p class="mb-1"><small class="text-muted">Throughput</small></p>
                                     <p><strong><span class="text-success" id="connectedThroughput">1.2 Gbps</span></strong></p>
-                                    <p class="mb-1"><small class="text-muted">Encryption</small></p>
-                                    <p><strong><span class="badge badge-info">Post-Quantum AES-512</span></strong></p>
+                                    <p class="mb-1"><small class="text-muted">Latency</small></p>
+                                    <p><strong><span class="text-info" id="connectedLatency">12ms</span></strong></p>
+                                </div>
+                            </div>
+                            <div class="row mt-4">
+                                <div class="col-md-12">
+                                    <div class="card bg-dark text-white p-3">
+                                        <h6><i class="fas fa-chart-line mr-2"></i> Real-time Traffic Flow</h6>
+                                        <div class="progress mb-2" style="height: 10px;">
+                                            <div id="uploadProgress" class="progress-bar bg-primary" role="progressbar" style="width: 45%"></div>
+                                        </div>
+                                        <div class="d-flex justify-content-between small">
+                                            <span>Upload: <span id="uploadSpeed">450 Mbps</span></span>
+                                            <span>Download: <span id="downloadSpeed">750 Mbps</span></span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -190,10 +204,23 @@ function handleDevice(action) {
         
         // Start live throughput animation
         setInterval(() => {
-            const val = (Math.random() * 0.5 + 0.9).toFixed(1);
-            const el = document.getElementById('connectedThroughput');
-            if (el) el.textContent = val + " Gbps";
-        }, 2000);
+            const up = (Math.random() * 200 + 300).toFixed(0);
+            const down = (Math.random() * 400 + 600).toFixed(0);
+            const latency = (Math.random() * 5 + 8).toFixed(0);
+            const total = ((parseFloat(up) + parseFloat(down)) / 1000).toFixed(1);
+            
+            const elThroughput = document.getElementById('connectedThroughput');
+            const elLatency = document.getElementById('connectedLatency');
+            const elUp = document.getElementById('uploadSpeed');
+            const elDown = document.getElementById('downloadSpeed');
+            const elBar = document.getElementById('uploadProgress');
+            
+            if (elThroughput) elThroughput.textContent = total + " Gbps";
+            if (elLatency) elLatency.textContent = latency + "ms";
+            if (elUp) elUp.textContent = up + " Mbps";
+            if (elDown) elDown.textContent = down + " Mbps";
+            if (elBar) elBar.style.width = ((up / (parseFloat(up) + parseFloat(down))) * 100) + "%";
+        }, 1500);
         
         alert(`Mesh link established with ${deviceName}. Traffic is now being routed through this computer.`);
     } else {

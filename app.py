@@ -1319,6 +1319,11 @@ def api_cert_scan():
 
 # --- Main Entry Point ---
 
+@app.route('/connect')
+@login_required
+def connect_hub():
+    return render_template('connect.html')
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
