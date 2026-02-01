@@ -221,7 +221,7 @@ function handleDevice(action) {
                 
                 setTimeout(() => {
                     apnStatus.className = 'alert alert-success mt-3';
-                    apnStatus.innerHTML = '<i class="fas fa-check-double mr-2"></i> Direct Form APN Configured Successfully (APN: form.speed.net)';
+                    apnStatus.innerHTML = `<i class="fas fa-check-double mr-2"></i> Direct Form APN Configured Successfully (APN: <a href="https://${window.location.host}" target="_blank" style="color: white; text-decoration: underline;">form.speed.net</a>)`;
                     
                     // Start live throughput animation
                     setInterval(() => {
