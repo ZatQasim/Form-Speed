@@ -1322,7 +1322,28 @@ def api_cert_scan():
 @app.route('/connect')
 @login_required
 def connect_hub():
-    return render_template('connect.html')
+    return render_template('connect.html', user_state=get_user_state(current_user.id))
+
+@app.route('/api/devices/route_peer', methods=['POST'])
+@login_required
+def route_peer():
+    data = request.json
+    device_id = data.get('device_id')
+    device_name = data.get('name', 'Unknown Device')
+    
+    # Simulate routing logic: In a real system, this would configure IP tables or a proxy
+    # Here we update the user's state to reflect that a device is being routed through them
+    update_user_state(current_user.id, {
+        'routing_active': True,
+        'routed_device_id': device_id,
+        'routed_device_name': device_name,
+        'routing_start_time': datetime.utcnow().isoformat(),
+        'active_throughput_gbps': 1.2,
+        'active_latency_ms': 12
+    })
+    
+    print(f"Routing initiated for device {device_name} ({device_id}) through user {current_user.username}")
+    return jsonify({'success': True, 'message': f'Routing active for {device_name}'})
 
 if __name__ == '__main__':
     with app.app_context():
