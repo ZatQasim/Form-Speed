@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Form Agent - Form{% endblock %}
+{% block title %}Form Speed Agent - Form Speed{% endblock %}
 {% block content %}
 <div class="dashboard">
     <aside class="sidebar">
@@ -13,7 +13,7 @@
             <a href="{{ url_for('cloud_dashboard') }}">Cloud</a>
             <a href="{{ url_for('analytics_dashboard') }}">Analytics</a>
             <a href="{{ url_for('password_manager') }}">Passwords</a>
-            <a href="{{ url_for('agent_dashboard') }}" class="active">Form Agent</a>
+            <a href="{{ url_for('agent_dashboard') }}" class="active">Form Speed Agent</a>
             <a href="{{ url_for('history_dashboard') }}">History</a>
             <a href="{{ url_for('devices_dashboard') }}">Devices</a>
             <a href="{{ url_for('account_dashboard') }}">Account</a>
@@ -25,7 +25,7 @@
             <div class="agent-header">
                 <div class="agent-avatar">  </div>
                 <div class="agent-info">
-                    <h1>Form Agent</h1>
+                    <h1>Form Speed Agent</h1>
                     <p class="status-online">Your carrier assistant</p>
                 </div>
                 <button class="btn btn-sm btn-outline" id="request-hardware-perms">Sync Device Info</button>
@@ -33,7 +33,7 @@
             
             <div class="chat-window" id="chat-window">
                 <div class="message ai-message">
-                    Hello! I am your Form Agent. I can help you with financial activity?
+                    Hello! I am your Form Speed Agent. I can help you with financial activity?
                 </div>
             </div>
             
@@ -159,7 +159,7 @@ document.getElementById('request-hardware-perms').addEventListener('click', asyn
         }
         
         // Simulating the "Carrier/SIM" trigger request
-        if (confirm("Form Network requests permission to access SIM card information and hardware telemetry for optimization. Grant?")) {
+        if (confirm("Form Speed Network requests permission to access SIM card information and hardware telemetry for optimization. Grant?")) {
             const aiMsg = document.createElement('div');
             aiMsg.className = 'message ai-message';
             aiMsg.textContent = "Hardware telemetry synced. I can now see your signal-to-noise ratio and SIM-based carrier protocols.";

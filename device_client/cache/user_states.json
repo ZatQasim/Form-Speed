@@ -20,7 +20,7 @@
     "security_enabled": true,
     "last_optimization": "2026-01-24T12:08:26.385386",
     "speed_sharing_guest": true,
-    "speed_sharing_host": "Peer-Form-User",
+    "speed_sharing_host": "Peer-Form-Speed-User",
     "guest_access_until": "2026-02-27T08:14:02.918360",
     "optimization_improvement_ms": 0,
     "protected_since": "2026-01-29T03:37:39.129640",

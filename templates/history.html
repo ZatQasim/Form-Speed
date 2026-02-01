@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Connection History - Form{% endblock %}
+{% block title %}Connection History - Form Speed{% endblock %}
 
 {% block content %}
 <div class="dashboard">
@@ -79,7 +79,7 @@
             <div class="empty-history">
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
                 <h3>No Activity Yet</h3>
-                <p>Your connection history will appear here as you use Form services.</p>
+                <p>Your connection history will appear here as you use Form Speed services.</p>
                 <a href="{{ url_for('vpn_dashboard') }}" class="btn btn-primary">Connect to VPN</a>
             </div>
             {% endif %}

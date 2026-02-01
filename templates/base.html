@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>{% block title %}Form{% endblock %}</title>
+    <title>{% block title %}Form Speed{% endblock %}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
     {% if current_user.is_authenticated %}
     <div id="connection-banner" class="connection-banner d-none">
         <div class="banner-content">
-            <span id="banner-text">This device is connected to the Internet through Form</span>
+            <span id="banner-text">This device is connected to the Internet through Form Speed</span>
             <i class="fas fa-link ml-2" style="font-size: 0.8rem; opacity: 0.8;"></i>
         </div>
     </div>
@@ -24,8 +24,8 @@
     <nav class="navbar">
         <div class="nav-brand">
             <a href="{{ url_for('index') }}">
-                <img src="{{ url_for('static', filename='logo.png') }}" alt="Form" class="logo">
-                <span>Form</span>
+                <img src="{{ url_for('static', filename='logo.png') }}" alt="Form Speed" class="logo">
+                <span>Form Speed</span>
             </a>
         </div>
         <div class="nav-links">
@@ -57,7 +57,7 @@
     </main>
     
     <footer>
-        <p>Form - your carrier's partner</p>
+        <p>Form Speed - your carrier's partner</p>
     </footer>
     <script>
         async function checkConnectionStatus() {
@@ -71,9 +71,9 @@
                         banner.classList.remove('d-none');
                         // LIVE SYSTEM MODE: Actual real-time text sync
                         if (data.mode) {
-                            bannerText.textContent = `This device is connected to the Internet through Form (${data.mode})`;
+                            bannerText.textContent = `This device is connected to the Internet through Form Speed (${data.mode})`;
                         } else {
-                            bannerText.textContent = "This device is connected to the Internet through Form";
+                            bannerText.textContent = "This device is connected to the Internet through Form Speed";
                         }
                     } else {
                         banner.classList.add('d-none');

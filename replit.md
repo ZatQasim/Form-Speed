@@ -1,8 +1,8 @@
-# Form Network - Replit.md
+# Form Speed Network - Replit.md
 
 ## Overview
 
-Form is a multi-layered network optimization and security platform that provides VPN protection, speed sharing, mesh networking, and security features. The application is a Flask-based web service with a subscription model (Pro tier) that offers premium features including VPN access, bandwidth sharing between peers, mesh network routing, and advanced analytics.
+Form Speed is a multi-layered network optimization and security platform that provides VPN protection, speed sharing, mesh networking, and security features. The application is a Flask-based web service with a subscription model (Pro tier) that offers premium features including VPN access, bandwidth sharing between peers, mesh network routing, and advanced analytics.
 
 The platform supports device management, two-factor authentication, cloud storage, password management, and various network diagnostic tools (WiFi analysis, port scanning, certificate scanning, traceroute mapping).
 

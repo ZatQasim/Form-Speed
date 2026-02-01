@@ -1,5 +1,5 @@
 //! Speed Sharing Module
-//! Handles secure bandwidth sharing between trusted Form users
+//! Handles secure bandwidth sharing between trusted Form Speed users
 //! Integrates with Mesh Network and Routing Server
 //! Author: ZatQasim (Mohamed Mohamed Diriye)
 

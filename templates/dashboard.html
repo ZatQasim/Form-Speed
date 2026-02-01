@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Portal- Form{% endblock %}
+{% block title %}Portal - Form Speed{% endblock %}
 
 {% block content %}
 <div class="dashboard">
@@ -17,7 +17,7 @@
             <a href="{{ url_for('connect_hub') }}">Connect</a>
             <a href="{{ url_for('analytics_dashboard') }}">Analytics</a>
             <a href="{{ url_for('password_manager') }}">Passwords</a>
-            <a href="{{ url_for('agent_dashboard') }}">Form Agent</a>
+            <a href="{{ url_for('agent_dashboard') }}">Form Speed Agent</a>
             <a href="{{ url_for('history_dashboard') }}" {% if not current_user.has_active_subscription() %}class="locked"{% endif %}>History</a>
             <a href="{{ url_for('devices_dashboard') }}" {% if not current_user.has_active_subscription() %}class="locked"{% endif %}>Devices</a>
             <a href="{{ url_for('account_dashboard') }}">Account</a>
@@ -26,7 +26,7 @@
         {% if not is_pro %}
         <div class="upgrade-prompt">
             <p>Unlock your network partner</p>
-            <a href="{{ url_for('subscribe') }}" class="btn btn-primary btn-small">Subscribe for Form</a>
+            <a href="{{ url_for('subscribe') }}" class="btn btn-primary btn-small">Subscribe for Form Speed</a>
         </div>
         {% endif %}
     </aside>

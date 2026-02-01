@@ -1,13 +1,13 @@
 {% extends 'base.html' %}
 
-{% block title %}Login - Form{% endblock %}
+{% block title %}Login - Form Speed{% endblock %}
 
 {% block content %}
 <div class="auth-container">
     <div class="auth-card">
-        <img src="{{ url_for('static', filename='logo.png') }}" alt="Form" class="auth-logo">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="Form Speed" class="auth-logo">
         <h2>Welcome Back</h2>
-        <p>Login to your Form account</p>
+        <p>Login to your Form Speed account</p>
         
         <form method="POST" action="{{ url_for('login') }}">
             <div class="form-group">

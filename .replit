@@ -26,19 +26,7 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Form Network"
-
-[[workflows.workflow]]
-name = "Form Network"
-author = "agent"
-
-[workflows.workflow.metadata]
-outputType = "webview"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "python app.py"
-waitForPort = 5000
+args = "Form Speed Network"
 
 [[workflows.workflow]]
 name = "Pro Processor"
@@ -48,6 +36,18 @@ author = 52806342
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "python pro_processor.py"
+
+[[workflows.workflow]]
+name = "Form Speed Network"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python app.py"
+waitForPort = 5000
+
+[workflows.workflow.metadata]
+outputType = "webview"
 
 [[ports]]
 localPort = 5000

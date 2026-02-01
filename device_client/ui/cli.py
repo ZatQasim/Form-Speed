@@ -1,1 +1,1 @@
-print("Form Device Client CLI")
+print("Form Speed Device Client CLI")

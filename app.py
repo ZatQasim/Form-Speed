@@ -174,7 +174,7 @@ def lookup_ip_info(ip_address):
     if not ip_address or ip_address in ['127.0.0.1', 'localhost']:
         return network_info
     try:
-        req = urllib.request.Request(f'https://ipapi.co/{ip_address}/json/', headers={'User-Agent': 'Form-Network/1.0'})
+        req = urllib.request.Request(f'https://ipapi.co/{ip_address}/json/', headers={'User-Agent': 'Form-Speed-Network/1.0'})
         with urllib.request.urlopen(req, timeout=5) as response:
             data = json.loads(response.read().decode())
             network_info['ip_address'] = data.get('ip', ip_address)
@@ -186,7 +186,7 @@ def lookup_ip_info(ip_address):
             network_info['network_type'] = 'Mobile' if 'mobile' in data.get('org', '').lower() or 'wireless' in data.get('org', '').lower() else 'Broadband'
     except:
         try:
-            req = urllib.request.Request(f'https://ipinfo.io/{ip_address}/json', headers={'User-Agent': 'Form-Network/1.0'})
+            req = urllib.request.Request(f'https://ipinfo.io/{ip_address}/json', headers={'User-Agent': 'Form-Speed-Network/1.0'})
             with urllib.request.urlopen(req, timeout=5) as response:
                 data = json.loads(response.read().decode())
                 network_info['ip_address'] = data.get('ip', ip_address)
@@ -654,7 +654,7 @@ def setup_2fa():
 
     secret = pyotp.random_base32()
     session['pending_totp_secret'] = secret
-    uri = pyotp.TOTP(secret).provisioning_uri(name=current_user.email, issuer_name='Form Network')
+    uri = pyotp.TOTP(secret).provisioning_uri(name=current_user.email, issuer_name='Form Speed Network')
     qr = qrcode.QRCode(version=1, box_size=10, border=5)
     qr.add_data(uri)
     qr.make(fit=True)
@@ -822,7 +822,7 @@ def create_checkout_session():
             line_items=[{
                 'price_data': {
                     'currency': 'usd', 
-                    'product_data': {'name': 'Form Subscription'}, 
+                    'product_data': {'name': 'Form Speed Subscription'}, 
                     'unit_amount': cfg['subscription']['price_usd'] * 100, 
                     'recurring': {'interval': 'month'}
                 }, 
@@ -1055,7 +1055,7 @@ def tool_port_scanner():
 @login_required
 def agent_dashboard():
     if not current_user.has_active_subscription():
-        flash('Form Agent requires a Pro subscription', 'warning')
+        flash('Form Speed Agent requires a Pro subscription', 'warning')
         return redirect(url_for('subscribe'))
     return render_template('agent.html', user_state=get_user_state(current_user.id))
 
@@ -1080,7 +1080,7 @@ def agent_chat():
         response = ai_client.chat.completions.create(    
             model="gpt-5",    
             messages=[    
-                {"role": "system", "content": f"You are Form Agent, an advanced Large Action Model (LAM) for the Form Network. User: {current_user.username}. Carrier: {metrics.get('carrier')}. VPN: {'Active' if user_state.get('vpn_enabled') else 'Inactive'}. Help with account, carrier info, financial options ($5/mo), and support. Be concise and authoritative."},    
+                {"role": "system", "content": f"You are Form Speed Agent, an advanced Large Action Model (LAM) for the Form Speed Network. User: {current_user.username}. Carrier: {metrics.get('carrier')}. VPN: {'Active' if user_state.get('vpn_enabled') else 'Inactive'}. Help with account, carrier info, financial options ($5/mo), and support. Be concise and authoritative."},    
                 {"role": "user", "content": user_message}    
             ],    
             max_completion_tokens=500    
@@ -1147,7 +1147,7 @@ def api_redeem_invite():
         return jsonify({'success': False, 'error': 'Code required'}), 400
     update_user_state(current_user.id, {
         'speed_sharing_guest': True,
-        'speed_sharing_host': 'Peer-Form-User',
+        'speed_sharing_host': 'Peer-Form-Speed-User',
         'guest_access_until': (datetime.utcnow() + timedelta(days=30)).isoformat()
     })
     return jsonify({'success': True, 'message': 'Allowance redeemed successfully!'})
@@ -1208,7 +1208,7 @@ def api_vpn_optimize_route():
         'latency': {'before': 120, 'after': 45, 'improvement': '62%'},
         'speed': {'before': 15, 'after': 85, 'improvement': '466%'}
     }
-    route_path = ["Your Device", "Local ISP", "Form Edge Node", state['vpn_server']['location'], "Internet"]
+    route_path = ["Your Device", "Local ISP", "Form Speed Edge Node", state['vpn_server']['location'], "Internet"]
     
     update_user_state(current_user.id, {'route_optimization_enabled': True})
     return jsonify({
@@ -1280,8 +1280,8 @@ def api_wifi_analyse():
         if not networks:
             # Fallback for environments without nmcli or no networks found
             networks = [
-                {'ssid': 'Form-Secure-WLAN', 'strength': -45, 'security': 'WPA3', 'channel': 6},
-                {'ssid': 'Guest-Form', 'strength': -62, 'security': 'WPA2', 'channel': 11}
+                {'ssid': 'Form-Speed-Secure-WLAN', 'strength': -45, 'security': 'WPA3', 'channel': 6},
+                {'ssid': 'Guest-Form-Speed', 'strength': -62, 'security': 'WPA2', 'channel': 11}
             ]
         return jsonify({'success': True, 'networks': networks})
     except Exception as e:

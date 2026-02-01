@@ -1,7 +1,7 @@
 
 README.md
 
-# Form
+# Form Speed
 
 **Owner:** ZatQasim (Mohamed Mohamed Diriye)  
 **Version:** 0.1.0  
@@ -11,7 +11,7 @@ README.md
 
 ## Overview
 
-Form is a modular, multi-layered network optimization and security system that allows users to:
+Form Speed is a modular, multi-layered network optimization and security system that allows users to:
 
 - Automatically find the fastest and most secure network routes.
 - Protect devices from backdoors, intrusions, and malware.
@@ -19,7 +19,7 @@ Form is a modular, multi-layered network optimization and security system that a
 - Extend routing locally through Mesh Networking.
 - Visualize network performance through an optional Analytics Dashboard.
 
-Form supports **all network types** — local, regional, and global — and works across **desktop, Android, and iOS devices**.
+Form Speed supports **all network types** — local, regional, and global — and works across **desktop, Android, and iOS devices**.
 
 ---
 
@@ -27,7 +27,7 @@ Form supports **all network types** — local, regional, and global — and work
 
 1. **Adaptive Routing** – Optimizes your network path using AI predictions.  
 2. **VPN Integration** – Full encryption and secure routing.  
-3. **Speed Sharing** – Share your bandwidth with other trusted Form users.  
+3. **Speed Sharing** – Share your bandwidth with other trusted Form Speed users.  
 4. **Mesh Networking** – Device-to-device routing for local speed improvements.  
 5. **Security Agent** – Local firewall, malware detection, and intrusion prevention.  
 6. **Analytics Dashboard** – Visualizations of latency, bandwidth, and route efficiency.  
@@ -36,7 +36,7 @@ Form supports **all network types** — local, regional, and global — and work
 
 ## Architecture
 
-Form is organized into **7 modular layers**:
+Form Speed is organized into **7 modular layers**:
 
 1. **Configuration Layer (`form_config/`)** – Centralized configuration files for devices, servers, and dashboards.  
 2. **Device Client Layer (`device_client/`)** – Network monitoring, routing, VPN, ARN, Speed Sharing.  
@@ -147,5 +147,5 @@ Contact
 
 Owner: ZatQasim (Mohamed Mohamed Diriye)
 Email: [formatui.software@gmail.com]
-Project: Form
+Project: Form Speed
 License: Apache-2.0
