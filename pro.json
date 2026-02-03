@@ -3,11 +3,11 @@
     {
       "username": "hussein",
       "email": "hussein.abdillahi15213@gmail.com",
-      "plan": "Premier",
+      "plan": "Premier"
     },
     {
       "username": "yahya",
-      "email": "yahye@gmail.com" 
+      "email": "yahye@gmail.com",
       "plan": "Premier"
     },
     {
@@ -19,6 +19,7 @@
       "username": "yahya",
       "email": "yahye@gmail.com",
       "plan": "Regular"
+    }
   ],
   "price_ids": {
     "Regular": "price_regular_monthly_id",
