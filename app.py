@@ -295,7 +295,7 @@ class User(UserMixin, db.Model):
             'speed_sharing': has_sub,
             'device_defense': has_sub,
             'cloud_storage': has_sub,
-            'cloud_storage_limit_gb': 500 if is_premier else (50 if is_regular else 0),
+            'cloud_storage_limit_gb': 1000000 if is_premier else (50 if is_regular else 0),
             'mesh_network': is_premier,
             'advanced_analytics': is_premier,
             'priority_routing': is_premier,
