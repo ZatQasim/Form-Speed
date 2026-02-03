@@ -1,20 +1,24 @@
 {
   "pro_users": [
     {
-      "username": "",
-      "email": "",
-      "plan": ""
+      "username": "hussein",
+      "email": "hussein.abdillahi15213@gmail.com",
+      "plan": "Premier",
     },
     {
-      "username": "",
-      "email": "",
-      "plan": ""
+      "username": "yahya",
+      "email": "yahye@gmail.com" 
+      "plan": "Premier"
     },
     {
       "username": "sunsetamarat0",
       "email": "qasimthemuslimdiscord@gmail.com",
       "plan": "Premier"
-    }
+    },
+    {
+      "username": "yahya",
+      "email": "yahye@gmail.com",
+      "plan": "Regular"
   ],
   "price_ids": {
     "Regular": "price_regular_monthly_id",

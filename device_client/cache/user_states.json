@@ -21,14 +21,14 @@
     "last_optimization": "2026-01-24T12:08:26.385386",
     "speed_sharing_guest": true,
     "speed_sharing_host": "Peer-Form-Speed-User",
-    "guest_access_until": "2026-02-27T08:14:02.918360",
+    "guest_access_until": "2026-03-03T16:57:23.368125",
     "optimization_improvement_ms": 0,
     "protected_since": "2026-01-29T03:37:39.129640",
     "optimization_strategy": "Direct Carrier Peering",
     "routing_active": true,
-    "routed_device_id": "R+9XKZ5gsmU0GDGU+Dp4tg==",
+    "routed_device_id": "+JCWnYb214TgN9LOjnxO1w==",
     "routed_device_name": null,
-    "routing_start_time": "2026-02-01T14:44:28.245134",
+    "routing_start_time": "2026-02-01T14:46:54.127091",
     "active_throughput_gbps": 1.2,
     "active_latency_ms": 12,
     "apn_configured": true,
@@ -58,5 +58,31 @@
     "shared_bandwidth_mbps": 5.4,
     "sharing_started": "2026-01-23T17:36:59.571397",
     "protected_since": "2026-01-24T02:43:58.633665"
+  },
+  "3": {
+    "vpn_enabled": true,
+    "vpn_server": {
+      "id": "us-east",
+      "name": "US East",
+      "location": "New York",
+      "ip": "104.248.0.1",
+      "ipsec_id": "form-useast-01",
+      "capacity": 85,
+      "protocols": [
+        "IPSec",
+        "WireGuard"
+      ]
+    },
+    "vpn_connected_at": "2026-02-02T09:59:13.754328",
+    "assigned_ip": "10.8.0.5",
+    "route_optimization_enabled": true,
+    "routing_active": true,
+    "routed_device_id": "ZssXndAX1nfiKLRjO/UUvg==",
+    "routed_device_name": null,
+    "routing_start_time": "2026-02-02T10:03:19.502234",
+    "active_throughput_gbps": 1.2,
+    "active_latency_ms": 12,
+    "apn_configured": true,
+    "apn_name": "form.speed.net"
   }
 }

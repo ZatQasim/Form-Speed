@@ -21,9 +21,9 @@ def extract_emails_from_config(config: dict) -> dict:
             for item in value:
                 scan(item, current_plan)
         elif isinstance(value, dict):
-            plan = value.get('plan', current_plan)
+            plan = value.get("plan", current_plan)
             for k, v in value.items():
-                if k == 'email' and isinstance(v, str):
+                if k == "email" and isinstance(v, str):
                     for email in EMAIL_REGEX.findall(v):
                         email_plans[email.strip().lower()] = plan
                 else:
@@ -51,9 +51,9 @@ def grant_pro_benefits():
             pro_users = config.get("pro_users", [])
             for u in pro_users:
                 if isinstance(u, dict):
-                    email = u.get('email', '').strip().lower()
-                    username = u.get('username', '').strip().lower()
-                    plan = u.get('plan', 'Regular')
+                    email = u.get("email", " ").strip().lower()
+                    username = u.get("username", " ").strip().lower()
+                    plan = u.get("plan", "Regular")
                     if email: email_plans[email] = plan
                     if username: user_plans[username] = plan
                 elif isinstance(u, str):
