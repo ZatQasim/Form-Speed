@@ -36,7 +36,7 @@
                         <h2>Transform this Computer into a Hub</h2>
                         <p class="lead">To route other devices through your mesh network, we need local access.</p>
                         <button class="btn btn-primary btn-lg mt-3" onclick="requestPermissions()">
-                            <i class="fas fa-shield-alt mr-2"></i> Grant Bluetooth & GPS Access
+                            <i class="fas fa-shield-alt mr-2"></i> Connect
                         </button>
                     </div>
 
@@ -137,7 +137,7 @@
 function requestPermissions() {
     // Check if Bluetooth is enabled via Web Bluetooth API
     if (!navigator.bluetooth) {
-        alert("Bluetooth is NOT supported on this browser or computer. Please enable Bluetooth to allow peer-to-peer routing.");
+        alert("Bluetooth is NOT supported on this format - please make sure your device supports Bluetooth routing.");
         return;
     }
 
@@ -162,7 +162,7 @@ function requestPermissions() {
             
             foundDiv.classList.remove('d-none');
             nameEl.innerHTML = `<i class="fab fa-bluetooth-b mr-2"></i> ${device.name || 'Unknown Node'}`;
-            typeEl.textContent = device.id.startsWith('web') ? 'Virtual Mesh Node' : 'Physical Hardware Link';
+            typeEl.textContent = device.id.startsWith('web') ? 'Virtual Mesh Node' : ' Link';
             proximityEl.textContent = `Proximity: ${Math.floor(Math.random() * 20 + 80)}%`;
             
             // Update real-time stats

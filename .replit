@@ -5,7 +5,7 @@ integrations = ["javascript_object_storage:2.0.0", "python_openai_ai_integration
 
 [nix]
 channel = "stable-25_05"
-packages = ["cairo", "ffmpeg-full", "freetype", "ghostscript", "gobject-introspection", "gtk3", "pkg-config", "qhull", "tcl", "tk"]
+packages = ["cairo", "ffmpeg-full", "freetype", "ghostscript", "gobject-introspection", "gtk3", "pkg-config", "qhull", "tcl", "tk", "dig"]
 
 [workflows]
 runButton = "Project"
@@ -49,6 +49,20 @@ waitForPort = 5000
 [workflows.workflow.metadata]
 outputType = "webview"
 
+[[workflows.workflow]]
+name = "DNS routing "
+mode = "sequential"
+author = 47286943
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "./duck.sh"
+
 [[ports]]
 localPort = 5000
 externalPort = 80
+
+[[ports]]
+localPort = 20241
+externalPort = 3000
+exposeLocalhost = true

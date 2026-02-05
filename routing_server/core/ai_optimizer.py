@@ -16,3 +16,4 @@ def predict_best_route():
             return "global-node-1"
     except Exception as e:
         return "fallback-node"
+        

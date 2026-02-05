@@ -1,0 +1,1 @@
+echo url="https://www.duckdns.org/update?domains=formspeed&token=7acc1611-b58b-4564-990b-4d0f6ed182f7&ip=154.115.221.169" | curl -k -o ~/duckdns/duck.log -K -
