@@ -1311,6 +1311,72 @@ def api_cert_scan():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@app.route('/api/vpn/connect', methods=['POST'])
+@login_required
+def vpn_connect():
+    data = request.json
+    server_id = data.get('server_id', 'us-east')
+    server = next((s for s in VPN_SERVERS if s['id'] == server_id), VPN_SERVERS[0])
+    
+    user_state = update_user_state(current_user.id, {
+        'vpn_enabled': True,
+        'vpn_connected_at': datetime.utcnow().isoformat(),
+        'vpn_server': server,
+        'assigned_ip': '10.10.0.2'
+    })
+    return jsonify({'success': True, 'user_state': user_state})
+
+@app.route('/api/vpn/disconnect', methods=['POST'])
+@login_required
+def vpn_disconnect():
+    user_state = update_user_state(current_user.id, {
+        'vpn_enabled': False,
+        'vpn_connected_at': None,
+        'vpn_server': None,
+        'assigned_ip': None
+    })
+    return jsonify({'success': True, 'user_state': user_state})
+
+@app.route('/api/vpn/toggle', methods=['POST'])
+@login_required
+def vpn_toggle():
+    data = request.json
+    enabled = data.get('enabled', False)
+    if enabled:
+        return vpn_connect()
+    else:
+        return vpn_disconnect()
+
+@app.route('/api/vpn/config')
+@login_required
+def get_vpn_config():
+    # Serve the WireGuard configuration for the phone
+    return jsonify({
+        'success': True,
+        'config': {
+            'address': '10.10.0.2/24',
+            'private_key': 'GK04eTUho8konoxs+s/0pD1vattRV3+VI8Bd3BAm3EI=',
+            'dns': '1.1.1.1',
+            'peer': {
+                'public_key': 'HDC6st4RK0D+e6m1n9vyQeQi7/ZCDQwxZIKIMEfoFXY=',
+                'endpoint': '8b71956a-3d0e-4e93-9b03-80c928aeca51-00-2783fkw7yg8ju.riker.replit.dev:51820',
+                'allowed_ips': '0.0.0.0/0'
+            },
+            'session_name': 'Form Speed'
+        }
+    })
+
+@app.route('/api/vpn/status', methods=['GET'])
+@login_required
+def get_vpn_status():
+    # In a real app, this would check the connection status
+    user_state = get_user_state(current_user.id)
+    return jsonify({
+        'success': True,
+        'enabled': user_state.get('vpn_enabled', False),
+        'session_name': 'Form Speed'
+    })
+
 # --- Main Entry Point ---
 
 if __name__ == '__main__':
