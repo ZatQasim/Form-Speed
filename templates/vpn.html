@@ -42,6 +42,9 @@
                 <button class="btn {% if user_state.vpn_enabled %}btn-danger{% else %}btn-primary{% endif %} btn-large" id="vpn-toggle">
                     {% if user_state.vpn_enabled %}Disconnect{% else %}Connect{% endif %}
                 </button>
+                <button class="btn btn-success btn-large ms-2" id="vpn-run-simulation">
+                    Run VPN (Simulate Mobile)
+                </button>
             </div>
         </div>
         
@@ -199,7 +202,38 @@ document.querySelectorAll('.server-card').forEach(card => {
     });
 });
 
-document.getElementById('vpn-toggle').addEventListener('click', async function() {
+    const toggleBtn = document.getElementById('vpn-toggle');
+    const runBtn = document.getElementById('vpn-run-simulation');
+
+    if (runBtn) {
+        runBtn.addEventListener('click', async function() {
+            runBtn.disabled = true;
+            runBtn.textContent = 'Activating...';
+            
+            try {
+                const response = await fetch('/api/vpn/connect', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ server_id: selectedServerId || 'us-east' })
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('Form Speed VPN Activated!\n\nStatus: Connected\nOS Session: Form Speed\nNetwork: Encrypted Tunnel Active\n\nYour internet traffic is now protected.');
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Connection failed: ' + error.message);
+            } finally {
+                runBtn.disabled = false;
+                runBtn.textContent = 'Run VPN (Simulate Mobile)';
+            }
+        });
+    }
+
+    toggleBtn.addEventListener('click', async function() {
     if (isConnected) {
         this.disabled = true;
         this.textContent = 'Disconnecting...';
