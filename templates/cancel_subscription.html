@@ -33,14 +33,14 @@
                 <p>Stay with us for just $2.50/month for the next 3 months.</p>
                 <div style="margin-top: 15px;">
                     <a href="{{ url_for('account_dashboard') }}" class="btn btn-primary">Accept Offer</a>
-                    <button onclick="document.getElementById('final-cancel-form').style.display='block'; this.style.display='none';" class="btn btn-outline">No thanks, continue to cancel</button>
+                    <button onclick="document.getElementById('verification-section').style.display='block'; this.closest('.offer-card').style.display='none';" class="btn btn-outline">No thanks, continue to cancel</button>
                 </div>
             </div>
             {% endif %}
 
-            <form action="{{ url_for('cancel_subscription') }}" method="POST" class="cancel-form" id="final-cancel-form" {% if offer_discount %}style="display:none;"{% endif %}>
-                <input type="hidden" name="confirm_step" value="final">
-                
+            <form action="{{ url_for('cancel_subscription') }}" method="POST" class="cancel-form" id="cancel-form">
+                {% if not offer_discount and not confirm_verification %}
+                <input type="hidden" name="confirm_step" value="initial">
                 <div class="form-section">
                     <h3>Why are you leaving?</h3>
                     <div class="reason-options">
@@ -62,25 +62,36 @@
                         </label>
                     </div>
                 </div>
-
-                <div class="form-section" style="margin-top: 20px;">
-                    <h3>Verify Identity</h3>
-                    <div class="form-group">
-                        <label>Confirm Password</label>
-                        <input type="password" name="password" class="form-control" required>
-                    </div>
-                    {% if current_user.totp_enabled %}
-                    <div class="form-group">
-                        <label>Authenticator Code</label>
-                        <input type="text" name="totp_code" class="form-control" placeholder="6-digit code" required>
-                    </div>
-                    {% endif %}
-                </div>
-
                 <div class="cancel-actions" style="margin-top: 30px;">
                     <a href="{{ url_for('account_dashboard') }}" class="btn btn-secondary">Keep Subscription</a>
-                    <button type="submit" class="btn btn-danger">Confirm Cancellation</button>
+                    <button type="submit" class="btn btn-danger">Continue</button>
                 </div>
+                {% else %}
+                <input type="hidden" name="confirm_step" value="final">
+                <input type="hidden" name="reason" value="{{ reason }}">
+                
+                <div id="verification-section" {% if offer_discount %}style="display:none;"{% endif %}>
+                    <div class="form-section">
+                        <h3>Verify Identity</h3>
+                        <p>To finalize cancellation for reason: <strong>{{ reason|replace('_', ' ')|title }}</strong></p>
+                        <div class="form-group" style="margin-top: 15px;">
+                            <label>Confirm Password</label>
+                            <input type="password" name="password" class="form-control" required>
+                        </div>
+                        {% if current_user.totp_enabled %}
+                        <div class="form-group" style="margin-top: 15px;">
+                            <label>Authenticator Code</label>
+                            <input type="text" name="totp_code" class="form-control" placeholder="6-digit code" required>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="cancel-actions" style="margin-top: 30px;">
+                        <a href="{{ url_for('account_dashboard') }}" class="btn btn-secondary">Keep Subscription</a>
+                        <button type="submit" class="btn btn-danger">Confirm Cancellation</button>
+                    </div>
+                </div>
+                {% endif %}
             </form>
         </div>
     </main>

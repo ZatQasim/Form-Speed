@@ -1013,8 +1013,11 @@ def cancel_subscription():
                 flash('Invalid Authenticator code.', 'error')
                 return redirect(url_for('cancel_subscription'))
 
-        if confirm_step == 'initial' and reason == 'too_expensive':
-            return render_template('cancel_subscription.html', offer_discount=True, reason=reason)
+        if confirm_step == 'initial':
+            if reason == 'too_expensive':
+                return render_template('cancel_subscription.html', offer_discount=True, reason=reason, user=current_user)
+            # If not too_expensive, just proceed to show the confirmation form section
+            return render_template('cancel_subscription.html', confirm_verification=True, reason=reason, user=current_user)
 
         try:
             # 1. Scan STRIPE_KEY and confirm plan via Stripe API
