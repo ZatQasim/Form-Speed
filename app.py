@@ -995,11 +995,76 @@ def plans_page():
 def settings_dashboard():
     return render_template('settings.html', user=current_user, user_state=get_user_state(current_user.id), benefits=current_user.get_benefits())
 
-@app.route('/subscription/cancel')
+@app.route('/subscription/cancel', methods=['GET', 'POST'])
 @login_required
 def cancel_subscription():
-    flash('Subscription cancellation is not yet implemented.', 'info')
-    return redirect(url_for('settings_dashboard'))
+    if request.method == 'POST':
+        reason = request.form.get('reason')
+        password = request.form.get('password')
+        totp_code = request.form.get('totp_code')
+        confirm_step = request.form.get('confirm_step', 'initial')
+
+        if not current_user.check_password(password):
+            flash('Incorrect password.', 'error')
+            return redirect(url_for('cancel_subscription'))
+
+        if current_user.totp_enabled:
+            if not totp_code or not pyotp.TOTP(current_user.totp_secret).verify(totp_code):
+                flash('Invalid Authenticator code.', 'error')
+                return redirect(url_for('cancel_subscription'))
+
+        if confirm_step == 'initial' and reason == 'too_expensive':
+            return render_template('cancel_subscription.html', offer_discount=True, reason=reason)
+
+        try:
+            # 1. Scan STRIPE_KEY and confirm plan via Stripe API
+            if current_user.stripe_subscription_id and current_user.stripe_subscription_id != "pro_json_override":
+                stripe_sub = stripe.Subscription.retrieve(current_user.stripe_subscription_id)
+                if stripe_sub.status == 'active':
+                    # 2. Cancel subscription
+                    stripe.Subscription.delete(current_user.stripe_subscription_id)
+                    
+                    # 3. Remove credit card directly (Detach payment method)
+                    if current_user.stripe_customer_id:
+                        payment_methods = stripe.PaymentMethod.list(
+                            customer=current_user.stripe_customer_id,
+                            type="card",
+                        )
+                        for pm in payment_methods.data:
+                            stripe.PaymentMethod.detach(pm.id)
+
+            # Update local state
+            current_user.is_pro = False
+            current_user.subscription_status = 'canceled'
+            current_user.plan_tag = 'Free'
+            current_user.stripe_subscription_id = None
+            
+            # Sync to pro.json (remove)
+            pro_config = load_pro_config()
+            pro_users = pro_config.get('pro_users', [])
+            new_pro_users = []
+            for u in pro_users:
+                match = False
+                if isinstance(u, str):
+                    if (current_user.email and u.lower() == current_user.email.lower()) or (current_user.username and u.lower() == current_user.username.lower()):
+                        match = True
+                elif isinstance(u, dict):
+                    if (current_user.email and str(u.get('email', '')).lower() == current_user.email.lower()) or \
+                       (current_user.username and str(u.get('username', '')).lower() == current_user.username.lower()):
+                        match = True
+                if not match:
+                    new_pro_users.append(u)
+            pro_config['pro_users'] = new_pro_users
+            save_pro_config_file(pro_config)
+            
+            db.session.commit()
+            flash('Your subscription has been cancelled and payment methods removed.', 'success')
+            return redirect(url_for('account_dashboard'))
+        except Exception as e:
+            flash(f'Error cancelling subscription: {str(e)}', 'error')
+            return redirect(url_for('cancel_subscription'))
+
+    return render_template('cancel_subscription.html', user=current_user)
 
 @app.route('/dashboard/cloud')
 @login_required
