@@ -34,7 +34,7 @@
     "active_latency_ms": 12,
     "apn_configured": true,
     "apn_name": "form.speed.net",
-    "vpn_connected_at": "2026-02-09T02:44:54.234679",
+    "vpn_connected_at": "2026-02-09T13:11:30.291512",
     "assigned_ip": "10.8.0.3"
   },
   "2": {
@@ -129,5 +129,31 @@
     "vpn_connected_at": "2026-02-08T17:08:18.346397",
     "assigned_ip": "10.8.0.8",
     "route_optimization_enabled": true
+  },
+  "7": {
+    "vpn_enabled": true,
+    "vpn_server": {
+      "id": "uk",
+      "name": "United Kingdom",
+      "location": "London",
+      "ip": "178.128.0.1",
+      "ipsec_id": "form-uk-01",
+      "capacity": 68,
+      "protocols": [
+        "IPSec",
+        "WireGuard"
+      ]
+    },
+    "vpn_connected_at": "2026-02-09T13:52:02.085005",
+    "assigned_ip": "10.8.0.9",
+    "route_optimization_enabled": true,
+    "speed_sharing_guest": true,
+    "speed_sharing_host": "Peer-Form-Speed-User",
+    "guest_access_until": "2026-03-11T13:55:02.194005",
+    "speed_sharing_enabled": true,
+    "security_enabled": true,
+    "shared_bandwidth_mbps": 100,
+    "protected_since": "2026-02-09T13:54:53.908633",
+    "optimization_strategy": "Direct Carrier Peering"
   }
 }

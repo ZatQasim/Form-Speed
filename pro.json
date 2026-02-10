@@ -16,9 +16,9 @@
       "plan": "Premier"
     },
     {
-      "username": "",
-      "email": "",
-      "plan": ""
+      "username": "testaccount",
+      "email": "testemail@gmail.com",
+      "plan": "Regular"
     },
     {
       "username": "",
@@ -123,7 +123,7 @@
     {
       "username": "sunsetamarat0",
       "email": "qasimthemuslimdiscord@gmail.com",
-      "plan": "Regular"
+      "plan": "Premier"
     }
   ],
   "price_ids": {

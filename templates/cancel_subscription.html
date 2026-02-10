@@ -63,8 +63,8 @@
                     </div>
                 </div>
                 <div class="cancel-actions" style="margin-top: 30px;">
-                    <a href="{{ url_for('account_dashboard') }}" class="btn btn-secondary">Keep Subscription</a>
                     <button type="submit" class="btn btn-danger">Continue</button>
+                    <a href="{{ url_for('account_dashboard') }}" class="btn btn-secondary">Keep Subscription</a>
                 </div>
                 {% else %}
                 <input type="hidden" name="confirm_step" value="final">
@@ -87,8 +87,8 @@
                     </div>
 
                     <div class="cancel-actions" style="margin-top: 30px;">
-                        <a href="{{ url_for('account_dashboard') }}" class="btn btn-secondary">Keep Subscription</a>
                         <button type="submit" class="btn btn-danger">Confirm Cancellation</button>
+                        <a href="{{ url_for('account_dashboard') }}" class="btn btn-secondary">Keep Subscription</a>
                     </div>
                 </div>
                 {% endif %}
