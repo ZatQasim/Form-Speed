@@ -1004,9 +1004,14 @@ def cancel_subscription():
         totp_code = request.form.get('totp_code')
         confirm_step = request.form.get('confirm_step', 'initial')
 
-        if not current_user.check_password(password):
-            flash('Incorrect password.', 'error')
-            return redirect(url_for('cancel_subscription'))
+        if confirm_step == 'final':
+            if not password:
+                flash('Password is required to confirm cancellation.', 'error')
+                return render_template('cancel_subscription.html', confirm_verification=True, reason=reason, user=current_user)
+            
+            if not current_user.check_password(password):
+                flash('Incorrect password.', 'error')
+                return render_template('cancel_subscription.html', confirm_verification=True, reason=reason, user=current_user)
 
         if current_user.totp_enabled:
             if not totp_code or not pyotp.TOTP(current_user.totp_secret).verify(totp_code):
