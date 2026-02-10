@@ -62,9 +62,9 @@
                         </label>
                     </div>
                 </div>
-                <div class="cancel-actions" style="margin-top: 30px;">
-                    <button type="submit" class="btn btn-danger">Continue</button>
-                    <a href="{{ url_for('account_dashboard') }}" class="btn btn-secondary">Keep Subscription</a>
+                <div class="cancel-actions" style="margin-top: 30px; display: flex; gap: 10px;">
+                    <button type="submit" class="btn btn-danger" style="flex: 1;">Continue</button>
+                    <a href="{{ url_for('account_dashboard') }}" class="btn btn-secondary" style="flex: 1;">Keep Subscription</a>
                 </div>
                 {% else %}
                 <input type="hidden" name="confirm_step" value="final">
@@ -76,19 +76,19 @@
                         <p>To finalize cancellation for reason: <strong>{{ reason|replace('_', ' ')|title }}</strong></p>
                         <div class="form-group" style="margin-top: 15px;">
                             <label>Confirm Password</label>
-                            <input type="password" name="password" class="form-control" required>
+                            <input type="password" name="password" class="form-control" required style="width: 100%; padding: 8px; margin-top: 5px;">
                         </div>
                         {% if current_user.totp_enabled %}
                         <div class="form-group" style="margin-top: 15px;">
                             <label>Authenticator Code</label>
-                            <input type="text" name="totp_code" class="form-control" placeholder="6-digit code" required>
+                            <input type="text" name="totp_code" class="form-control" placeholder="6-digit code" required style="width: 100%; padding: 8px; margin-top: 5px;">
                         </div>
                         {% endif %}
                     </div>
 
-                    <div class="cancel-actions" style="margin-top: 30px;">
-                        <button type="submit" class="btn btn-danger">Confirm Cancellation</button>
-                        <a href="{{ url_for('account_dashboard') }}" class="btn btn-secondary">Keep Subscription</a>
+                    <div class="cancel-actions" style="margin-top: 30px; display: flex; gap: 10px;">
+                        <button type="submit" class="btn btn-danger" style="flex: 1;">Confirm Cancellation</button>
+                        <a href="{{ url_for('account_dashboard') }}" class="btn btn-secondary" style="flex: 1;">Keep Subscription</a>
                     </div>
                 </div>
                 {% endif %}
