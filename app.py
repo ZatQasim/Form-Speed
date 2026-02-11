@@ -931,7 +931,8 @@ def api_select_plan():
             cancel_url=url_for('plans_page', _external=True),
             metadata={'plan': plan, 'user_id': current_user.id}
         )
-        return redirect(checkout_session.url, code=303)
+        url = str(checkout_session.url)
+        return redirect(url, code=303)
     except Exception as e:
         print(f"Stripe Error: {str(e)}")
         flash('Stripe configuration missing or invalid. Check your environment variables.', 'error')
