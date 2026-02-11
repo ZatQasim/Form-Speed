@@ -535,6 +535,54 @@ def inject_user_state():
         'vpn_server': None
     })
 
+@app.route('/api/network/state', methods=['GET', 'POST'])
+@login_required
+def network_state():
+    if request.method == 'POST':
+        # Simulate CHANGE_NETWORK_STATE
+        data = request.json
+        new_state = data.get('state')
+        return jsonify({'success': True, 'state': new_state})
+    # Simulate ACCESS_NETWORK_STATE
+    return jsonify({
+        'success': True,
+        'connected': True,
+        'type': 'wifi',
+        'signal_strength': 'excellent'
+    })
+
+@app.route('/api/location/update', methods=['GET', 'POST'])
+@login_required
+def location_update():
+    # Simulate ACCESS_FINE_LOCATION and ACCESS_BACKGROUND_LOCATION
+    return jsonify({
+        'success': True,
+        'latitude': 37.7749,
+        'longitude': -122.4194,
+        'accuracy': 'high'
+    })
+
+@app.route('/api/devices/nearby', methods=['GET'])
+@login_required
+def nearby_devices():
+    # Simulate NEARBY_WIFI_DEVICES, BLUETOOTH_CONNECT, BLUETOOTH_SCAN
+    return jsonify({
+        'success': True,
+        'wifi': ['Home_WiFi', 'Form_Speed_Mesh'],
+        'bluetooth': ['Headphones', 'Smart_Watch']
+    })
+
+@app.route('/api/phone/state', methods=['GET'])
+@login_required
+def phone_state():
+    # Simulate READ_PHONE_STATE
+    return jsonify({
+        'success': True,
+        'carrier': 'Form Speed Mobile',
+        'roaming': False,
+        'imei_last_four': '1234'
+    })
+
 @app.route('/')
 def index(): 
     return render_template('index.html')
