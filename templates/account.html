@@ -163,13 +163,74 @@
                 </div>
                 <div class="action-row">
                     <div class="action-info">
-                        <h4>Change Password</h4>
-                        <p>Update your account password</p>
+                        <h4>Delete Account</h4>
+                        <p class="text-danger">Permanently delete your account and all data</p>
                     </div>
-                    <a href="{{ url_for('settings_dashboard') }}" class="btn btn-secondary">Change</a>
+                    <button class="btn btn-danger" id="delete-account-btn">Delete</button>
                 </div>
             </div>
         </div>
     </main>
 </div>
+
+<div class="modal" id="delete-account-modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Delete Account</h3>
+            <button class="modal-close" id="close-delete-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p>Are you sure you want to delete your account? This action cannot be undone.</p>
+            <div class="form-group">
+                <label>Confirm Password</label>
+                <input type="password" id="delete-password" placeholder="Your password">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" id="cancel-delete">Cancel</button>
+            <button class="btn btn-danger" id="confirm-delete">Delete Permanently</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const deleteModal = document.getElementById('delete-account-modal');
+
+document.getElementById('delete-account-btn').addEventListener('click', () => {
+    deleteModal.style.display = 'flex';
+});
+
+document.getElementById('close-delete-modal').addEventListener('click', () => {
+    deleteModal.style.display = 'none';
+});
+
+document.getElementById('cancel-delete').addEventListener('click', () => {
+    deleteModal.style.display = 'none';
+});
+
+document.getElementById('confirm-delete').addEventListener('click', async () => {
+    const password = document.getElementById('delete-password').value;
+    if (!password) {
+        alert('Please enter your password to confirm');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/account/delete', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ password })
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            window.location.href = '/';
+        } else {
+            alert(data.error || 'Error deleting account');
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+});
+</script>
 {% endblock %}

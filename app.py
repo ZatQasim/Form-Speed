@@ -26,7 +26,8 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
-login_manager.login_view = 'login'
+if True:
+    login_manager.login_view = 'login' # type: ignore
 
 stripe.api_key = os.environ.get('STRIPE_KEY', '')
 
@@ -263,7 +264,24 @@ class User(UserMixin, db.Model):
     
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
-    
+
+    def delete_account(self):
+        # Remove from pro config
+        pro_config = load_pro_config()
+        pro_users = pro_config.get('pro_users', [])
+        new_pro_users = [u for u in pro_users if not (
+            (isinstance(u, str) and u.lower() in [self.email.lower(), self.username.lower()]) or
+            (isinstance(u, dict) and u.get('email', '').lower() == self.email.lower())
+        )]
+        pro_config['pro_users'] = new_pro_users
+        save_pro_config_file(pro_config)
+        
+        # Delete user files and data
+        CloudFile.query.filter_by(user_id=self.id).delete()
+        PasswordEntry.query.filter_by(user_id=self.id).delete()
+        db.session.delete(self)
+        db.session.commit()
+
     def has_active_subscription(self):
         try:
             pro_config = load_pro_config()
@@ -355,7 +373,8 @@ def cloud_upload():
         print(f"Error creating upload folder: {e}")
         return jsonify({'success': False, 'error': 'Could not create storage directory'}), 500
 
-    secure_name = secrets.token_hex(16) + os.path.splitext(file.filename)[1]
+    filename = str(file.filename) if file.filename else "unknown"
+    secure_name = secrets.token_hex(16) + os.path.splitext(filename)[1]
     file_path = os.path.join(upload_folder, secure_name)
     try:
         file.save(file_path)
@@ -363,14 +382,14 @@ def cloud_upload():
         print(f"Error saving file: {e}")
         return jsonify({'success': False, 'error': 'Failed to save file to disk'}), 500
 
-    new_file = CloudFile(
-        user_id=current_user.id,
-        filename=secure_name,
-        original_name=file.filename,
-        file_type=file_type,
-        mime_type=file.content_type,
-        file_size=os.path.getsize(file_path)
-    )
+    new_file = CloudFile()
+    new_file.user_id = current_user.id
+    new_file.filename = secure_name
+    new_file.original_name = filename
+    new_file.file_type = file_type
+    new_file.mime_type = file.content_type
+    new_file.file_size = os.path.getsize(file_path)
+    
     db.session.add(new_file)
     db.session.commit()
 
@@ -410,13 +429,13 @@ def delete_cloud_file(file_id):
 @login_required
 def add_password():
     data = request.json
-    new_entry = PasswordEntry(
-        user_id=current_user.id,
-        service_name=data.get('service'),
-        username_email=data.get('username'),
-        encrypted_password=data.get('password'), # In a real app, encrypt this!
-        category=data.get('category', 'password')
-    )
+    new_entry = PasswordEntry()
+    new_entry.user_id = current_user.id
+    new_entry.service_name = data.get('service')
+    new_entry.username_email = data.get('username')
+    new_entry.encrypted_password = data.get('password') # In a real app, encrypt this!
+    new_entry.category = data.get('category', 'password')
+    
     db.session.add(new_entry)
     db.session.commit()
     return jsonify({'success': True})
@@ -604,7 +623,9 @@ def signup():
             flash('Username already taken', 'error')
             return redirect(url_for('signup'))
             
-        user = User(email=email, username=username)
+        user = User()
+        user.email = email
+        user.username = username
         user.set_password(password)
 
         # Check if user is in pro.json whitelist
@@ -703,10 +724,11 @@ def setup_2fa():
     secret = pyotp.random_base32()
     session['pending_totp_secret'] = secret
     uri = pyotp.TOTP(secret).provisioning_uri(name=current_user.email, issuer_name='Form Speed Network')
-    qr = qrcode.QRCode(version=1, box_size=10, border=5)
-    qr.add_data(uri)
-    qr.make(fit=True)
-    img = qr.make_image(fill_color='black', back_color='white')
+    try:
+        img = qrcode.make(uri)
+    except Exception as e:
+        print(f"QR Error: {e}")
+        return "QR Generation Failed", 500
     buf = io.BytesIO()
     img.save(buf, format='PNG')
     return render_template('setup_2fa.html', secret=secret, qr_code=base64.b64encode(buf.getvalue()).decode())
@@ -893,7 +915,8 @@ def api_select_plan():
     # In development, if Stripe keys are missing or price IDs are placeholders, simulate success
     if not price_id or price_id in ["price_regular_monthly_id", "price_premier_monthly_id"]:
         flash(f'{plan}.', 'info')
-        return redirect(url_for('subscription_success', session_id='dev_simulated', plan=plan))
+        target_url = url_for('subscription_success', session_id='dev_simulated', plan=plan)
+        return redirect(str(target_url))
 
     try:
         checkout_session = stripe.checkout.Session.create(
@@ -922,9 +945,9 @@ def subscription_success():
     
     try:
         if session_id != 'dev_simulated':
-            checkout_session = stripe.checkout.Session.retrieve(session_id)
-            plan = checkout_session.metadata.get('plan', plan_from_url)
-            user_id = checkout_session.metadata.get('user_id')
+            checkout_session = stripe.checkout.Session.retrieve(str(session_id))
+            plan = checkout_session.metadata.get('plan', plan_from_url) if checkout_session.metadata else plan_from_url
+            user_id = checkout_session.metadata.get('user_id') if checkout_session.metadata else None
             if checkout_session.payment_status != 'paid' or user_id != str(current_user.id):
                 flash('Payment verification failed.', 'error')
                 return redirect(url_for('plans_page'))
@@ -1346,6 +1369,61 @@ def history_dashboard():
         return redirect(url_for('subscribe'))
     return render_template('history.html', user_state=get_user_state(current_user.id), history=[], is_pro=is_pro)
 
+@app.route('/api/devices/add', methods=['POST'])
+@login_required
+def add_device():
+    data = request.json
+    device_name = data.get('name', 'New Device')
+    device_type = data.get('type', 'mobile')
+    device_os = data.get('os', 'Android')
+    
+    states = load_user_states()
+    user_state = states.get(str(current_user.id), {})
+    devices = user_state.get('devices', [])
+    
+    if len(devices) >= 5:
+        return jsonify({'success': False, 'error': 'Device limit reached'}), 400
+        
+    new_device = {
+        'id': secrets.token_hex(8),
+        'name': device_name,
+        'type': device_type,
+        'os': device_os,
+        'last_active': datetime.utcnow().isoformat(),
+        'is_current': False
+    }
+    devices.append(new_device)
+    user_state['devices'] = devices
+    states[str(current_user.id)] = user_state
+    save_user_states(states)
+    
+    return jsonify({'success': True, 'device': new_device})
+
+@app.route('/api/devices/<device_id>', methods=['DELETE'])
+@login_required
+def delete_device(device_id):
+    states = load_user_states()
+    user_state = states.get(str(current_user.id), {})
+    devices = user_state.get('devices', [])
+    
+    new_devices = [d for d in devices if d['id'] != device_id]
+    user_state['devices'] = new_devices
+    states[str(current_user.id)] = user_state
+    save_user_states(states)
+    
+    return jsonify({'success': True})
+
+@app.route('/api/account/delete', methods=['POST'])
+@login_required
+def api_delete_account():
+    password = request.json.get('password')
+    if not current_user.check_password(password):
+        return jsonify({'success': False, 'error': 'Incorrect password'}), 403
+    
+    current_user.delete_account()
+    logout_user()
+    return jsonify({'success': True})
+
 @app.route('/dashboard/devices')
 @login_required
 def devices_dashboard():
@@ -1353,7 +1431,9 @@ def devices_dashboard():
     if not is_pro:
         flash('Device Management requires a Pro subscription', 'warning')
         return redirect(url_for('subscribe'))
-    return render_template('devices.html', user_state=get_user_state(current_user.id), devices=[], is_pro=is_pro)
+    user_state = get_user_state(current_user.id)
+    devices = user_state.get('devices', [])
+    return render_template('devices.html', user_state=user_state, devices=devices, is_pro=is_pro)
 
 @app.route('/dashboard/account')
 @login_required
