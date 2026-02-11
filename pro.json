@@ -16,21 +16,6 @@
       "plan": "Premier"
     },
     {
-      "username": "testaccount",
-      "email": "testemail@gmail.com",
-      "plan": "Regular"
-    },
-    {
-      "username": "",
-      "email": "",
-      "plan": ""
-    },
-    {
-      "username": "",
-      "email": "",
-      "plan": ""
-    },
-    {
       "username": "",
       "email": "",
       "plan": ""
@@ -123,6 +108,11 @@
     {
       "username": "sunsetamarat0",
       "email": "qasimthemuslimdiscord@gmail.com",
+      "plan": "Premier"
+    },
+    {
+      "username": "zatqasim",
+      "email": "sunsetamarat0@gmail.com",
       "plan": "Premier"
     }
   ],

@@ -155,5 +155,28 @@
     "shared_bandwidth_mbps": 100,
     "protected_since": "2026-02-09T13:54:53.908633",
     "optimization_strategy": "Direct Carrier Peering"
+  },
+  "8": {
+    "vpn_enabled": true,
+    "vpn_server": {
+      "id": "germany",
+      "name": "Germany",
+      "location": "Frankfurt",
+      "ip": "167.99.0.1",
+      "ipsec_id": "form-germany-01",
+      "capacity": 82,
+      "protocols": [
+        "IPSec",
+        "WireGuard"
+      ]
+    },
+    "vpn_connected_at": "2026-02-10T12:54:25.277111",
+    "assigned_ip": "10.8.0.10",
+    "route_optimization_enabled": true,
+    "speed_sharing_enabled": true,
+    "security_enabled": true,
+    "shared_bandwidth_mbps": 100,
+    "protected_since": "2026-02-10T13:10:20.284718",
+    "optimization_strategy": "Direct Carrier Peering"
   }
 }
