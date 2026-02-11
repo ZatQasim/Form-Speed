@@ -170,7 +170,7 @@
         "WireGuard"
       ]
     },
-    "vpn_connected_at": "2026-02-10T12:54:25.277111",
+    "vpn_connected_at": "2026-02-11T13:02:52.588566",
     "assigned_ip": "10.8.0.10",
     "route_optimization_enabled": true,
     "speed_sharing_enabled": true,

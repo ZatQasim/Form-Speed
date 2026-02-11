@@ -1122,7 +1122,7 @@ def tool_port_scanner():
 @login_required
 def agent_dashboard():
     if not current_user.has_active_subscription():
-        flash('Form Speed Agent requires a Pro subscription', 'warning')
+        flash('Form Speed Agent requires a subscription', 'warning')
         return redirect(url_for('subscribe'))
     return render_template('agent.html', user_state=get_user_state(current_user.id))
 
