@@ -1033,6 +1033,12 @@ def vpn_dashboard():
         return redirect(url_for('subscribe'))
     return render_template('vpn.html', user_state=get_user_state(current_user.id), servers=VPN_SERVERS)
 
+@app.route('/dashboard/proxy')
+@login_required
+def proxy_dashboard():
+    metrics = get_real_network_metrics()
+    return render_template('proxy.html', metrics=metrics, is_pro=current_user.has_active_subscription())
+
 @app.route('/dashboard/speed-sharing')
 @login_required
 def speed_sharing_dashboard():

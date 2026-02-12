@@ -1,0 +1,344 @@
+{% extends 'base.html' %}
+
+{% block title %}Proxy - Form Speed{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <aside class="sidebar">
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('dashboard') }}">Overview</a>
+            <a href="{{ url_for('vpn_dashboard') }}">VPN</a>
+            <a href="{{ url_for('speed_sharing_dashboard') }}">Speed Sharing</a>
+            <a href="{{ url_for('proxy_dashboard') }}" class="active">Proxy</a>
+            <a href="{{ url_for('download_page') }}">Download</a>
+            <a href="{{ url_for('security_dashboard') }}">Security</a>
+            <a href="{{ url_for('mesh_dashboard') }}">Mesh Network</a>
+            <a href="{{ url_for('tools_dashboard') }}">Tools</a>
+            <a href="{{ url_for('cloud_dashboard') }}">Cloud</a>
+            <a href="{{ url_for('connect_hub') }}">Connect</a>
+            <a href="{{ url_for('analytics_dashboard') }}">Analytics</a>
+            <a href="{{ url_for('password_manager') }}">Passwords</a>
+            <a href="{{ url_for('history_dashboard') }}">History</a>
+            <a href="{{ url_for('devices_dashboard') }}">Devices</a>
+            <a href="{{ url_for('account_dashboard') }}">Account</a>
+            <a href="{{ url_for('settings_dashboard') }}">Settings</a>
+            <a href="{{ url_for('plans_page') }}">Form One Plans</a>
+        </nav>
+    </aside>
+    
+    <main class="dashboard-content">
+        <div class="header-with-status">
+            <h1>Dynamic Multi-Proxy</h1>
+            <div class="permission-badges">
+                <span class="badge badge-warning">READ_PHONE_STATE</span>
+                <span class="badge badge-warning">ACCESS_BACKGROUND_LOCATION</span>
+            </div>
+        </div>
+        <p class="page-description">Parallel routing with intelligent node switching and predictive caching.</p>
+
+        <!-- Radar Visualization -->
+        <div class="radar-container mb-4">
+            <div class="radar-screen">
+                <div class="radar-sweep"></div>
+                <div class="radar-grid"></div>
+                <div class="node node-active" style="top: 20%; left: 30%;" data-label="US-EAST"></div>
+                <div class="node node-active" style="top: 60%; left: 70%;" data-label="UK-LON"></div>
+                <div class="node node-active" style="top: 40%; left: 50%;" data-label="DE-FRA"></div>
+                <div class="threat-intercept" style="top: 30%; left: 40%;">
+                    <div class="intercept-ripple"></div>
+                    <span class="threat-label">Tracker Blocked</span>
+                </div>
+            </div>
+            <div class="radar-stats">
+                <div class="stat-item">
+                    <span class="label">Parallel Nodes</span>
+                    <span class="value">4 Active</span>
+                </div>
+                <div class="stat-item">
+                    <span class="label">Reroute Events</span>
+                    <span class="value">12/hr</span>
+                </div>
+                <div class="stat-item">
+                    <span class="label">Risk Rating</span>
+                    <span class="value text-success">Low</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Intelligent Routing -->
+            <div class="col-md-6">
+                <div class="card p-4 mb-4 h-100">
+                    <h3><i class="fas fa-microchip mr-2"></i>Intelligent Routing</h3>
+                    <ul class="feature-list mt-3">
+                        <li><i class="fas fa-bolt text-warning"></i> <strong>Auto-Fastest:</strong> Detects & routes across multiple nodes.</li>
+                        <li><i class="fas fa-brain text-primary"></i> <strong>Habit Learning:</strong> Pre-optimizes frequent connections.</li>
+                        <li><i class="fas fa-random text-success"></i> <strong>Silent Reroute:</strong> Reroutes traffic on congestion detection.</li>
+                        <li><i class="fas fa-database text-info"></i> <strong>Predictive Cache:</strong> Lowers latency for frequent services.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Stability & Optimization -->
+            <div class="col-md-6">
+                <div class="card p-4 mb-4 h-100">
+                    <h3><i class="fas fa-compress-arrows-alt mr-2"></i>Stability & Optimization</h3>
+                    <ul class="feature-list mt-3">
+                        <li><i class="fas fa-stream text-primary"></i> <strong>Smart Stack:</strong> Proxy + Compression + Caching.</li>
+                        <li><i class="fas fa-level-down-alt text-danger"></i> <strong>Auto-Downgrade:</strong> Adjusts content for bandwidth.</li>
+                        <li><i class="fas fa-wave-square text-success"></i> <strong>Latency Smoothing:</strong> Stabilizes jitter for calls.</li>
+                        <li><i class="fas fa-project-diagram text-info"></i> <strong>Parallel Routing:</strong> Multi-endpoint redundancy.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Regional Application Mapping -->
+        <div class="card p-4 mb-4">
+            <h3><i class="fas fa-map-marked-alt mr-2"></i>Regional App Mapping</h3>
+            <p class="text-secondary small">Assign different apps to different regions simultaneously.</p>
+            <div class="mapping-grid mt-3">
+                <div class="mapping-item">
+                    <div class="app-info">
+                        <i class="fab fa-whatsapp"></i>
+                        <span>Messaging</span>
+                    </div>
+                    <div class="region-select">
+                        <span class="badge badge-light">Local Region</span>
+                    </div>
+                </div>
+                <div class="mapping-item">
+                    <div class="app-info">
+                        <i class="fas fa-tv"></i>
+                        <span>Streaming</span>
+                    </div>
+                    <div class="region-select">
+                        <span class="badge badge-primary">United Kingdom</span>
+                    </div>
+                </div>
+                <div class="mapping-item">
+                    <div class="app-info">
+                        <i class="fas fa-briefcase"></i>
+                        <span>Work Tools</span>
+                    </div>
+                    <div class="region-select">
+                        <span class="badge badge-info">United States</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Real-time Insights -->
+        <div class="row">
+            <div class="col-md-3">
+                <div class="insight-card text-center p-3">
+                    <div class="insight-value">42</div>
+                    <div class="insight-label">Trackers Blocked</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="insight-card text-center p-3">
+                    <div class="insight-value">UK</div>
+                    <div class="insight-label">Exit Country</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="insight-card text-center p-3">
+                    <div class="insight-value">AES-256</div>
+                    <div class="insight-label">Encryption</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="insight-card text-center p-3">
+                    <div class="insight-value">A+</div>
+                    <div class="insight-label">Risk Rating</div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<style>
+.radar-container {
+    background: #0a0a0a;
+    border-radius: 20px;
+    padding: 30px;
+    display: flex;
+    gap: 30px;
+    align-items: center;
+    border: 1px solid #1a1a1a;
+}
+
+.radar-screen {
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    background: #001a00;
+    position: relative;
+    overflow: hidden;
+    border: 4px solid #004400;
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.1);
+}
+
+.radar-sweep {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: conic-gradient(from 0deg, rgba(0, 255, 0, 0.4) 0deg, transparent 90deg);
+    animation: sweep 4s linear infinite;
+    transform-origin: center;
+}
+
+@keyframes sweep {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.radar-grid {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        radial-gradient(circle, transparent 30%, #003300 31%, #003300 32%, transparent 33%),
+        radial-gradient(circle, transparent 60%, #003300 61%, #003300 62%, transparent 63%),
+        linear-gradient(to right, transparent 49%, #003300 50%, #003300 51%, transparent 52%),
+        linear-gradient(to bottom, transparent 49%, #003300 50%, #003300 51%, transparent 52%);
+}
+
+.node {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: #00ff00;
+    border-radius: 50%;
+    box-shadow: 0 0 10px #00ff00;
+}
+
+.node::after {
+    content: attr(data-label);
+    position: absolute;
+    top: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #00ff00;
+    font-size: 8px;
+    white-space: nowrap;
+}
+
+.threat-intercept {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+}
+
+.intercept-ripple {
+    width: 100%;
+    height: 100%;
+    border: 1px solid #ff4444;
+    border-radius: 50%;
+    animation: ripple 2s ease-out infinite;
+}
+
+@keyframes ripple {
+    from { transform: scale(0.5); opacity: 1; }
+    to { transform: scale(2.5); opacity: 0; }
+}
+
+.threat-label {
+    position: absolute;
+    top: 25px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #ff4444;
+    font-size: 8px;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.radar-stats {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 15px;
+}
+
+.stat-item {
+    background: #111;
+    padding: 15px;
+    border-radius: 12px;
+    border: 1px solid #222;
+}
+
+.mapping-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.mapping-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 20px;
+    background: var(--bg-secondary);
+    border-radius: 12px;
+}
+
+.app-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.app-info i {
+    font-size: 20px;
+    width: 30px;
+    text-align: center;
+}
+
+.insight-card {
+    background: var(--bg-secondary);
+    border-radius: 15px;
+    border: 1px solid var(--border-light);
+}
+
+.insight-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.insight-label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+}
+
+.feature-list {
+    list-style: none;
+    padding: 0;
+}
+
+.feature-list li {
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.feature-list i {
+    width: 25px;
+}
+
+.permission-badges {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 10px;
+}
+
+.badge-warning {
+    background-color: #fff3cd;
+    color: #856404;
+    font-size: 0.7rem;
+    padding: 4px 8px;
+}
+</style>
+{% endblock %}
