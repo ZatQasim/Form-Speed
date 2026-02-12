@@ -1041,12 +1041,18 @@ def get_proxy_config(user_id):
                 "nodes": [
                     {"id": "us-east", "name": "US-EAST", "active": True, "latency": 45},
                     {"id": "uk-lon", "name": "UK-LON", "active": True, "latency": 32},
-                    {"id": "de-fra", "name": "DE-FRA", "active": True, "latency": 28}
+                    {"id": "de-fra", "name": "DE-FRA", "active": True, "latency": 28},
+                    {"id": "jp-tok", "name": "JP-TOK", "active": True, "latency": 85},
+                    {"id": "sg-sin", "name": "SG-SIN", "active": True, "latency": 72}
                 ],
                 "app_mapping": {
-                    "messaging": "local",
-                    "streaming": "uk-lon",
-                    "work": "us-east"
+                    "WhatsApp": "local",
+                    "Telegram": "uk-lon",
+                    "Netflix": "us-east",
+                    "YouTube": "local",
+                    "Discord": "de-fra",
+                    "Spotify": "jp-tok",
+                    "Zoom": "local"
                 },
                 "permissions_granted": False
             }

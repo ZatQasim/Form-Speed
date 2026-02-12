@@ -100,45 +100,19 @@
         </div>
 
         <div class="card p-4 mb-4">
-            <h3><i class="fas fa-map-marked-alt mr-2"></i>Regional App Mapping</h3>
-            <p class="text-secondary small">Assign exit regions to specific categories. Changes are applied instantly.</p>
-            <div class="mapping-grid mt-3">
-                <div class="mapping-item">
-                    <div class="app-info">
-                        <i class="fab fa-whatsapp"></i>
-                        <span>Messaging</span>
-                    </div>
-                    <select class="form-control mapping-select" data-app="messaging">
-                        <option value="local">Local Region</option>
-                        <option value="us-east">United States</option>
-                        <option value="uk-lon">United Kingdom</option>
-                        <option value="de-fra">Germany</option>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3><i class="fas fa-map-marked-alt mr-2"></i>Regional App Mapping</h3>
+                <div class="d-flex align-items-center">
+                    <label class="mr-2 mb-0">Sort By:</label>
+                    <select class="form-control form-control-sm" id="sort-mapping" style="width: 150px;">
+                        <option value="name">App Name</option>
+                        <option value="region">Region</option>
                     </select>
                 </div>
-                <div class="mapping-item">
-                    <div class="app-info">
-                        <i class="fas fa-tv"></i>
-                        <span>Streaming</span>
-                    </div>
-                    <select class="form-control mapping-select" data-app="streaming">
-                        <option value="local">Local Region</option>
-                        <option value="us-east">United States</option>
-                        <option value="uk-lon" selected>United Kingdom</option>
-                        <option value="de-fra">Germany</option>
-                    </select>
-                </div>
-                <div class="mapping-item">
-                    <div class="app-info">
-                        <i class="fas fa-briefcase"></i>
-                        <span>Work Tools</span>
-                    </div>
-                    <select class="form-control mapping-select" data-app="work">
-                        <option value="local">Local Region</option>
-                        <option value="us-east" selected>United States</option>
-                        <option value="uk-lon">United Kingdom</option>
-                        <option value="de-fra">Germany</option>
-                    </select>
-                </div>
+            </div>
+            <p class="text-secondary small">Assign exit regions to specific apps on this device. Changes are applied instantly.</p>
+            <div class="mapping-grid mt-3" id="mapping-grid">
+                <!-- Loaded via JS -->
             </div>
         </div>
     </main>
@@ -183,6 +157,14 @@
 
 <script>
 let proxyConfig = {{ proxy_cfg | tojson }};
+const availableRegions = [
+    { id: 'local', name: 'Local Region' },
+    { id: 'us-east', name: 'United States' },
+    { id: 'uk-lon', name: 'United Kingdom' },
+    { id: 'de-fra', name: 'Germany' },
+    { id: 'jp-tok', name: 'Japan' },
+    { id: 'sg-sin', name: 'Singapore' }
+];
 
 async function requestSystemPerms() {
     try {
@@ -220,7 +202,53 @@ async function requestSystemPerms() {
 function initLiveSystem() {
     renderNodes();
     startRadar();
+    renderAppMappings();
     bindEvents();
+}
+
+function renderAppMappings() {
+    const grid = document.getElementById('mapping-grid');
+    const sortBy = document.getElementById('sort-mapping').value;
+    
+    let apps = Object.entries(proxyConfig.app_mapping).map(([id, region]) => ({
+        id,
+        name: id.charAt(0).toUpperCase() + id.slice(1).replace(/_/g, ' '),
+        region
+    }));
+
+    apps.sort((a, b) => {
+        if (sortBy === 'name') return a.name.localeCompare(b.name);
+        return a.region.localeCompare(b.region);
+    });
+
+    grid.innerHTML = apps.map(app => `
+        <div class="mapping-item">
+            <div class="app-info">
+                <i class="fas fa-cube mr-2"></i>
+                <span>${app.name}</span>
+            </div>
+            <select class="form-control mapping-select" data-app="${app.id}">
+                ${availableRegions.map(reg => `
+                    <option value="${reg.id}" ${app.region === reg.id ? 'selected' : ''}>${reg.name}</option>
+                `).join('')}
+            </select>
+        </div>
+    `).join('');
+
+    // Re-bind events for new elements
+    grid.querySelectorAll('.mapping-select').forEach(sel => {
+        sel.addEventListener('change', async function() {
+            const appId = this.dataset.app;
+            const region = this.value;
+            proxyConfig.app_mapping[appId] = region;
+            
+            await fetch('/api/proxy/config', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ app_mapping: proxyConfig.app_mapping })
+            });
+        });
+    });
 }
 
 function renderNodes() {
@@ -265,19 +293,7 @@ function startRadar() {
 }
 
 function bindEvents() {
-    document.querySelectorAll('.mapping-select').forEach(sel => {
-        sel.addEventListener('change', async function() {
-            const app = this.dataset.app;
-            const region = this.value;
-            proxyConfig.app_mapping[app] = region;
-            
-            await fetch('/api/proxy/config', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ app_mapping: proxyConfig.app_mapping })
-            });
-        });
-    });
+    document.getElementById('sort-mapping').addEventListener('change', renderAppMappings);
 }
 
 if (proxyConfig.permissions_granted) {
