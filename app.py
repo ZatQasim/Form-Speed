@@ -312,8 +312,8 @@ class User(UserMixin, db.Model):
             'vpn_access': has_sub,
             'speed_sharing': has_sub,
             'device_defense': has_sub,
-            'cloud_storage': has_sub,
-            'cloud_storage_limit_gb': 1000000 if is_premier else (50 if is_regular else 0),
+            'cloud_storage': True, # All users have cloud storage now
+            'cloud_storage_limit_gb': 1000 if is_premier else (500 if is_regular else 25),
             'mesh_network': is_premier,
             'advanced_analytics': is_premier,
             'priority_routing': is_premier,
@@ -346,10 +346,9 @@ class PasswordEntry(db.Model):
 @login_required
 def cloud_upload():
     benefits = current_user.get_benefits()
-    if not benefits.get('cloud_storage'):
-        return jsonify({'success': False, 'error': 'Cloud storage requires a subscription'}), 403
+    # Remove subscription check for cloud storage as it's now free with 25GB limit
     
-    limit_gb = benefits.get('cloud_storage_limit_gb', 0)
+    limit_gb = benefits.get('cloud_storage_limit_gb', 25)
     limit_bytes = limit_gb * 1024 * 1024 * 1024
     
     current_usage = db.session.query(db.func.sum(CloudFile.file_size)).filter_by(user_id=current_user.id).scalar() or 0
@@ -1474,13 +1473,30 @@ def delete_device(device_id):
 @app.route('/api/account/delete', methods=['POST'])
 @login_required
 def api_delete_account():
-    password = request.json.get('password')
-    if not current_user.check_password(password):
-        return jsonify({'success': False, 'error': 'Incorrect password'}), 403
-    
-    current_user.delete_account()
-    logout_user()
-    return jsonify({'success': True})
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'error': 'Invalid request data'}), 400
+            
+        password = data.get('password')
+        if not password:
+            return jsonify({'success': False, 'error': 'Password is required'}), 400
+            
+        if not current_user.check_password(password):
+            return jsonify({'success': False, 'error': 'Incorrect password'}), 403
+        
+        # Save ID to clear session later
+        user_id = current_user.id
+        current_user.delete_account()
+        logout_user()
+        
+        # Clear any potential session data
+        session.clear()
+        
+        return jsonify({'success': True})
+    except Exception as e:
+        print(f"Error in delete account: {str(e)}")
+        return jsonify({'success': False, 'error': 'Internal server error'}), 500
 
 @app.route('/dashboard/devices')
 @login_required

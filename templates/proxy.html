@@ -397,6 +397,8 @@ async function requestSystemPerms() {
                 <span class="badge badge-success">PHONE STATE SYNC</span>
             `;
             initLiveSystem();
+            // Refresh to ensure full state sync
+            window.location.reload();
         }
     } catch (e) {
         alert("Permission Error: " + e.message);
