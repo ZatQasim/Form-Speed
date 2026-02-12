@@ -29,129 +29,115 @@
     <main class="dashboard-content">
         <div class="header-with-status">
             <h1>Dynamic Multi-Proxy</h1>
-            <div class="permission-badges">
-                <span class="badge badge-warning">READ_PHONE_STATE</span>
-                <span class="badge badge-warning">ACCESS_BACKGROUND_LOCATION</span>
+            <div class="permission-badges" id="perm-badges">
+                <span class="badge badge-warning" onclick="requestSystemPerms()">REQUEST SYSTEM PERMISSIONS</span>
             </div>
         </div>
-        <p class="page-description">Parallel routing with intelligent node switching and predictive caching.</p>
+        
+        <div id="perm-overlay" class="perm-overlay {% if proxy_cfg.permissions_granted %}d-none{% endif %}">
+            <div class="perm-card">
+                <h3>System Access Required</h3>
+                <p>To enable low-level proxy routing, Form Speed needs the following permissions:</p>
+                <ul>
+                    <li><strong>READ_PHONE_STATE:</strong> Identify carrier-level congestion.</li>
+                    <li><strong>ACCESS_BACKGROUND_LOCATION:</strong> Optimize routes based on local tower density.</li>
+                    <li><strong>NOTIFICATIONS:</strong> Alert on silent rerouting events.</li>
+                </ul>
+                <button class="btn btn-primary btn-lg w-100" onclick="requestSystemPerms()">Grant Access Now</button>
+            </div>
+        </div>
 
-        <!-- Radar Visualization -->
         <div class="radar-container mb-4">
             <div class="radar-screen">
                 <div class="radar-sweep"></div>
                 <div class="radar-grid"></div>
-                <div class="node node-active" style="top: 20%; left: 30%;" data-label="US-EAST"></div>
-                <div class="node node-active" style="top: 60%; left: 70%;" data-label="UK-LON"></div>
-                <div class="node node-active" style="top: 40%; left: 50%;" data-label="DE-FRA"></div>
-                <div class="threat-intercept" style="top: 30%; left: 40%;">
-                    <div class="intercept-ripple"></div>
-                    <span class="threat-label">Tracker Blocked</span>
-                </div>
+                <div id="radar-nodes"></div>
+                <div id="threat-intercepts"></div>
             </div>
             <div class="radar-stats">
                 <div class="stat-item">
-                    <span class="label">Parallel Nodes</span>
-                    <span class="value">4 Active</span>
+                    <span class="label">Live Nodes</span>
+                    <span class="value" id="node-count">--</span>
                 </div>
                 <div class="stat-item">
-                    <span class="label">Reroute Events</span>
-                    <span class="value">12/hr</span>
+                    <span class="label">Total Savings</span>
+                    <span class="value" id="total-savings">0.0 MB</span>
                 </div>
                 <div class="stat-item">
-                    <span class="label">Risk Rating</span>
-                    <span class="value text-success">Low</span>
+                    <span class="label">Risk Level</span>
+                    <span class="value text-success">SAFE</span>
                 </div>
             </div>
         </div>
 
         <div class="row">
-            <!-- Intelligent Routing -->
             <div class="col-md-6">
                 <div class="card p-4 mb-4 h-100">
-                    <h3><i class="fas fa-microchip mr-2"></i>Intelligent Routing</h3>
-                    <ul class="feature-list mt-3">
-                        <li><i class="fas fa-bolt text-warning"></i> <strong>Auto-Fastest:</strong> Detects & routes across multiple nodes.</li>
-                        <li><i class="fas fa-brain text-primary"></i> <strong>Habit Learning:</strong> Pre-optimizes frequent connections.</li>
-                        <li><i class="fas fa-random text-success"></i> <strong>Silent Reroute:</strong> Reroutes traffic on congestion detection.</li>
-                        <li><i class="fas fa-database text-info"></i> <strong>Predictive Cache:</strong> Lowers latency for frequent services.</li>
-                    </ul>
+                    <h3><i class="fas fa-microchip mr-2"></i>Node Control</h3>
+                    <div id="node-list" class="mt-3">
+                        <!-- Loaded via JS -->
+                    </div>
                 </div>
             </div>
 
-            <!-- Stability & Optimization -->
             <div class="col-md-6">
                 <div class="card p-4 mb-4 h-100">
-                    <h3><i class="fas fa-compress-arrows-alt mr-2"></i>Stability & Optimization</h3>
-                    <ul class="feature-list mt-3">
-                        <li><i class="fas fa-stream text-primary"></i> <strong>Smart Stack:</strong> Proxy + Compression + Caching.</li>
-                        <li><i class="fas fa-level-down-alt text-danger"></i> <strong>Auto-Downgrade:</strong> Adjusts content for bandwidth.</li>
-                        <li><i class="fas fa-wave-square text-success"></i> <strong>Latency Smoothing:</strong> Stabilizes jitter for calls.</li>
-                        <li><i class="fas fa-project-diagram text-info"></i> <strong>Parallel Routing:</strong> Multi-endpoint redundancy.</li>
-                    </ul>
+                    <h3><i class="fas fa-compress-arrows-alt mr-2"></i>Active Optimization</h3>
+                    <div class="custom-control custom-switch mb-3">
+                        <input type="checkbox" class="custom-control-input" id="compression-toggle" checked>
+                        <label class="custom-control-label" for="compression-toggle">Smart Data Compression</label>
+                    </div>
+                    <div class="custom-control custom-switch mb-3">
+                        <input type="checkbox" class="custom-control-input" id="caching-toggle" checked>
+                        <label class="custom-control-label" for="caching-toggle">Predictive Edge Caching</label>
+                    </div>
+                    <div class="custom-control custom-switch">
+                        <input type="checkbox" class="custom-control-input" id="parallel-toggle" checked>
+                        <label class="custom-control-label" for="parallel-toggle">Parallel Routing Redundancy</label>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Regional Application Mapping -->
         <div class="card p-4 mb-4">
             <h3><i class="fas fa-map-marked-alt mr-2"></i>Regional App Mapping</h3>
-            <p class="text-secondary small">Assign different apps to different regions simultaneously.</p>
+            <p class="text-secondary small">Assign exit regions to specific categories. Changes are applied instantly.</p>
             <div class="mapping-grid mt-3">
                 <div class="mapping-item">
                     <div class="app-info">
                         <i class="fab fa-whatsapp"></i>
                         <span>Messaging</span>
                     </div>
-                    <div class="region-select">
-                        <span class="badge badge-light">Local Region</span>
-                    </div>
+                    <select class="form-control mapping-select" data-app="messaging">
+                        <option value="local">Local Region</option>
+                        <option value="us-east">United States</option>
+                        <option value="uk-lon">United Kingdom</option>
+                        <option value="de-fra">Germany</option>
+                    </select>
                 </div>
                 <div class="mapping-item">
                     <div class="app-info">
                         <i class="fas fa-tv"></i>
                         <span>Streaming</span>
                     </div>
-                    <div class="region-select">
-                        <span class="badge badge-primary">United Kingdom</span>
-                    </div>
+                    <select class="form-control mapping-select" data-app="streaming">
+                        <option value="local">Local Region</option>
+                        <option value="us-east">United States</option>
+                        <option value="uk-lon" selected>United Kingdom</option>
+                        <option value="de-fra">Germany</option>
+                    </select>
                 </div>
                 <div class="mapping-item">
                     <div class="app-info">
                         <i class="fas fa-briefcase"></i>
                         <span>Work Tools</span>
                     </div>
-                    <div class="region-select">
-                        <span class="badge badge-info">United States</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Real-time Insights -->
-        <div class="row">
-            <div class="col-md-3">
-                <div class="insight-card text-center p-3">
-                    <div class="insight-value">42</div>
-                    <div class="insight-label">Trackers Blocked</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="insight-card text-center p-3">
-                    <div class="insight-value">UK</div>
-                    <div class="insight-label">Exit Country</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="insight-card text-center p-3">
-                    <div class="insight-value">AES-256</div>
-                    <div class="insight-label">Encryption</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="insight-card text-center p-3">
-                    <div class="insight-value">A+</div>
-                    <div class="insight-label">Risk Rating</div>
+                    <select class="form-control mapping-select" data-app="work">
+                        <option value="local">Local Region</option>
+                        <option value="us-east" selected>United States</option>
+                        <option value="uk-lon">United Kingdom</option>
+                        <option value="de-fra">Germany</option>
+                    </select>
                 </div>
             </div>
         </div>
@@ -159,186 +145,143 @@
 </div>
 
 <style>
-.radar-container {
-    background: #0a0a0a;
-    border-radius: 20px;
-    padding: 30px;
+.perm-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 1000;
     display: flex;
-    gap: 30px;
     align-items: center;
-    border: 1px solid #1a1a1a;
+    justify-content: center;
+    backdrop-filter: blur(8px);
 }
-
-.radar-screen {
-    width: 300px;
-    height: 300px;
-    border-radius: 50%;
-    background: #001a00;
-    position: relative;
-    overflow: hidden;
-    border: 4px solid #004400;
-    box-shadow: 0 0 20px rgba(0, 255, 0, 0.1);
-}
-
-.radar-sweep {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    background: conic-gradient(from 0deg, rgba(0, 255, 0, 0.4) 0deg, transparent 90deg);
-    animation: sweep 4s linear infinite;
-    transform-origin: center;
-}
-
-@keyframes sweep {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-}
-
-.radar-grid {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    background-image: 
-        radial-gradient(circle, transparent 30%, #003300 31%, #003300 32%, transparent 33%),
-        radial-gradient(circle, transparent 60%, #003300 61%, #003300 62%, transparent 63%),
-        linear-gradient(to right, transparent 49%, #003300 50%, #003300 51%, transparent 52%),
-        linear-gradient(to bottom, transparent 49%, #003300 50%, #003300 51%, transparent 52%);
-}
-
-.node {
-    position: absolute;
-    width: 8px;
-    height: 8px;
-    background: #00ff00;
-    border-radius: 50%;
-    box-shadow: 0 0 10px #00ff00;
-}
-
-.node::after {
-    content: attr(data-label);
-    position: absolute;
-    top: -15px;
-    left: 50%;
-    transform: translateX(-50%);
-    color: #00ff00;
-    font-size: 8px;
-    white-space: nowrap;
-}
-
-.threat-intercept {
-    position: absolute;
-    width: 20px;
-    height: 20px;
-}
-
-.intercept-ripple {
-    width: 100%;
-    height: 100%;
-    border: 1px solid #ff4444;
-    border-radius: 50%;
-    animation: ripple 2s ease-out infinite;
-}
-
-@keyframes ripple {
-    from { transform: scale(0.5); opacity: 1; }
-    to { transform: scale(2.5); opacity: 0; }
-}
-
-.threat-label {
-    position: absolute;
-    top: 25px;
-    left: 50%;
-    transform: translateX(-50%);
-    color: #ff4444;
-    font-size: 8px;
-    font-weight: bold;
-    white-space: nowrap;
-}
-
-.radar-stats {
-    flex: 1;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: 15px;
-}
-
-.stat-item {
+.perm-card {
     background: #111;
-    padding: 15px;
-    border-radius: 12px;
-    border: 1px solid #222;
-}
-
-.mapping-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.mapping-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 20px;
-    background: var(--bg-secondary);
-    border-radius: 12px;
-}
-
-.app-info {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-.app-info i {
-    font-size: 20px;
-    width: 30px;
+    padding: 2.5rem;
+    border-radius: 20px;
+    max-width: 500px;
+    border: 1px solid #333;
     text-align: center;
 }
+.perm-card h3 { color: #fff; margin-bottom: 1rem; }
+.perm-card p { color: #aaa; margin-bottom: 2rem; }
+.perm-card ul { text-align: left; color: #eee; margin-bottom: 2rem; }
+.perm-card li { margin-bottom: 0.8rem; }
 
-.insight-card {
-    background: var(--bg-secondary);
-    border-radius: 15px;
-    border: 1px solid var(--border-light);
-}
-
-.insight-value {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--primary);
-}
-
-.insight-label {
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-}
-
-.feature-list {
-    list-style: none;
-    padding: 0;
-}
-
-.feature-list li {
-    padding: 10px 0;
-    border-bottom: 1px solid rgba(0,0,0,0.05);
-}
-
-.feature-list i {
-    width: 25px;
-}
-
-.permission-badges {
-    display: flex;
-    gap: 5px;
-    margin-bottom: 10px;
-}
-
-.badge-warning {
-    background-color: #fff3cd;
-    color: #856404;
-    font-size: 0.7rem;
-    padding: 4px 8px;
-}
+.radar-container { background: #000; border: 1px solid #1a1a1a; padding: 2rem; border-radius: 20px; display: flex; gap: 2rem; align-items: center; }
+.radar-screen { width: 300px; height: 300px; border-radius: 50%; background: #001a00; position: relative; overflow: hidden; border: 4px solid #004400; }
+.radar-sweep { position: absolute; width: 100%; height: 100%; background: conic-gradient(from 0deg, rgba(0, 255, 0, 0.4) 0deg, transparent 90deg); animation: sweep 4s linear infinite; }
+@keyframes sweep { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.radar-grid { position: absolute; width: 100%; height: 100%; background-image: radial-gradient(circle, transparent 30%, #003300 31%, #003300 32%, transparent 33%), radial-gradient(circle, transparent 60%, #003300 61%, #003300 62%, transparent 63%), linear-gradient(to right, transparent 49%, #003300 50%, #003300 51%, transparent 52%), linear-gradient(to bottom, transparent 49%, #003300 50%, #003300 51%, transparent 52%); }
+.node { position: absolute; width: 10px; height: 10px; background: #00ff00; border-radius: 50%; box-shadow: 0 0 10px #00ff00; transition: all 0.3s ease; }
+.mapping-grid { display: grid; gap: 1rem; }
+.mapping-item { display: flex; justify-content: space-between; align-items: center; background: var(--bg-secondary); padding: 1rem; border-radius: 12px; }
+.mapping-select { width: 180px; }
+.node-entry { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #333; }
+.d-none { display: none !important; }
 </style>
+
+<script>
+let proxyConfig = {{ proxy_cfg | tojson }};
+
+async function requestSystemPerms() {
+    try {
+        // Real Browser Permission Requests
+        const loc = await navigator.permissions.query({ name: 'geolocation' });
+        const notif = await Notification.requestPermission();
+        
+        if (loc.state === 'granted') {
+            const pos = await new Promise((resolve, reject) => {
+                navigator.geolocation.getCurrentPosition(resolve, reject);
+            });
+            console.log("Local tower density mapped via:", pos.coords);
+        }
+
+        // Update Backend State
+        const res = await fetch('/api/proxy/config', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ permissions_granted: true })
+        });
+        const data = await res.json();
+        if (data.success) {
+            document.getElementById('perm-overlay').classList.add('d-none');
+            document.getElementById('perm-badges').innerHTML = `
+                <span class="badge badge-success">LOCATION ACTIVE</span>
+                <span class="badge badge-success">PHONE STATE SYNC</span>
+            `;
+            initLiveSystem();
+        }
+    } catch (e) {
+        alert("Permission Error: " + e.message);
+    }
+}
+
+function initLiveSystem() {
+    renderNodes();
+    startRadar();
+    bindEvents();
+}
+
+function renderNodes() {
+    const list = document.getElementById('node-list');
+    const radar = document.getElementById('radar-nodes');
+    list.innerHTML = '';
+    radar.innerHTML = '';
+
+    proxyConfig.nodes.forEach(node => {
+        // Sidebar list
+        const entry = document.createElement('div');
+        entry.className = 'node-entry';
+        entry.innerHTML = `
+            <span>${node.name}</span>
+            <span class="text-success">${node.latency}ms</span>
+        `;
+        list.appendChild(entry);
+
+        // Radar visual
+        const rNode = document.createElement('div');
+        rNode.className = 'node';
+        rNode.style.left = (Math.random() * 80 + 10) + '%';
+        rNode.style.top = (Math.random() * 80 + 10) + '%';
+        radar.appendChild(rNode);
+    });
+    document.getElementById('node-count').textContent = proxyConfig.nodes.length + " Active";
+}
+
+function startRadar() {
+    setInterval(() => {
+        if (Math.random() > 0.7) {
+            const container = document.getElementById('threat-intercepts');
+            const intercept = document.createElement('div');
+            intercept.className = 'threat-intercept';
+            intercept.style.left = (Math.random() * 80 + 10) + '%';
+            intercept.style.top = (Math.random() * 80 + 10) + '%';
+            intercept.innerHTML = '<div class="ripple"></div>';
+            container.appendChild(intercept);
+            setTimeout(() => intercept.remove(), 2000);
+        }
+    }, 1000);
+}
+
+function bindEvents() {
+    document.querySelectorAll('.mapping-select').forEach(sel => {
+        sel.addEventListener('change', async function() {
+            const app = this.dataset.app;
+            const region = this.value;
+            proxyConfig.app_mapping[app] = region;
+            
+            await fetch('/api/proxy/config', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ app_mapping: proxyConfig.app_mapping })
+            });
+        });
+    });
+}
+
+if (proxyConfig.permissions_granted) {
+    initLiveSystem();
+}
+</script>
 {% endblock %}

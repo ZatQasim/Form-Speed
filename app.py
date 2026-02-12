@@ -1033,11 +1033,50 @@ def vpn_dashboard():
         return redirect(url_for('subscribe'))
     return render_template('vpn.html', user_state=get_user_state(current_user.id), servers=VPN_SERVERS)
 
+def get_proxy_config(user_id):
+    try:
+        path = f'device_client/cache/proxy_config_{user_id}.json'
+        if not os.path.exists(path):
+            return {
+                "nodes": [
+                    {"id": "us-east", "name": "US-EAST", "active": True, "latency": 45},
+                    {"id": "uk-lon", "name": "UK-LON", "active": True, "latency": 32},
+                    {"id": "de-fra", "name": "DE-FRA", "active": True, "latency": 28}
+                ],
+                "app_mapping": {
+                    "messaging": "local",
+                    "streaming": "uk-lon",
+                    "work": "us-east"
+                },
+                "permissions_granted": False
+            }
+        with open(path, 'r') as f:
+            return json.load(f)
+    except:
+        return {}
+
+def save_proxy_config(user_id, config):
+    os.makedirs('device_client/cache', exist_ok=True)
+    with open(f'device_client/cache/proxy_config_{user_id}.json', 'w') as f:
+        json.dump(config, f)
+
+@app.route('/api/proxy/config', methods=['GET', 'POST'])
+@login_required
+def proxy_config_api():
+    if request.method == 'POST':
+        data = request.json
+        config = get_proxy_config(current_user.id)
+        config.update(data)
+        save_proxy_config(current_user.id, config)
+        return jsonify({"success": True, "config": config})
+    return jsonify(get_proxy_config(current_user.id))
+
 @app.route('/dashboard/proxy')
 @login_required
 def proxy_dashboard():
     metrics = get_real_network_metrics()
-    return render_template('proxy.html', metrics=metrics, is_pro=current_user.has_active_subscription())
+    proxy_cfg = get_proxy_config(current_user.id)
+    return render_template('proxy.html', metrics=metrics, proxy_cfg=proxy_cfg, is_pro=current_user.has_active_subscription())
 
 @app.route('/dashboard/speed-sharing')
 @login_required
