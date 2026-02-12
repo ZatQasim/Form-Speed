@@ -1,0 +1,1 @@
+{"nodes": [{"id": "us-east", "name": "US-EAST", "active": true, "latency": 45}, {"id": "uk-lon", "name": "UK-LON", "active": true, "latency": 32}, {"id": "de-fra", "name": "DE-FRA", "active": true, "latency": 28}], "app_mapping": {"messaging": "uk-lon", "streaming": "uk-lon", "work": "us-east"}, "permissions_granted": true}
