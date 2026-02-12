@@ -17,7 +17,7 @@
     {% if current_user.is_authenticated %}
     <div id="connection-banner" class="connection-banner d-none">
         <div class="banner-content">
-            <span id="banner-text">This device is connected to the Internet through Form Speed</span>
+            <span id="banner-text"> </span>
             <i class="fas fa-link ml-2" style="font-size: 0.8rem; opacity: 0.8;"></i>
         </div>
     </div>
@@ -72,9 +72,9 @@
                         banner.classList.remove('d-none');
                         // LIVE SYSTEM MODE: Actual real-time text sync
                         if (data.mode) {
-                            bannerText.textContent = `This device is connected to the Internet through Form Speed (${data.mode})`;
+                            bannerText.textContent = `Connected (${data.mode})`;
                         } else {
-                            bannerText.textContent = "This device is connected to the Internet through Form Speed";
+                            bannerText.textContent = "Connected";
                         }
                     } else {
                         banner.classList.add('d-none');
