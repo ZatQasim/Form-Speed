@@ -1039,11 +1039,12 @@ def get_proxy_config(user_id):
         if not os.path.exists(path):
             return {
                 "nodes": [
-                    {"id": "us-east", "name": "US-EAST", "active": True, "latency": 45},
-                    {"id": "uk-lon", "name": "UK-LON", "active": True, "latency": 32},
-                    {"id": "de-fra", "name": "DE-FRA", "active": True, "latency": 28},
-                    {"id": "jp-tok", "name": "JP-TOK", "active": True, "latency": 85},
-                    {"id": "sg-sin", "name": "SG-SIN", "active": True, "latency": 72}
+                    {"id": "us-east", "name": "US-EAST (NY-01)", "active": True, "latency": 45},
+                    {"id": "us-west", "name": "US-WEST (LA-01)", "active": True, "latency": 52},
+                    {"id": "uk-lon", "name": "UK-LON (LN-01)", "active": True, "latency": 32},
+                    {"id": "de-fra", "name": "DE-FRA (FR-01)", "active": True, "latency": 28},
+                    {"id": "jp-tok", "name": "JP-TOK (TK-01)", "active": True, "latency": 115},
+                    {"id": "sg-sin", "name": "SG-SIN (SG-01)", "active": True, "latency": 88}
                 ],
                 "app_mapping": {
                     "WhatsApp": "local",
@@ -1052,8 +1053,13 @@ def get_proxy_config(user_id):
                     "YouTube": "local",
                     "Discord": "de-fra",
                     "Spotify": "jp-tok",
-                    "Zoom": "local"
+                    "Zoom": "local",
+                    "Chrome": "us-west",
+                    "Slack": "uk-lon"
                 },
+                "compression_enabled": True,
+                "caching_enabled": True,
+                "parallel_enabled": False,
                 "permissions_granted": False
             }
         with open(path, 'r') as f:
