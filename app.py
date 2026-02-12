@@ -1491,7 +1491,7 @@ def api_delete_account():
         logout_user()
         
         # Clear any potential session data
-        session.clear()
+        # session.clear() # DONT CLEAR SESSION HERE AS IT LOGS USER OUT
         
         return jsonify({'success': True})
     except Exception as e:
