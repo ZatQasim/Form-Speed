@@ -1728,24 +1728,24 @@ def search_query():
     results = []
     try:
         from openai import OpenAI
-            api_key = os.environ.get("OPENAI_API_KEY")
-            if api_key:
-                client = OpenAI(api_key=api_key)
-                response = client.chat.completions.create(
-                    model="gpt-4o",
-                    messages=[
-                        {"role": "system", "content": "You are a private search engine. Provide 3 high-quality search results for the user's query. Each result should have a 'title', 'url', and 'snippet'. Format as JSON object with a 'results' key containing the list."},
-                        {"role": "user", "content": query}
-                    ],
-                    response_format={"type": "json_object"}
-                )
-                content = response.choices[0].message.content
-                if content:
-                    ai_data = json.loads(content)
-                    results = ai_data.get('results', [])
-                else:
-                    raise ValueError("Empty response from AI")
+        api_key = os.environ.get("OPENAI_API_KEY")
+        if api_key:
+            client = OpenAI(api_key=api_key)
+            response = client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {"role": "system", "content": "You are a private search engine. Provide 3 high-quality search results for the user's query. Each result should have a 'title', 'url', and 'snippet'. Format as JSON object with a 'results' key containing the list."},
+                    {"role": "user", "content": query}
+                ],
+                response_format={"type": "json_object"}
+            )
+            content = response.choices[0].message.content
+            if content:
+                ai_data = json.loads(content)
+                results = ai_data.get('results', [])
             else:
+                raise ValueError("Empty response from AI")
+        else:
             raise ValueError("No API Key")
     except Exception as e:
         print(f"Search AI Error: {e}")
