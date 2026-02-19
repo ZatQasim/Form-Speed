@@ -33,11 +33,10 @@
             <div class="row align-items-center">
                 <div class="col-md-8">
                     <h2>SBA - Smart Bandwidth Aggregation</h2>
-                    <p>Your network, ISP and other nodes routed into One
-All your networks. One ultra-fast route..</p>
+                    <p>Become the network.</p>
                 </div>
                 <div class="col-md-4 text-right">
-                    <button class="btn btn-light btn-lg" onclick="startAggregation()">Go Fast!</button>
+                    <button class="btn btn-blue btn-lg" onclick="startAggregation()">Go Fast!</button>
                 </div>
             </div>
         </div>
@@ -67,14 +66,14 @@ All your networks. One ultra-fast route..</p>
         </div>
         
         <div class="your-network-info">
-            <h3>Your Network</h3>
+            <h3>Local Network</h3>
             <div class="network-stats">
                 <div class="stat">
                     <span class="label">IP Address</span>
                     <span class="value">{{ metrics.get('ip_address', 'Detecting...') }}</span>
                 </div>
                 <div class="stat">
-                    <span class="label">Carrier/ISP</span>
+                    <span class="label">ISP</span>
                     <span class="value">{{ metrics.get('carrier', metrics.get('isp', 'Detecting...')) }}</span>
                 </div>
                 <div class="stat">

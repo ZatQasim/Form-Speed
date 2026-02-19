@@ -861,7 +861,7 @@ def logout():
 @login_required
 def subscribe():
     if current_user.has_active_subscription(): 
-        flash('You already have an active subscription!', 'info')
+        flash('You are subscribed!', 'info')
         return redirect(url_for('dashboard'))
     cfg = load_pro_config()
     return render_template('subscribe.html', price=cfg['subscription']['price_usd'], trial_days=cfg['subscription']['trial_days'], features=cfg['subscription']['features'])
@@ -1004,7 +1004,7 @@ def subscription_success():
             save_pro_config_file(pro_config)
             
             db.session.commit()
-            flash(f'Welcome to Form One {plan}! Your Pro features are now active.', 'success')
+            flash(f'Welcome to Form One - {plan}!', 'success')
         else:
             flash('User not found.', 'error')
     except Exception as e:
@@ -1194,7 +1194,7 @@ def cancel_subscription():
             save_pro_config_file(pro_config)
             
             db.session.commit()
-            flash('Your subscription has been cancelled and payment methods removed.', 'success')
+            flash('Your subscription has been cancelled.', 'success')
             return redirect(url_for('account_dashboard'))
         except Exception as e:
             flash(f'Error cancelling subscription: {str(e)}', 'error')

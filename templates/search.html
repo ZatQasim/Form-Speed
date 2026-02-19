@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Private Search</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+
+<!-- Strict CSP -->
+<meta http-equiv="Content-Security-Policy" 
+content="default-src 'self'; 
+style-src 'self' 'unsafe-inline'; 
+form-action https://duckduckgo.com https://search.brave.com https://www.startpage.com; 
+connect-src 'self';">
+
+<style>
+body {
+    margin:0;
+    background:#0b0f14;
+    color:#e6edf3;
+    font-family:system-ui, sans-serif;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+}
+
+.container {
+    text-align:center;
+    width:90%;
+    max-width:600px;
+}
+
+h1 {
+    font-weight:400;
+    letter-spacing:3px;
+    margin-bottom:30px;
+}
+
+input[type="text"] {
+    width:100%;
+    padding:14px;
+    border:none;
+    border-radius:10px;
+    background:#111827;
+    color:white;
+    font-size:16px;
+    outline:none;
+}
+
+select {
+    margin-top:12px;
+    padding:10px;
+    border-radius:8px;
+    border:none;
+    background:#1f2937;
+    color:white;
+}
+
+button {
+    margin-top:15px;
+    padding:12px 25px;
+    border:none;
+    border-radius:10px;
+    background:#2563eb;
+    color:white;
+    cursor:pointer;
+    font-size:15px;
+}
+
+button:hover {
+    background:#3b82f6;
+}
+
+.status {
+    margin-top:25px;
+    font-size:13px;
+    color:#8b949e;
+}
+
+.proxy-toggle {
+    margin-top:10px;
+    font-size:13px;
+}
+</style>
+
+<script>
+function routeSearch() {
+    const query = document.getElementById("query").value;
+    const engine = document.getElementById("engine").value;
+    const proxyEnabled = document.getElementById("proxy").checked;
+
+    let url = "";
+
+    if(engine === "duckduckgo"){
+        url = "https://duckduckgo.com/?q=" + encodeURIComponent(query);
+    }
+    if(engine === "brave"){
+        url = "https://search.brave.com/search?q=" + encodeURIComponent(query);
+    }
+    if(engine === "startpage"){
+        url = "https://www.startpage.com/search?q=" + encodeURIComponent(query);
+    }
+
+    // Proxy mode (must be implemented server-side in Form Speed)
+    if(proxyEnabled){
+        url = "/proxy?url=" + encodeURIComponent(url);
+    }
+
+    window.open(url, "_blank", "noopener,noreferrer");
+}
+</script>
+
+</head>
+<body>
+
+<div class="container">
+
+<h1>Form Speed Private Search</h1>
+
+<input type="text" id="query" placeholder="Search anonymously..." autocomplete="off">
+
+<select id="engine">
+    <option value="duckduckgo">Secured</option>
+    <option value="brave">No Tracing</option>
+    <option value="startpage">Startpage</option>
+</select>
+
+<div class="proxy-toggle">
+    <label>
+        <input type="checkbox" id="proxy">
+        Route through Form Speed Secure Proxy
+    </label>
+</div>
+
+<button onclick="routeSearch()">Search</button>
+
+<div class="status">
+    Fingerprint resistance: Enforced by Form Speed Engine<br>
+    DNS privacy: Enforced via Secure Resolver<br>
+    WebRTC: Disabled at engine level<br>
+    No local storage. No analytics. No tracking scripts.
+</div>
+
+</div>
+
+</body>
+</html>

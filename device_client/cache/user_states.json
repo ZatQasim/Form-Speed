@@ -22,19 +22,19 @@
     "last_optimization": "2026-01-24T12:08:26.385386",
     "speed_sharing_guest": true,
     "speed_sharing_host": "Peer-Form-Speed-User",
-    "guest_access_until": "2026-03-13T18:30:09.837828",
+    "guest_access_until": "2026-03-17T03:01:04.888127",
     "optimization_improvement_ms": 0,
     "protected_since": "2026-01-29T03:37:39.129640",
     "optimization_strategy": "Direct Carrier Peering",
     "routing_active": true,
-    "routed_device_id": "4FpNQ7h7J+abTUZiR7WItQ==",
+    "routed_device_id": "DOqIc/VlnWKLA6FXW3MYSA==",
     "routed_device_name": null,
-    "routing_start_time": "2026-02-11T18:07:54.385672",
+    "routing_start_time": "2026-02-12T07:04:51.784003",
     "active_throughput_gbps": 1.2,
     "active_latency_ms": 12,
     "apn_configured": true,
     "apn_name": "form.speed.net",
-    "vpn_connected_at": "2026-02-11T18:37:39.392381",
+    "vpn_connected_at": "2026-02-15T02:42:18.330914",
     "assigned_ip": "10.8.0.3"
   },
   "2": {
@@ -51,7 +51,7 @@
         "WireGuard"
       ]
     },
-    "vpn_connected_at": "2026-02-06T16:25:36.779018",
+    "vpn_connected_at": "2026-02-17T13:19:16.084018",
     "assigned_ip": "10.8.0.4",
     "route_optimization_enabled": true,
     "security_enabled": true,
@@ -59,9 +59,63 @@
     "last_optimization": "2026-01-23T17:40:44.461977",
     "optimization_improvement_ms": 0,
     "speed_sharing_enabled": true,
-    "shared_bandwidth_mbps": 5.4,
+    "shared_bandwidth_mbps": 100,
     "sharing_started": "2026-01-23T17:36:59.571397",
-    "protected_since": "2026-01-24T02:43:58.633665"
+    "protected_since": "2026-02-15T14:18:05.385325",
+    "routing_active": true,
+    "routed_device_id": "xod6ieuda0Avk/cMhTDlrQ==",
+    "routed_device_name": null,
+    "routing_start_time": "2026-02-15T05:11:58.975769",
+    "active_throughput_gbps": 1.2,
+    "active_latency_ms": 12,
+    "apn_configured": true,
+    "apn_name": "form.speed.net",
+    "optimization_strategy": "Direct Carrier Peering",
+    "speed_sharing_guest": true,
+    "speed_sharing_host": "Peer-Form-Speed-User",
+    "guest_access_until": "2026-03-17T15:04:56.442518",
+    "devices": [
+      {
+        "id": "7e8c91d8aa3d8667",
+        "name": "Samsung S23 FE",
+        "type": "mobile",
+        "os": "Android 23",
+        "last_active": "2026-02-16T16:50:23.552393",
+        "is_current": false
+      },
+      {
+        "id": "c920b2c4d879c872",
+        "name": "iPhone 8",
+        "type": "mobile",
+        "os": "iOS 18",
+        "last_active": "2026-02-16T16:50:45.181922",
+        "is_current": false
+      },
+      {
+        "id": "90d910d92313ae70",
+        "name": "HP Laptop GB10F",
+        "type": "desktop",
+        "os": "Windows 11",
+        "last_active": "2026-02-16T16:51:05.091877",
+        "is_current": false
+      },
+      {
+        "id": "ea2b2614b25f9c8c",
+        "name": "Samsung Tab A6 ",
+        "type": "tablet",
+        "os": "Android 17",
+        "last_active": "2026-02-16T16:51:25.006781",
+        "is_current": false
+      },
+      {
+        "id": "b6294134e632c724",
+        "name": "True Cable TV",
+        "type": "desktop",
+        "os": "webOS (SLGTV)",
+        "last_active": "2026-02-17T13:25:17.996884",
+        "is_current": false
+      }
+    ]
   },
   "3": {
     "vpn_enabled": true,
@@ -110,7 +164,25 @@
     },
     "vpn_connected_at": "2026-02-08T16:53:39.677150",
     "assigned_ip": "10.8.0.7",
-    "route_optimization_enabled": true
+    "route_optimization_enabled": true,
+    "speed_sharing_enabled": true,
+    "security_enabled": true,
+    "shared_bandwidth_mbps": 100,
+    "protected_since": "2026-02-17T13:14:35.548996",
+    "optimization_strategy": "Direct Carrier Peering",
+    "speed_sharing_guest": true,
+    "speed_sharing_host": "Peer-Form-Speed-User",
+    "guest_access_until": "2026-03-19T13:14:49.477725",
+    "devices": [
+      {
+        "id": "af2f39363996972d",
+        "name": "HP",
+        "type": "desktop",
+        "os": "Windows 11",
+        "last_active": "2026-02-17T13:15:26.558435",
+        "is_current": false
+      }
+    ]
   },
   "6": {
     "vpn_enabled": true,
@@ -128,7 +200,15 @@
     },
     "vpn_connected_at": "2026-02-08T17:08:18.346397",
     "assigned_ip": "10.8.0.8",
-    "route_optimization_enabled": true
+    "route_optimization_enabled": true,
+    "speed_sharing_enabled": true,
+    "security_enabled": true,
+    "shared_bandwidth_mbps": 100,
+    "protected_since": "2026-02-18T02:33:58.817631",
+    "optimization_strategy": "Direct Carrier Peering",
+    "speed_sharing_guest": true,
+    "speed_sharing_host": "Peer-Form-Speed-User",
+    "guest_access_until": "2026-03-20T02:34:05.687886"
   },
   "7": {
     "vpn_enabled": true,
@@ -177,6 +257,29 @@
     "security_enabled": true,
     "shared_bandwidth_mbps": 100,
     "protected_since": "2026-02-10T13:10:20.284718",
+    "optimization_strategy": "Direct Carrier Peering"
+  },
+  "4": {
+    "vpn_enabled": true,
+    "vpn_server": {
+      "id": "asia",
+      "name": "Asia Pacific",
+      "location": "Tokyo",
+      "ip": "143.198.0.1",
+      "ipsec_id": "form-asia-01",
+      "capacity": 78,
+      "protocols": [
+        "IPSec",
+        "WireGuard"
+      ]
+    },
+    "vpn_connected_at": "2026-02-17T03:16:21.440475",
+    "assigned_ip": "10.8.0.6",
+    "route_optimization_enabled": true,
+    "speed_sharing_enabled": true,
+    "security_enabled": true,
+    "shared_bandwidth_mbps": 100,
+    "protected_since": "2026-02-17T03:16:40.481381",
     "optimization_strategy": "Direct Carrier Peering"
   }
 }

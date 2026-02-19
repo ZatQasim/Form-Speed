@@ -38,7 +38,7 @@
         {% if is_pro %}
         <div class="pro-status">
             <span class="pro-badge-large">Subscribed</span>
-            <span>Subscription is now active</span>
+            <span></span>
         </div>
         
         <div class="active-services">
@@ -90,7 +90,7 @@
                 <span class="value" id="user-ip">{{ metrics.get('ip_address', 'Detecting...') }}</span>
             </div>
             <div class="network-detail">
-                <span class="label">Your ISP/Carrier</span>
+                <span class="label">Your ISP</span>
                 <span class="value" id="user-isp">{{ metrics.get('carrier', metrics.get('isp', 'Detecting...')) }}</span>
             </div>
             <div class="network-detail">
@@ -159,7 +159,7 @@
                 {% else %}
                 <div class="action-card locked">
                     <h3>Connect VPN</h3>
-                    <p>Subscribe/p>
+                    <p>Subscribe<p>
                 </div>
                 <div class="action-card locked">
                     <h3>Speed Sharing</h3>
@@ -167,7 +167,7 @@
                 </div>
                 <div class="action-card locked">
                     <h3>Security</h3>
-                    <p>Subscribe/p>
+                    <p>Subscribe<p>
                 </div>
                 {% endif %}
                 <a href="{{ url_for('analytics_dashboard') }}" class="action-card">
