@@ -5,7 +5,7 @@ integrations = ["javascript_object_storage:2.0.0", "python_openai_ai_integration
 
 [nix]
 channel = "stable-25_05"
-packages = ["cairo", "ffmpeg-full", "freetype", "ghostscript", "gobject-introspection", "gtk3", "pkg-config", "qhull", "tcl", "tk", "dig"]
+packages = ["cairo", "dig", "ffmpeg-full", "freetype", "ghostscript", "gobject-introspection", "gtk3", "pkg-config", "qhull", "tcl", "tk"]
 
 [workflows]
 runButton = "Project"

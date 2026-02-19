@@ -14,3 +14,5 @@ openai
 tenacity
 openai
 tenacity
+beautifulsoup4
+requests

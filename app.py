@@ -1676,25 +1676,51 @@ def search_proxy():
 
     try:
         import requests
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-        }
-        # We use a stream to handle large pages and potential redirects
-        resp = requests.get(url, headers=headers, timeout=10, verify=False)
+        from bs4 import BeautifulSoup
+        from urllib.parse import urljoin, urlparse
         
-        # Basic content type filtering - only allow HTML/text for now
+        session = requests.Session()
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.9',
+        }
+        
+        # Use a shorter timeout and allow redirects
+        resp = session.get(url, headers=headers, timeout=5, verify=False, allow_redirects=True)
+        
         content_type = resp.headers.get('Content-Type', '')
         
-        # Create the response object
-        response = app.make_response(resp.content)
+        if 'text/html' in content_type:
+            soup = BeautifulSoup(resp.content, 'html.parser')
+            
+            # Rewrite links and resources to go through our proxy
+            for tag in soup.find_all(['a', 'link', 'script', 'img', 'form']):
+                attr = 'href' if tag.name in ['a', 'link'] else ('src' if tag.name in ['script', 'img'] else 'action')
+                if tag.has_attr(attr):
+                    original_val = tag[attr]
+                    if not original_val.startswith(('mailto:', 'tel:', 'javascript:', '#')):
+                        absolute_url = urljoin(url, original_val)
+                        # Only proxy internal links and certain assets to keep it fast
+                        if tag.name == 'a' or (tag.name == 'form'):
+                             tag[attr] = url_for('search_proxy', url=absolute_url)
+                        else:
+                             tag[attr] = absolute_url # Let images/scripts load directly for speed if possible
+            
+            # Inject a small script to handle relative paths in JS if needed
+            content = soup.encode()
+        else:
+            content = resp.content
+            
+        response = app.make_response(content)
         response.headers['Content-Type'] = content_type
-        # Security headers to allow embedding in our iframe if needed, 
-        # but we actually want to strip some to make it work
         response.headers.pop('X-Frame-Options', None)
         response.headers.pop('Content-Security-Policy', None)
+        response.headers['Cache-Control'] = 'public, max-age=3600' # Cache for speed
         
         return response
     except Exception as e:
+        print(f"Proxy Error: {e}")
         return f"Error fetching page: {str(e)}", 500
 
 @app.route('/api/search/query', methods=['POST'])
@@ -1710,14 +1736,18 @@ def search_query():
     is_url = query.startswith('http://') or query.startswith('https://') or ('.' in query and ' ' not in query)
     
     if is_url:
-        url = query if '://' in query else 'https://' + query
+        # Pre-check URL to avoid double-slash or missing protocol
+        url = query
+        if '://' not in url:
+            url = 'https://' + url
+        
         return jsonify({
             'success': True,
             'results': [
                 {
                     'title': f'Browsing: {url}',
                     'url': url,
-                    'proxy_url': url_for('search_proxy', url=url),
+                    'proxy_url': f"/api/search/proxy?url={url}",
                     'snippet': f'You are now securely connected to {url} via Form Speed Onion Routing. The page is being rendered through our encrypted mesh network.',
                     'is_url': True
                 }
