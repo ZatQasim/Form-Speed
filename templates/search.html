@@ -61,44 +61,63 @@ const searchInput = document.getElementById('searchInput');
 const searchBtn = document.getElementById('searchBtn');
 const resultsDiv = document.getElementById('searchResults');
 
-function performSearch() {
-    const query = searchInput.value.trim();
-    if (!query) return;
-    
-    // UI state for "Routing"
-    searchInput.style.opacity = '0.6';
-    searchInput.disabled = true;
-    searchBtn.style.pointerEvents = 'none';
-
-    fetch('/api/search/query', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({query: query})
-    })
-    .then(res => res.json())
-    .then(data => {
-        searchInput.style.opacity = '1';
-        searchInput.disabled = false;
-        searchBtn.style.pointerEvents = 'auto';
+    function performSearch() {
+        const query = searchInput.value.trim();
+        if (!query) return;
         
-        resultsDiv.style.display = 'block';
-        resultsDiv.innerHTML = `
-            <div style="background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #eee;">
-                <h3 style="margin-top: 0; color: #1a0dab; font-size: 1.25rem; font-weight: 500; margin-bottom: 0.75rem;">${data.results[0].title}</h3>
-                <p style="color: #4d5156; font-size: 1rem; line-height: 1.5; margin-bottom: 1rem;">${data.results[0].snippet}</p>
-                <div style="display: flex; align-items: center; gap: 6px; color: #006621; font-size: 0.85rem; font-weight: 500;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                    Verified Secure Connection via Form Speed Mesh
-                </div>
-            </div>
-        `;
-    })
-    .catch(err => {
-        console.error(err);
-        searchInput.style.opacity = '1';
-        searchInput.disabled = false;
-    });
-}
+        // UI state for "Routing"
+        searchInput.style.opacity = '0.6';
+        searchInput.disabled = true;
+        searchBtn.style.pointerEvents = 'none';
+
+        fetch('/api/search/query', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({query: query})
+        })
+        .then(res => res.json())
+        .then(data => {
+            searchInput.style.opacity = '1';
+            searchInput.disabled = false;
+            searchBtn.style.pointerEvents = 'auto';
+            
+            resultsDiv.style.display = 'block';
+            resultsDiv.innerHTML = '';
+            
+            data.results.forEach(result => {
+                const resultCard = document.createElement('div');
+                resultCard.style.cssText = 'background: white; padding: 1.5rem; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #eee; margin-bottom: 1.5rem; transition: transform 0.2s;';
+                resultCard.onmouseover = () => resultCard.style.transform = 'translateY(-2px)';
+                resultCard.onmouseout = () => resultCard.style.transform = 'translateY(0)';
+                
+                resultCard.innerHTML = `
+                    <h3 style="margin-top: 0; color: #1a0dab; font-size: 1.25rem; font-weight: 500; margin-bottom: 0.5rem;">
+                        <a href="${result.url}" target="_blank" style="text-decoration: none; color: inherit;">${result.title}</a>
+                    </h3>
+                    <div style="color: #006621; font-size: 0.9rem; margin-bottom: 0.5rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                        ${result.url}
+                    </div>
+                    <p style="color: #4d5156; font-size: 1rem; line-height: 1.5; margin-bottom: 1rem;">${result.snippet}</p>
+                    <div style="display: flex; align-items: center; gap: 6px; color: #1e8e3e; font-size: 0.85rem; font-weight: 500; background: rgba(30, 142, 62, 0.05); padding: 4px 12px; border-radius: 20px; width: fit-content;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                        Verified Secure Connection via Form Speed Mesh
+                    </div>
+                `;
+                resultsDiv.appendChild(resultCard);
+            });
+
+            if (data.results.length > 0 && data.results[0].is_url) {
+                // If it was a URL, we could show a "Browse" button or similar
+                // For now, it's just a secure link in the results
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            searchInput.style.opacity = '1';
+            searchInput.disabled = false;
+            searchBtn.style.pointerEvents = 'auto';
+        });
+    }
 
 searchInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') performSearch();
