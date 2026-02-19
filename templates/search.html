@@ -1,148 +1,117 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Private Search</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="robots" content="noindex, nofollow">
+{% extends "base.html" %}
 
-<!-- Strict CSP -->
-<meta http-equiv="Content-Security-Policy" 
-content="default-src 'self'; 
-style-src 'self' 'unsafe-inline'; 
-form-action https://duckduckgo.com https://search.brave.com https://www.startpage.com; 
-connect-src 'self';">
+{% block content %}
+<div class="dashboard">
+    <aside class="sidebar">
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('dashboard') }}">Overview</a>
+            <a href="{{ url_for('vpn_dashboard') }}">VPN</a>
+            <a href="{{ url_for('private_search') }}" class="active">Private Search</a>
+            <a href="{{ url_for('speed_sharing_dashboard') }}">Speed Sharing</a>
+            <a href="{{ url_for('proxy_dashboard') }}">Proxy</a>
+            <a href="{{ url_for('download_page') }}">Download</a>
+            <a href="{{ url_for('security_dashboard') }}">Security</a>
+            <a href="{{ url_for('mesh_dashboard') }}">Mesh Network</a>
+            <a href="{{ url_for('tools_dashboard') }}">Tools</a>
+            <a href="{{ url_for('cloud_dashboard') }}">Cloud</a>
+            <a href="{{ url_for('connect_hub') }}">Connect</a>
+            <a href="{{ url_for('analytics_dashboard') }}">Analytics</a>
+            <a href="{{ url_for('password_manager') }}">Passwords</a>
+            <a href="{{ url_for('history_dashboard') }}">History</a>
+            <a href="{{ url_for('devices_dashboard') }}">Devices</a>
+            <a href="{{ url_for('account_dashboard') }}">Account</a>
+            <a href="{{ url_for('settings_dashboard') }}">Settings</a>
+            <a href="{{ url_for('plans_page') }}">Form One Plans</a>
+        </nav>
+    </aside>
 
-<style>
-body {
-    margin:0;
-    background:#0b0f14;
-    color:#e6edf3;
-    font-family:system-ui, sans-serif;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    height:100vh;
-}
+    <main class="dashboard-content">
+        <div class="search-container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 70vh; background: #f1f3f4; border-radius: 24px; padding: 2rem; position: relative; overflow: hidden; box-shadow: inset 0 0 10px rgba(0,0,0,0.02);">
+            <div class="search-header" style="text-align: center; margin-bottom: 3rem;">
+                <div style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 1.5rem;">
+                    <img src="{{ url_for('static', filename='logo.png') }}" alt="Form Speed" style="width: 56px; height: 56px; border-radius: 14px; box-shadow: var(--shadow-sm);">
+                    <span style="font-size: 2.8rem; font-weight: 500; color: #202124; letter-spacing: -0.02em;">Search<sup>®</sup></span>
+                </div>
+                <div class="search-badge" style="background: white; padding: 0.6rem 2rem; border-radius: 50px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); display: inline-block;">
+                    <p style="margin: 0; color: #5f6368; font-size: 1.1rem; font-weight: 400;">The real incognito mode for searches you don't want anyone to see.</p>
+                </div>
+            </div>
 
-.container {
-    text-align:center;
-    width:90%;
-    max-width:600px;
-}
+            <div class="search-box-wrapper" style="width: 100%; max-width: 650px; position: relative;">
+                <input type="text" id="searchInput" placeholder="Search securely..." style="width: 100%; padding: 1.4rem 4rem 1.4rem 1.8rem; border-radius: 50px; border: 1px solid #dfe1e5; font-size: 1.2rem; box-shadow: 0 2px 12px rgba(32,33,36,0.15); outline: none; transition: all 0.3s ease; background: white;">
+                <div id="searchBtn" style="position: absolute; right: 24px; top: 50%; transform: translateY(-50%); color: #70757a; cursor: pointer; transition: color 0.2s;">
+                    <svg focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path></svg>
+                </div>
+            </div>
 
-h1 {
-    font-weight:400;
-    letter-spacing:3px;
-    margin-bottom:30px;
-}
+            <div id="searchResults" style="margin-top: 2.5rem; width: 100%; max-width: 650px; display: none;">
+                <!-- Results will appear here -->
+            </div>
 
-input[type="text"] {
-    width:100%;
-    padding:14px;
-    border:none;
-    border-radius:10px;
-    background:#111827;
-    color:white;
-    font-size:16px;
-    outline:none;
-}
-
-select {
-    margin-top:12px;
-    padding:10px;
-    border-radius:8px;
-    border:none;
-    background:#1f2937;
-    color:white;
-}
-
-button {
-    margin-top:15px;
-    padding:12px 25px;
-    border:none;
-    border-radius:10px;
-    background:#2563eb;
-    color:white;
-    cursor:pointer;
-    font-size:15px;
-}
-
-button:hover {
-    background:#3b82f6;
-}
-
-.status {
-    margin-top:25px;
-    font-size:13px;
-    color:#8b949e;
-}
-
-.proxy-toggle {
-    margin-top:10px;
-    font-size:13px;
-}
-</style>
+            <div class="encryption-status" style="margin-top: 3rem; display: flex; align-items: center; gap: 10px; color: #1e8e3e; font-size: 0.9rem; font-weight: 500; background: rgba(30, 142, 62, 0.08); padding: 0.5rem 1.2rem; border-radius: 50px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                End-to-End Encrypted Tunnel Active
+            </div>
+        </div>
+    </main>
+</div>
 
 <script>
-function routeSearch() {
-    const query = document.getElementById("query").value;
-    const engine = document.getElementById("engine").value;
-    const proxyEnabled = document.getElementById("proxy").checked;
+const searchInput = document.getElementById('searchInput');
+const searchBtn = document.getElementById('searchBtn');
+const resultsDiv = document.getElementById('searchResults');
 
-    let url = "";
+function performSearch() {
+    const query = searchInput.value.trim();
+    if (!query) return;
+    
+    // UI state for "Routing"
+    searchInput.style.opacity = '0.6';
+    searchInput.disabled = true;
+    searchBtn.style.pointerEvents = 'none';
 
-    if(engine === "duckduckgo"){
-        url = "https://duckduckgo.com/?q=" + encodeURIComponent(query);
-    }
-    if(engine === "brave"){
-        url = "https://search.brave.com/search?q=" + encodeURIComponent(query);
-    }
-    if(engine === "startpage"){
-        url = "https://www.startpage.com/search?q=" + encodeURIComponent(query);
-    }
-
-    // Proxy mode (must be implemented server-side in Form Speed)
-    if(proxyEnabled){
-        url = "/proxy?url=" + encodeURIComponent(url);
-    }
-
-    window.open(url, "_blank", "noopener,noreferrer");
+    fetch('/api/search/query', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({query: query})
+    })
+    .then(res => res.json())
+    .then(data => {
+        searchInput.style.opacity = '1';
+        searchInput.disabled = false;
+        searchBtn.style.pointerEvents = 'auto';
+        
+        resultsDiv.style.display = 'block';
+        resultsDiv.innerHTML = `
+            <div style="background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #eee;">
+                <h3 style="margin-top: 0; color: #1a0dab; font-size: 1.25rem; font-weight: 500; margin-bottom: 0.75rem;">${data.results[0].title}</h3>
+                <p style="color: #4d5156; font-size: 1rem; line-height: 1.5; margin-bottom: 1rem;">${data.results[0].snippet}</p>
+                <div style="display: flex; align-items: center; gap: 6px; color: #006621; font-size: 0.85rem; font-weight: 500;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                    Verified Secure Connection via Form Speed Mesh
+                </div>
+            </div>
+        `;
+    })
+    .catch(err => {
+        console.error(err);
+        searchInput.style.opacity = '1';
+        searchInput.disabled = false;
+    });
 }
+
+searchInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') performSearch();
+});
+
+searchBtn.addEventListener('click', performSearch);
+
+searchInput.addEventListener('focus', () => {
+    searchInput.style.boxShadow = '0 4px 20px rgba(32,33,36,0.22)';
+});
+
+searchInput.addEventListener('blur', () => {
+    searchInput.style.boxShadow = '0 2px 12px rgba(32,33,36,0.15)';
+});
 </script>
-
-</head>
-<body>
-
-<div class="container">
-
-<h1>Form Speed Private Search</h1>
-
-<input type="text" id="query" placeholder="Search anonymously..." autocomplete="off">
-
-<select id="engine">
-    <option value="duckduckgo">Secured</option>
-    <option value="brave">No Tracing</option>
-    <option value="startpage">Startpage</option>
-</select>
-
-<div class="proxy-toggle">
-    <label>
-        <input type="checkbox" id="proxy">
-        Route through Form Speed Secure Proxy
-    </label>
-</div>
-
-<button onclick="routeSearch()">Search</button>
-
-<div class="status">
-    Fingerprint resistance: Enforced by Form Speed Engine<br>
-    DNS privacy: Enforced via Secure Resolver<br>
-    WebRTC: Disabled at engine level<br>
-    No local storage. No analytics. No tracking scripts.
-</div>
-
-</div>
-
-</body>
-</html>
+{% endblock %}

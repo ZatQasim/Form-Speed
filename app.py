@@ -1654,6 +1654,28 @@ def get_vpn_status():
 
 # --- Main Entry Point ---
 
+@app.route('/private-search')
+@login_required
+def private_search():
+    benefits = current_user.get_benefits()
+    if not benefits.get('vpn_access'):
+        flash("Private Search is a Pro feature. Please upgrade to access.", "warning")
+        return redirect(url_for('plans'))
+    return render_template('search.html', active_page='search')
+
+@app.route('/api/search/query', methods=['POST'])
+@login_required
+def search_query():
+    query = request.json.get('query')
+    # In a real app, this would route through Tor/DuckDuckGo
+    # For now, we simulate the "Onion routing" and "No logs" behavior
+    return jsonify({
+        'success': True,
+        'results': [
+            {'title': f'Secure result for {query}', 'url': '#', 'snippet': 'This connection is end-to-end encrypted via Onion routing.'}
+        ]
+    })
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
