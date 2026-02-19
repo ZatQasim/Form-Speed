@@ -1664,6 +1664,39 @@ def private_search():
         return redirect(url_for('plans'))
     return render_template('search.html', active_page='search')
 
+@app.route('/api/search/proxy')
+@login_required
+def search_proxy():
+    url = request.args.get('url')
+    if not url:
+        return "Missing URL", 400
+    
+    if not url.startswith('http'):
+        url = 'https://' + url
+
+    try:
+        import requests
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+        # We use a stream to handle large pages and potential redirects
+        resp = requests.get(url, headers=headers, timeout=10, verify=False)
+        
+        # Basic content type filtering - only allow HTML/text for now
+        content_type = resp.headers.get('Content-Type', '')
+        
+        # Create the response object
+        response = app.make_response(resp.content)
+        response.headers['Content-Type'] = content_type
+        # Security headers to allow embedding in our iframe if needed, 
+        # but we actually want to strip some to make it work
+        response.headers.pop('X-Frame-Options', None)
+        response.headers.pop('Content-Security-Policy', None)
+        
+        return response
+    except Exception as e:
+        return f"Error fetching page: {str(e)}", 500
+
 @app.route('/api/search/query', methods=['POST'])
 @login_required
 def search_query():
@@ -1684,6 +1717,7 @@ def search_query():
                 {
                     'title': f'Browsing: {url}',
                     'url': url,
+                    'proxy_url': url_for('search_proxy', url=url),
                     'snippet': f'You are now securely connected to {url} via Form Speed Onion Routing. The page is being rendered through our encrypted mesh network.',
                     'is_url': True
                 }
@@ -1694,20 +1728,24 @@ def search_query():
     results = []
     try:
         from openai import OpenAI
-        api_key = os.environ.get("OPENAI_API_KEY")
-        if api_key:
-            client = OpenAI(api_key=api_key)
-            response = client.chat.completions.create(
-                model="gpt-4o",
-                messages=[
-                    {"role": "system", "content": "You are a private search engine. Provide 3 high-quality search results for the user's query. Each result should have a 'title', 'url', and 'snippet'. Format as JSON object with a 'results' key containing the list."},
-                    {"role": "user", "content": query}
-                ],
-                response_format={"type": "json_object"}
-            )
-            ai_data = json.loads(response.choices[0].message.content)
-            results = ai_data.get('results', [])
-        else:
+            api_key = os.environ.get("OPENAI_API_KEY")
+            if api_key:
+                client = OpenAI(api_key=api_key)
+                response = client.chat.completions.create(
+                    model="gpt-4o",
+                    messages=[
+                        {"role": "system", "content": "You are a private search engine. Provide 3 high-quality search results for the user's query. Each result should have a 'title', 'url', and 'snippet'. Format as JSON object with a 'results' key containing the list."},
+                        {"role": "user", "content": query}
+                    ],
+                    response_format={"type": "json_object"}
+                )
+                content = response.choices[0].message.content
+                if content:
+                    ai_data = json.loads(content)
+                    results = ai_data.get('results', [])
+                else:
+                    raise ValueError("Empty response from AI")
+            else:
             raise ValueError("No API Key")
     except Exception as e:
         print(f"Search AI Error: {e}")
