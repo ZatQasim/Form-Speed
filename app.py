@@ -794,8 +794,9 @@ def get_metrics():
         return jsonify(get_real_network_metrics())
 
 @app.route('/api/vpn/status')
-@login_required
 def vpn_status():
+    if not current_user.is_authenticated:
+        return jsonify({'active': False, 'vpn_enabled': False, 'mode': None, 'servers': []}), 200
     user_id = str(current_user.id)
     user_states = load_user_states()
     state = user_states.get(user_id, {})

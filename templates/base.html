@@ -64,6 +64,9 @@
         async function checkConnectionStatus() {
             try {
                 const response = await fetch('/api/vpn/status');
+                if (response.status === 401) {
+                    return; // Don't process if unauthorized, avoid loop
+                }
                 const data = await response.json();
                 const banner = document.getElementById('connection-banner');
                 const bannerText = document.getElementById('banner-text');
@@ -81,13 +84,15 @@
                     }
                 }
             } catch (e) {
-                console.error("Status check failed", e);
+                // Silently handle polling errors
             }
         }
         document.addEventListener('DOMContentLoaded', function() {
+            {% if current_user.is_authenticated %}
             checkConnectionStatus();
             // SYSTEM-LEVEL SYNC: 1s polling for exact native feel
             setInterval(checkConnectionStatus, 1000); 
+            {% endif %}
         });
     </script>
 </body>
