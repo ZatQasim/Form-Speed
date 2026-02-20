@@ -87,13 +87,37 @@
                 // Silently handle polling errors
             }
         }
+        
+        // Surfshark/Tor Style URL Update and Operating Logic
+        function updateSecureBrowserState() {
+            const path = window.location.pathname;
+            const sidebarLinks = document.querySelectorAll('.sidebar-nav a');
+            sidebarLinks.forEach(link => {
+                if (link.getAttribute('href') === path) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+            
+            // Log for privacy-focused "no-trace" simulation
+            console.log(`[Secure Browser] Navigated to: ${path}`);
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             {% if current_user.is_authenticated %}
             checkConnectionStatus();
             // SYSTEM-LEVEL SYNC: 1s polling for exact native feel
             setInterval(checkConnectionStatus, 1000); 
             {% endif %}
+            
+            updateSecureBrowserState();
         });
+
+        // Handle browser back/forward buttons
+        window.onpopstate = function() {
+            updateSecureBrowserState();
+        };
     </script>
 </body>
 </html>

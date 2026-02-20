@@ -1033,6 +1033,34 @@ def vpn_dashboard():
         return redirect(url_for('subscribe'))
     return render_template('vpn.html', user_state=get_user_state(current_user.id), servers=VPN_SERVERS)
 
+@app.route('/dashboard/private-search')
+@login_required
+def private_search_dashboard():
+    benefits = current_user.get_benefits()
+    if not benefits.get('vpn_access'):
+        flash('Private Search requires a subscription', 'warning')
+        return redirect(url_for('subscribe'))
+    return render_template('search.html', user_state=get_user_state(current_user.id))
+
+@app.route('/dashboard/download')
+@login_required
+def download_page_dashboard():
+    return render_template('download.html', user_state=get_user_state(current_user.id))
+
+@app.route('/dashboard/connect')
+@login_required
+def connect_hub_dashboard():
+    return render_template('connect.html', user_state=get_user_state(current_user.id))
+
+@app.route('/dashboard/passwords')
+@login_required
+def password_manager_dashboard():
+    benefits = current_user.get_benefits()
+    if not benefits.get('password_manager'):
+        flash('Password Manager requires a subscription', 'warning')
+        return redirect(url_for('subscribe'))
+    return render_template('password_manager.html', user_state=get_user_state(current_user.id))
+
 def get_proxy_config(user_id):
     try:
         path = f'device_client/cache/proxy_config_{user_id}.json'
