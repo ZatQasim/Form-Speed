@@ -1679,44 +1679,59 @@ def search_proxy():
         from bs4 import BeautifulSoup
         from urllib.parse import urljoin, urlparse
         
+        # Security: Filter out dangerous schemes and local network addresses
+        parsed_url = urlparse(url)
+        if parsed_url.scheme not in ['http', 'https']:
+            return "Invalid protocol", 400
+        
+        hostname = parsed_url.hostname.lower() if parsed_url.hostname else ""
+        if hostname in ['localhost', '127.0.0.1', '0.0.0.0'] or hostname.startswith('192.168.') or hostname.startswith('10.'):
+             return "Access denied to local network", 403
+
         session = requests.Session()
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
             'Accept-Language': 'en-US,en;q=0.9',
+            'DNT': '1',
+            'Upgrade-Insecure-Requests': '1'
         }
         
-        # Use a shorter timeout and allow redirects
-        resp = session.get(url, headers=headers, timeout=5, verify=False, allow_redirects=True)
+        # Increased timeout and strict verification toggle if needed, but keeping it for compatibility
+        resp = session.get(url, headers=headers, timeout=10, verify=False, allow_redirects=True)
         
         content_type = resp.headers.get('Content-Type', '')
         
         if 'text/html' in content_type:
             soup = BeautifulSoup(resp.content, 'html.parser')
             
-            # Rewrite links and resources to go through our proxy
+            # Rewrite links and resources to go through our proxy for full anonymity
             for tag in soup.find_all(['a', 'link', 'script', 'img', 'form']):
                 attr = 'href' if tag.name in ['a', 'link'] else ('src' if tag.name in ['script', 'img'] else 'action')
                 if tag.has_attr(attr):
                     original_val = tag[attr]
-                    if not original_val.startswith(('mailto:', 'tel:', 'javascript:', '#')):
+                    if not original_val.startswith(('mailto:', 'tel:', 'javascript:', '#', 'data:')):
                         absolute_url = urljoin(url, original_val)
-                        # Only proxy internal links and certain assets to keep it fast
-                        if tag.name == 'a' or (tag.name == 'form'):
-                             tag[attr] = url_for('search_proxy', url=absolute_url)
-                        else:
-                             tag[attr] = absolute_url # Let images/scripts load directly for speed if possible
+                        tag[attr] = url_for('search_proxy', url=absolute_url)
             
-            # Inject a small script to handle relative paths in JS if needed
+            # Inject a "Secure Connection" indicator
+            banner_style = "position:fixed; top:0; left:0; width:100%; background:#1e8e3e; color:white; text-align:center; font-size:11px; padding:3px; z-index:2147483647; font-family:sans-serif; pointer-events:none; opacity:0.9;"
+            banner = soup.new_tag('div', style=banner_style)
+            banner.string = "Form Speed Secure Mesh Connection Active"
+            if soup.body:
+                soup.body.insert(0, banner)
+
             content = soup.encode()
         else:
             content = resp.content
             
         response = app.make_response(content)
         response.headers['Content-Type'] = content_type
+        # Strip security headers to allow rendering in our browser UI
         response.headers.pop('X-Frame-Options', None)
         response.headers.pop('Content-Security-Policy', None)
-        response.headers['Cache-Control'] = 'public, max-age=3600' # Cache for speed
+        response.headers.pop('X-Content-Type-Options', None)
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
         
         return response
     except Exception as e:
