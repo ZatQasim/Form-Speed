@@ -1717,7 +1717,7 @@ def search_proxy():
             # Inject a "Secure Connection" indicator
             banner_style = "position:fixed; top:0; left:0; width:100%; background:#1e8e3e; color:white; text-align:center; font-size:11px; padding:3px; z-index:2147483647; font-family:sans-serif; pointer-events:none; opacity:0.9;"
             banner = soup.new_tag('div', style=banner_style)
-            banner.string = "Form Speed Secure Mesh Connection Active"
+            banner.string = ""
             if soup.body:
                 soup.body.insert(0, banner)
 
