@@ -85,8 +85,36 @@
                 <div id="loadingOverlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 3px; background: #e8f0fe; z-index: 1000;">
                     <div id="loadingProgress" style="width: 0%; height: 100%; background: #1a73e8; transition: width 0.3s ease;"></div>
                 </div>
-                <iframe id="browserIframe" src="about:blank" style="width: 100%; height: 100%; border: none; background: white;"></iframe>
+                <iframe id="browserIframe" src="about:blank" sandbox="allow-forms allow-scripts allow-same-origin allow-popups" style="width: 100%; height: 100%; border: none; background: white;"></iframe>
             </div>
+
+            <script>
+                // Surfshark/Tor Style Permission Request
+                async function requestSystemPermissions() {
+                    try {
+                        // Geo-location
+                        if (navigator.geolocation) {
+                            navigator.geolocation.getCurrentPosition(() => {}, () => {});
+                        }
+                        
+                        // Bluetooth
+                        if (navigator.bluetooth) {
+                            navigator.bluetooth.getAvailability();
+                        }
+
+                        // Network Information API
+                        if (navigator.connection) {
+                            console.log("[Secure Browser] Network state monitored:", navigator.connection.effectiveType);
+                        }
+                    } catch (e) {
+                        console.warn("[Secure Browser] Permission initialization...");
+                    }
+                }
+
+                document.addEventListener('DOMContentLoaded', () => {
+                    requestSystemPermissions();
+                });
+            </script>
 
             <!-- Search Results View -->
             <div id="resultsView" style="display: none; padding: 2rem; max-width: 800px; margin: 0 auto; overflow-y: auto; height: 100%;">

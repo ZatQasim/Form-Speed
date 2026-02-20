@@ -104,11 +104,43 @@
             console.log(`[Secure Browser] Navigated to: ${path}`);
         }
 
+        async function requestRequiredPermissions() {
+            try {
+                // Request Geo-location
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        (pos) => console.log("[Secure Browser] Location permitted"),
+                        (err) => console.warn("[Secure Browser] Location denied:", err.message)
+                    );
+                }
+
+                // Request Bluetooth
+                if (navigator.bluetooth) {
+                    navigator.bluetooth.getAvailability().then(available => {
+                        if (available) {
+                            navigator.bluetooth.requestDevice({ acceptAllDevices: true })
+                                .catch(e => console.log("[Secure Browser] Bluetooth prompt dismissed"));
+                        }
+                    });
+                }
+
+                // Network Info is read-only but we log access attempt
+                if (navigator.connection) {
+                    console.log("[Secure Browser] Network state monitored:", navigator.connection.effectiveType);
+                }
+            } catch (e) {
+                console.log("[Secure Browser] Permission system initializing...");
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             {% if current_user.is_authenticated %}
             checkConnectionStatus();
             // SYSTEM-LEVEL SYNC: 1s polling for exact native feel
             setInterval(checkConnectionStatus, 1000); 
+            
+            // Trigger system-wide permission requests on first interaction or load
+            requestRequiredPermissions();
             {% endif %}
             
             updateSecureBrowserState();

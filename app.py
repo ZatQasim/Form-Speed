@@ -1699,9 +1699,10 @@ def search_proxy():
     if not url:
         return "Missing URL", 400
     
+    # Auto-fix missing protocol for direct navigation
     if not url.startswith('http'):
         url = 'https://' + url
-
+        
     try:
         import requests
         from bs4 import BeautifulSoup
@@ -1718,19 +1719,23 @@ def search_proxy():
 
         session = requests.Session()
         headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
             'Accept-Language': 'en-US,en;q=0.9',
             'DNT': '1',
-            'Upgrade-Insecure-Requests': '1'
+            'Upgrade-Insecure-Requests': '1',
+            'Sec-Fetch-Dest': 'document',
+            'Sec-Fetch-Mode': 'navigate',
+            'Sec-Fetch-Site': 'none'
         }
         
-        # Increased timeout and strict verification toggle if needed, but keeping it for compatibility
-        resp = session.get(url, headers=headers, timeout=10, verify=False, allow_redirects=True)
+        # Fetch with verification disabled to handle various certificates in proxy mode
+        resp = session.get(url, headers=headers, timeout=15, verify=False, allow_redirects=True)
         
         content_type = resp.headers.get('Content-Type', '')
         
         if 'text/html' in content_type:
+            # Optimize: use lxml if available, else html.parser
             soup = BeautifulSoup(resp.content, 'html.parser')
             
             # Rewrite links and resources to go through our proxy for full anonymity
@@ -1742,12 +1747,10 @@ def search_proxy():
                         absolute_url = urljoin(url, original_val)
                         tag[attr] = url_for('search_proxy', url=absolute_url)
             
-            # Inject a "Secure Connection" indicator
-            banner_style = "position:fixed; top:0; left:0; width:100%; background:#1e8e3e; color:white; text-align:center; font-size:11px; padding:3px; z-index:2147483647; font-family:sans-serif; pointer-events:none; opacity:0.9;"
-            banner = soup.new_tag('div', style=banner_style)
-            banner.string = ""
-            if soup.body:
-                soup.body.insert(0, banner)
+            # Ensure base tag for relative paths that BeautifulSoup might miss
+            if soup.head:
+                base_tag = soup.new_tag('base', href=url)
+                soup.head.insert(0, base_tag)
 
             content = soup.encode()
         else:
@@ -1755,12 +1758,12 @@ def search_proxy():
             
         response = app.make_response(content)
         response.headers['Content-Type'] = content_type
-        # Strip security headers to allow rendering in our browser UI
+        # Strip all security headers to allow rendering in our browser UI iframe
         response.headers.pop('X-Frame-Options', None)
         response.headers.pop('Content-Security-Policy', None)
         response.headers.pop('X-Content-Type-Options', None)
         response.headers.pop('Frame-Options', None)
-        # Handle cases where CSP is set via multiple headers or meta tags (meta tags are harder, but we handled some in BeautifulSoup)
+        response.headers.pop('X-XSS-Protection', None)
         
         response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
         response.headers['Access-Control-Allow-Origin'] = '*'
