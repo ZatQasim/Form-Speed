@@ -84,29 +84,11 @@ const resultsDiv = document.getElementById('searchResults');
             resultsDiv.style.display = 'block';
             resultsDiv.innerHTML = '';
             
-    function performSearch() {
-        const query = searchInput.value.trim();
-        if (!query) return;
-        
-        // UI state for "Routing"
-        searchInput.style.opacity = '0.6';
-        searchInput.disabled = true;
-        searchBtn.style.pointerEvents = 'none';
+            if (!data.results || data.results.length === 0) {
+                resultsDiv.innerHTML = '<p style="text-align: center; color: #5f6368;">No results found.</p>';
+                return;
+            }
 
-        fetch('/api/search/query', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({query: query})
-        })
-        .then(res => res.json())
-        .then(data => {
-            searchInput.style.opacity = '1';
-            searchInput.disabled = false;
-            searchBtn.style.pointerEvents = 'auto';
-            
-            resultsDiv.style.display = 'block';
-            resultsDiv.innerHTML = '';
-            
             data.results.forEach(result => {
                 const resultCard = document.createElement('div');
                 resultCard.style.cssText = 'background: white; padding: 1.5rem; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #eee; margin-bottom: 1.5rem; transition: transform 0.2s;';
