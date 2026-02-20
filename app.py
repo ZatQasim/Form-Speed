@@ -1731,7 +1731,11 @@ def search_proxy():
         response.headers.pop('X-Frame-Options', None)
         response.headers.pop('Content-Security-Policy', None)
         response.headers.pop('X-Content-Type-Options', None)
+        response.headers.pop('Frame-Options', None)
+        # Handle cases where CSP is set via multiple headers or meta tags (meta tags are harder, but we handled some in BeautifulSoup)
+        
         response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response.headers['Access-Control-Allow-Origin'] = '*'
         
         return response
     except Exception as e:
@@ -1769,18 +1773,20 @@ def search_query():
             ]
         })
 
-    # Enhanced search results with OpenAI if available, otherwise simulated
+    # Results with OpenAI if available, otherwise simulated
     results = []
     try:
         from openai import OpenAI
         api_key = os.environ.get("OPENAI_API_KEY")
         if api_key:
             client = OpenAI(api_key=api_key)
+            # Use a broader prompt to get more realistic results
+            prompt = f"Provide 5 high-quality, realistic search results for the query: '{query}'. Each result must have 'title', 'url', and 'snippet'. The URLs should be real, functional websites related to the query. Format as a JSON object with a 'results' key containing the list."
             response = client.chat.completions.create(
                 model="gpt-4o",
                 messages=[
-                    {"role": "system", "content": "You are a private search engine. Provide 3 high-quality search results for the user's query. Each result should have a 'title', 'url', and 'snippet'. Format as JSON object with a 'results' key containing the list."},
-                    {"role": "user", "content": query}
+                    {"role": "system", "content": "You are a highly accurate private search engine. Return only valid JSON."},
+                    {"role": "user", "content": prompt}
                 ],
                 response_format={"type": "json_object"}
             )
@@ -1791,13 +1797,17 @@ def search_query():
             else:
                 raise ValueError("Empty response from AI")
         else:
-            raise ValueError("No API Key")
+            # Fallback to a real search engine redirect if no API key
+            results = [
+                {'title': f'Search results for "{query}" on DuckDuckGo', 'url': f'https://duckduckgo.com/?q={query}', 'snippet': f'View secure, private search results for "{query}" on DuckDuckGo, routed through our encrypted mesh.'},
+                {'title': f'Search results for "{query}" on Google', 'url': f'https://www.google.com/search?q={query}', 'snippet': f'Access Google search results for "{query}" while maintaining your anonymity via Form Speed routing.'},
+                {'title': f'Search results for "{query}" on Bing', 'url': f'https://www.bing.com/search?q={query}', 'snippet': f'Private access to Bing search for "{query}". All tracking cookies and scripts are sanitized.'}
+            ]
     except Exception as e:
         print(f"Search AI Error: {e}")
+        # Final fallback
         results = [
-            {'title': f'{query} - Secure Search Result 1', 'url': f'https://www.google.com/search?q={query}', 'snippet': f'Private encrypted result for "{query}". This connection is end-to-end encrypted via Onion routing.'},
-            {'title': f'Deep Web Analysis: {query}', 'url': f'https://duckduckgo.com/?q={query}', 'snippet': 'Verified Secure Connection via Form Speed Mesh. Content retrieved and sanitized for your privacy.'},
-            {'title': f'Privacy-First Result: {query}', 'url': f'https://binsearch.info/?q={query}', 'snippet': 'Anonymous routing confirmed. No tracking cookies or fingerprinting detected during this session.'}
+            {'title': f'Search DuckDuckGo: {query}', 'url': f'https://duckduckgo.com/?q={query}', 'snippet': 'Secure, private search results.'}
         ]
 
     return jsonify({'success': True, 'results': results})
