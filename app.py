@@ -1446,6 +1446,37 @@ def api_vpn_optimize_route():
 def diagnostics_dashboard():
     return redirect(url_for('tools_dashboard'))
 
+def log_activity(user_id, activity_type, details):
+    try:
+        path = 'device_client/cache/connection_history.json'
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        history = []
+        if os.path.exists(path):
+            with open(path, 'r') as f:
+                history = json.load(f)
+        
+        history.insert(0, {
+            'user_id': user_id,
+            'type': activity_type,
+            'timestamp': datetime.utcnow().isoformat(),
+            'details': details
+        })
+        
+        # Keep last 100 entries
+        history = history[:100]
+        
+        with open(path, 'w') as f:
+            json.dump(history, f, indent=2)
+    except Exception as e:
+        print(f"Error logging activity: {e}")
+
+@app.route('/api/log-activity', methods=['POST'])
+@login_required
+def api_log_activity():
+    data = request.json
+    log_activity(current_user.id, data.get('type', 'general'), data.get('details', {}))
+    return jsonify({'success': True})
+
 @app.route('/dashboard/history')
 @login_required
 def history_dashboard():
@@ -1453,7 +1484,18 @@ def history_dashboard():
     if not is_pro:
         flash('Connection History requires a Pro subscription', 'warning')
         return redirect(url_for('subscribe'))
-    return render_template('history.html', user_state=get_user_state(current_user.id), history=[], is_pro=is_pro)
+    
+    history = []
+    try:
+        path = 'device_client/cache/connection_history.json'
+        if os.path.exists(path):
+            with open(path, 'r') as f:
+                all_history = json.load(f)
+                history = [h for h in all_history if h.get('user_id') == current_user.id]
+    except Exception as e:
+        print(f"Error loading history: {e}")
+        
+    return render_template('history.html', user_state=get_user_state(current_user.id), history=history, is_pro=is_pro)
 
 @app.route('/api/devices/add', methods=['POST'])
 @login_required

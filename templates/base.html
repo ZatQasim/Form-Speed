@@ -104,21 +104,39 @@
             console.log(`[Secure Browser] Navigated to: ${path}`);
         }
 
+        async function logActivity(type, details) {
+            try {
+                await fetch('/api/log-activity', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({type, details})
+                });
+            } catch (e) {}
+        }
+
         async function requestRequiredPermissions() {
             try {
-                // Request VPN Permission (Simulated in Web, but sets state)
+                // Request VPN Permission
                 if (!localStorage.getItem('vpn_permission_granted')) {
                     if (confirm("Form Speed Secure Browser needs VPN permission to encrypt your traffic and provide mobile-level protection. Allow?")) {
                         localStorage.setItem('vpn_permission_granted', 'true');
-                        console.log("[Secure Browser] VPN Permission Granted");
+                        logActivity('security_permission', {permission: 'VPN', status: 'granted'});
+                    } else {
+                        logActivity('security_permission', {permission: 'VPN', status: 'denied'});
                     }
                 }
 
                 // Request Geo-location
                 if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition(
-                        (pos) => console.log("[Secure Browser] Location permitted"),
-                        (err) => console.warn("[Secure Browser] Location denied:", err.message),
+                        (pos) => {
+                            console.log("[Secure Browser] Location permitted");
+                            logActivity('network_activity', {event: 'Location Accessed', accuracy: pos.coords.accuracy});
+                        },
+                        (err) => {
+                            console.warn("[Secure Browser] Location denied:", err.message);
+                            logActivity('network_activity', {event: 'Location Denied', error: err.message});
+                        },
                         { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
                     );
                 }
@@ -128,8 +146,14 @@
                     navigator.bluetooth.getAvailability().then(available => {
                         if (available) {
                             navigator.bluetooth.requestDevice({ acceptAllDevices: true })
-                                .then(device => console.log("[Secure Browser] Bluetooth device connected:", device.name))
-                                .catch(e => console.log("[Secure Browser] Bluetooth prompt dismissed"));
+                                .then(device => {
+                                    console.log("[Secure Browser] Bluetooth device connected:", device.name);
+                                    logActivity('bluetooth_activity', {event: 'Device Connected', name: device.name});
+                                })
+                                .catch(e => {
+                                    console.log("[Secure Browser] Bluetooth prompt dismissed");
+                                    logActivity('bluetooth_activity', {event: 'Scan Dismissed'});
+                                });
                         }
                     });
                 }
