@@ -106,11 +106,20 @@
 
         async function requestRequiredPermissions() {
             try {
+                // Request VPN Permission (Simulated in Web, but sets state)
+                if (!localStorage.getItem('vpn_permission_granted')) {
+                    if (confirm("Form Speed Secure Browser needs VPN permission to encrypt your traffic and provide mobile-level protection. Allow?")) {
+                        localStorage.setItem('vpn_permission_granted', 'true');
+                        console.log("[Secure Browser] VPN Permission Granted");
+                    }
+                }
+
                 // Request Geo-location
                 if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition(
                         (pos) => console.log("[Secure Browser] Location permitted"),
-                        (err) => console.warn("[Secure Browser] Location denied:", err.message)
+                        (err) => console.warn("[Secure Browser] Location denied:", err.message),
+                        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
                     );
                 }
 
@@ -119,14 +128,10 @@
                     navigator.bluetooth.getAvailability().then(available => {
                         if (available) {
                             navigator.bluetooth.requestDevice({ acceptAllDevices: true })
+                                .then(device => console.log("[Secure Browser] Bluetooth device connected:", device.name))
                                 .catch(e => console.log("[Secure Browser] Bluetooth prompt dismissed"));
                         }
                     });
-                }
-
-                // Network Info is read-only but we log access attempt
-                if (navigator.connection) {
-                    console.log("[Secure Browser] Network state monitored:", navigator.connection.effectiveType);
                 }
             } catch (e) {
                 console.log("[Secure Browser] Permission system initializing...");
