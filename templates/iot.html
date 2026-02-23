@@ -30,12 +30,16 @@
     <main class="dashboard-content">
         <div class="header-with-status">
             <h1>IoT Smart Interface</h1>
+            <p class="text-secondary">Enhanced control for QR, Barcode, and NFC protocols.</p>
         </div>
 
         <div class="iot-grid">
             <!-- QR/Barcode Scanner Section -->
             <div class="card glass-card scanner-section">
-                <h3><i class="fas fa-qrcode text-primary mr-2"></i>QR & Barcode Scanner</h3>
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3><i class="fas fa-qrcode text-primary mr-2"></i>QR & Barcode Scanner</h3>
+                    <span class="badge badge-primary">Surfshark Enhanced</span>
+                </div>
                 <div class="scanner-container mt-4">
                     <div id="reader" style="width: 100%; border-radius: 16px; overflow: hidden; background: #000;"></div>
                     <div class="scanner-overlay" id="scanner-overlay">
@@ -55,7 +59,10 @@
 
             <!-- NFC Interface Section -->
             <div class="card glass-card nfc-section">
-                <h3><i class="fas fa-rss text-warning mr-2"></i>NFC Proximity Link</h3>
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3><i class="fas fa-rss text-warning mr-2"></i>NFC Proximity Link</h3>
+                    <span class="badge badge-warning">Active Sync</span>
+                </div>
                 <div class="nfc-visual mt-4">
                     <div class="nfc-ring" id="nfc-ring">
                         <i class="fas fa-mobile-alt fa-3x"></i>
@@ -226,6 +233,15 @@
 }
 
 .break-all { word-break: break-all; }
+
+.badge {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+.badge-primary { background: var(--primary); color: white; }
+.badge-warning { background: var(--warning); color: black; }
 </style>
 
 <script>
