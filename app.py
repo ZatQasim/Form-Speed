@@ -338,12 +338,7 @@ def get_real_network_metrics():
     return metrics
 
 VPN_SERVERS = [
-    {'id': 'us-east', 'name': 'US East', 'location': 'New York', 'ip': '104.248.0.1', 'ipsec_id': 'form-useast-01', 'capacity': 85, 'protocols': ['IPSec', 'WireGuard']},
-    {'id': 'us-west', 'name': 'US West', 'location': 'Los Angeles', 'ip': '137.184.0.1', 'ipsec_id': 'form-uswest-01', 'capacity': 72, 'protocols': ['IPSec', 'WireGuard']},
-    {'id': 'europe', 'name': 'Europe', 'location': 'Amsterdam', 'ip': '164.92.0.1', 'ipsec_id': 'form-eu-01', 'capacity': 65, 'protocols': ['IPSec', 'WireGuard']},
-    {'id': 'asia', 'name': 'Asia Pacific', 'location': 'Tokyo', 'ip': '143.198.0.1', 'ipsec_id': 'form-asia-01', 'capacity': 78, 'protocols': ['IPSec', 'WireGuard']},
-    {'id': 'uk', 'name': 'United Kingdom', 'location': 'London', 'ip': '178.128.0.1', 'ipsec_id': 'form-uk-01', 'capacity': 68, 'protocols': ['IPSec', 'WireGuard']},
-    {'id': 'germany', 'name': 'Germany', 'location': 'Frankfurt', 'ip': '167.99.0.1', 'ipsec_id': 'form-germany-01', 'capacity': 82, 'protocols': ['IPSec', 'WireGuard']}
+    {'id': 'form-primary', 'name': 'Form Primary', 'location': 'Cloud Native', 'ip': os.environ.get('REPLIT_DEV_DOMAIN', '127.0.0.1'), 'ipsec_id': 'form-primary-01', 'capacity': 95, 'protocols': ['BIND_VPN_SERVICE', 'WireGuard']},
 ]
 
 # --- Database Models ---

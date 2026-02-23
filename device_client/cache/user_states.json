@@ -36,7 +36,17 @@
     "apn_name": "form.speed.net",
     "vpn_connected_at": "2026-02-15T02:42:18.330914",
     "assigned_ip": "10.8.0.3",
-    "incognito_enabled": true
+    "incognito_enabled": false,
+    "devices": [
+      {
+        "id": "29396024fdef9dd8",
+        "name": "G.",
+        "type": "desktop",
+        "os": "G",
+        "last_active": "2026-02-23T15:16:48.122483",
+        "is_current": false
+      }
+    ]
   },
   "2": {
     "vpn_enabled": true,
