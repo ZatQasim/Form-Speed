@@ -252,60 +252,64 @@ def get_network_info():
         return {'ip_address': 'Unknown', 'isp': 'Unknown', 'carrier': 'Unknown', 'city': 'Unknown', 'region': 'Unknown', 'country': 'Unknown', 'network_type': 'Unknown'}
 
 def log_activity(user_id, activity_type, details):
-      try:
-          # ABSOLUTE PRIVACY: If incognito is active for the current request, abort all logging
-          from flask import request
-          if hasattr(request, 'incognito') and getattr(request, 'incognito'):
-              return
-      except:
-          pass
-      try:
-          path = 'device_client/cache/connection_history.json'
-          os.makedirs(os.path.dirname(path), exist_ok=True)
-          history = []
-          if os.path.exists(path):
-              with open(path, 'r') as f:
-                  history = json.load(f)
-          history.insert(0, {
-              'user_id': user_id,
-              'type': activity_type,
-              'timestamp': datetime.utcnow().isoformat(),
-              'details': details
-          })
-          
-          # Log every device connected through Bluetooth and Wi-Fi as requested
-          if activity_type in ['bluetooth_activity', 'network_activity']:
-              try:
-                  device_log_path = 'device_client/cache/all_devices_ever.json'
-                  os.makedirs(os.path.dirname(device_log_path), exist_ok=True)
-                  all_devices = []
-                  if os.path.exists(device_log_path):
-                      with open(device_log_path, 'r') as f:
-                          all_devices = json.load(f)
-                  
-                  device_info = details.copy()
-                  device_info['discovery_type'] = 'Bluetooth' if activity_type == 'bluetooth_activity' else 'Wi-Fi'
-                  device_info['first_seen'] = datetime.utcnow().isoformat()
-                  
-                  # Simple check to avoid exact duplicates in the "ever" log
-                  is_new = True
-                  for d in all_devices:
-                      if d.get('name') == device_info.get('name') or d.get('target') == device_info.get('target'):
-                          is_new = False
-                          break
-                  
-                  if is_new:
-                      all_devices.append(device_info)
-                      with open(device_log_path, 'w') as f:
-                          json.dump(all_devices, f, indent=2)
-              except:
-                  pass
+    try:
+        # ABSOLUTE PRIVACY: If incognito is active for the current request, abort all logging
+        from flask import request
+        if hasattr(request, 'incognito') and getattr(request, 'incognito'):
+            return
+    except:
+        pass
+    try:
+        path = 'device_client/cache/connection_history.json'
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        history = []
+        if os.path.exists(path):
+            with open(path, 'r') as f:
+                history = json.load(f)
+        
+        entry = {
+            'user_id': user_id,
+            'type': activity_type,
+            'timestamp': datetime.utcnow().isoformat(),
+            'details': details
+        }
+        history.insert(0, entry)
+        
+        # Log every device connected through Bluetooth and Wi-Fi as requested
+        if activity_type in ['bluetooth_activity', 'network_activity']:
+            try:
+                device_log_path = 'device_client/cache/all_devices_ever.json'
+                os.makedirs(os.path.dirname(device_log_path), exist_ok=True)
+                all_devices = []
+                if os.path.exists(device_log_path):
+                    with open(device_log_path, 'r') as f:
+                        all_devices = json.load(f)
+                
+                device_info = details.copy()
+                device_info['discovery_type'] = 'Bluetooth' if activity_type == 'bluetooth_activity' else 'Wi-Fi'
+                device_info['first_seen'] = datetime.utcnow().isoformat()
+                device_info['timestamp'] = device_info['first_seen']
+                
+                # Simple check to avoid exact duplicates in the "ever" log
+                is_new = True
+                for d in all_devices:
+                    if (d.get('name') == device_info.get('name') and d.get('name')) or \
+                       (d.get('target') == device_info.get('target') and d.get('target')):
+                        is_new = False
+                        break
+                
+                if is_new:
+                    all_devices.append(device_info)
+                    with open(device_log_path, 'w') as f:
+                        json.dump(all_devices, f, indent=2)
+            except Exception as e:
+                print(f"Error logging device ever: {e}")
 
-          history = history[:100]
-          with open(path, 'w') as f:
-              json.dump(history, f, indent=2)
-      except Exception as e:
-          print(f"Error logging activity: {e}")
+        history = history[:100]
+        with open(path, 'w') as f:
+            json.dump(history, f, indent=2)
+    except Exception as e:
+        print(f"Error logging activity: {e}")
 
 def get_real_network_metrics():
     latency = measure_latency()
@@ -1734,7 +1738,7 @@ def api_delete_account():
 @login_required
 def devices_dashboard():
     # Load connection history to show all "ever connected" devices
-    history_path = 'device_client/cache/connection_history.json'
+    history_path = 'device_client/cache/all_devices_ever.json'
     history = []
     if os.path.exists(history_path):
         try:
@@ -1751,26 +1755,26 @@ def devices_dashboard():
     user_state = get_user_state(current_user.id)
     current_devices = user_state.get('devices', [])
     for d in current_devices:
-        if d.get('id') not in seen_ids:
+        d_id = d.get('id') or d.get('name')
+        if d_id not in seen_ids:
             connected_devices.append(d)
-            seen_ids.add(d.get('id'))
+            seen_ids.add(d_id)
 
-    # Add historical devices from connection history (Bluetooth/WiFi)
+    # Add historical devices from "all devices ever" log
     for entry in history:
-        if entry.get('type') in ['iot_event', 'device_connect', 'network_event']:
-            details = entry.get('details', {})
-            dev_id = details.get('device_id') or details.get('id')
-            if dev_id and dev_id not in seen_ids:
-                connected_devices.append({
-                    'id': dev_id,
-                    'name': details.get('name') or details.get('device_name') or 'Historical Device',
-                    'type': details.get('type') or 'mobile',
-                    'os': details.get('os') or 'Unknown OS',
-                    'last_active': entry.get('timestamp'),
-                    'is_current': False,
-                    'source': 'history'
-                })
-                seen_ids.add(dev_id)
+        dev_id = entry.get('device_id') or entry.get('target') or entry.get('name')
+        if dev_id and dev_id not in seen_ids:
+            connected_devices.append({
+                'id': dev_id,
+                'name': entry.get('name') or entry.get('device_name') or 'Historical Device',
+                'type': entry.get('type') or 'mobile',
+                'os': entry.get('os') or 'Unknown OS',
+                'last_active': entry.get('timestamp') or entry.get('first_seen'),
+                'is_current': False,
+                'source': 'history',
+                'discovery_type': entry.get('discovery_type')
+            })
+            seen_ids.add(dev_id)
 
     return render_template('devices.html', devices=connected_devices, user_state=user_state)
 

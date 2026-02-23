@@ -45,7 +45,11 @@
             {% for device in devices %}
             <div class="device-card {% if device.is_current %}current{% endif %}">
                 <div class="device-icon">
-                    {% if device.type == 'web' %}
+                    {% if device.discovery_type == 'Bluetooth' %}
+                    <i class="fab fa-bluetooth-b" style="font-size: 2rem; color: #0082fc;"></i>
+                    {% elif device.discovery_type == 'Wi-Fi' %}
+                    <i class="fas fa-wifi" style="font-size: 2rem; color: #34a853;"></i>
+                    {% elif device.type == 'web' %}
                     <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
                     {% elif device.type == 'mobile' %}
                     <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
