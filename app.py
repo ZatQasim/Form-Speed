@@ -30,11 +30,11 @@ def handle_incognito_privacy():
         if session.get("incognito_active"):
             import logging
             logging.getLogger("werkzeug").disabled = True
-            request.incognito = True
+            setattr(request, 'incognito', True)
         else:
             import logging
             logging.getLogger("werkzeug").disabled = False
-            request.incognito = False
+            setattr(request, 'incognito', False)
     except:
         pass
 
@@ -255,7 +255,7 @@ def log_activity(user_id, activity_type, details):
       try:
           # ABSOLUTE PRIVACY: If incognito is active for the current request, abort all logging
           from flask import request
-          if hasattr(request, 'incognito') and request.incognito:
+          if hasattr(request, 'incognito') and getattr(request, 'incognito'):
               return
       except:
           pass
@@ -330,13 +330,13 @@ class User(UserMixin, db.Model):
     totp_secret = db.Column(db.String(32))
     totp_enabled = db.Column(db.Boolean, default=False)
 
-def set_password(self, password):
+    def set_password(self, password):
         self.password_hash = generate_password_hash(password)
-    
-def check_password(self, password):
+
+    def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-def delete_account(self):
+    def delete_account(self):
         # Remove from pro config
         pro_config = load_pro_config()
         pro_users = pro_config.get('pro_users', [])
@@ -353,7 +353,7 @@ def delete_account(self):
         db.session.delete(self)
         db.session.commit()
 
-def has_active_subscription(self):
+    def has_active_subscription(self):
         try:
             pro_config = load_pro_config()
             pro_users = pro_config.get('pro_users', [])
@@ -374,7 +374,7 @@ def has_active_subscription(self):
         if self.trial_end and self.trial_end > datetime.utcnow(): return True
         return False
     
-def get_benefits(self):
+    def get_benefits(self):
         is_premier = (self.plan_tag == 'Premier')
         is_regular = (self.plan_tag == 'Regular')
         has_sub = self.has_active_subscription()
@@ -417,45 +417,6 @@ class PasswordEntry(db.Model):
   
 
 # --- Routes and Views ---
-
-@app.route('/api/incognito/toggle', methods=['POST'])
-@login_required
-def api_incognito_toggle():
-      try:
-          data = request.get_json()
-          enabled = data.get('enabled', False)
-          update_user_state(current_user.id, {'incognito_enabled': enabled})
-          session['incognito_active'] = enabled
-          return jsonify({'success': True, 'enabled': enabled})
-      except Exception as e:
-          return jsonify({'success': False, 'error': str(e)}), 500
-  
-
-  
-  
-
-  
-
-  
-
-  
-
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 @app.route('/api/cloud/upload', methods=['POST'])
 @login_required
@@ -1912,8 +1873,10 @@ def search_proxy():
                 attr = 'href' if tag.name in ['a', 'link'] else ('src' if tag.name in ['script', 'img'] else 'action')
                 if tag.has_attr(attr):
                     original_val = tag[attr]
+                    if isinstance(original_val, list):
+                        original_val = " ".join(original_val)
                     if not original_val.startswith(('mailto:', 'tel:', 'javascript:', '#', 'data:')):
-                        absolute_url = urljoin(url, original_val)
+                        absolute_url = urljoin(url, str(original_val))
                         tag[attr] = url_for('search_proxy', url=absolute_url)
             
             # Ensure base tag for relative paths that BeautifulSoup might miss
@@ -1978,8 +1941,7 @@ def search_query():
     try:
         from openai import OpenAI
 
-  
-          api_key = os.environ.get("OPENAI_API_KEY")
+        api_key = os.environ.get("OPENAI_API_KEY")
         if api_key:
             client = OpenAI(api_key=api_key)
             # Use a broader prompt to get more realistic results
