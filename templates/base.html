@@ -64,16 +64,13 @@
         async function checkConnectionStatus() {
             try {
                 const response = await fetch('/api/vpn/status');
-                if (response.status === 401) {
-                    return; // Don't process if unauthorized, avoid loop
-                }
+                if (!response.ok) return;
                 const data = await response.json();
                 const banner = document.getElementById('connection-banner');
                 const bannerText = document.getElementById('banner-text');
                 if (banner && bannerText) {
                     if (data.active || data.vpn_enabled || data.hub_active) {
                         banner.classList.remove('d-none');
-                        // LIVE SYSTEM MODE: Actual real-time text sync
                         if (data.mode) {
                             bannerText.textContent = `Connected (${data.mode})`;
                         } else if (data.hub_active) {
@@ -86,12 +83,25 @@
                     }
                 }
             } catch (e) {
-                // Silently handle polling errors
+                console.error("Status check failed", e);
             }
         }
         
-        // Surfshark/Tor Style URL Update and Operating Logic
-        function updateSecureBrowserState() {
+        function showNotification(message, type = 'info') {
+            const container = document.querySelector('.flash-messages') || document.body;
+            const flash = document.createElement('div');
+            flash.className = `alert alert-${type} alert-dismissible fade show`;
+            flash.role = 'alert';
+            flash.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            container.prepend(flash);
+            setTimeout(() => {
+                const bsAlert = new bootstrap.Alert(flash);
+                bsAlert.close();
+            }, 5000);
+        }
             const path = window.location.pathname;
             const sidebarLinks = document.querySelectorAll('.sidebar-nav a');
             sidebarLinks.forEach(link => {

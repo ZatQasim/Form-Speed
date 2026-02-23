@@ -1605,8 +1605,8 @@ def add_device():
     user_state = states.get(str(current_user.id), {})
     devices = user_state.get('devices', [])
     
-    if len(devices) >= 5:
-        return jsonify({'success': False, 'error': 'Device limit reached'}), 400
+    if len(devices) >= 10:
+        return jsonify({'success': False, 'error': 'Device limit reached (10 devices)'}), 400
         
     new_device = {
         'id': secrets.token_hex(8),
@@ -1668,13 +1668,46 @@ def api_delete_account():
 @app.route('/dashboard/devices')
 @login_required
 def devices_dashboard():
-    is_pro = current_user.has_active_subscription()
-    if not is_pro:
-        flash('Device Management requires a Pro subscription', 'warning')
-        return redirect(url_for('subscribe'))
+    # Load connection history to show all "ever connected" devices
+    history_path = 'device_client/cache/connection_history.json'
+    history = []
+    if os.path.exists(history_path):
+        try:
+            with open(history_path, 'r') as f:
+                history = json.load(f)
+        except:
+            pass
+    
+    # Filter for device-related events and extract unique devices
+    connected_devices = []
+    seen_ids = set()
+    
+    # Add currently registered devices first
     user_state = get_user_state(current_user.id)
-    devices = user_state.get('devices', [])
-    return render_template('devices.html', user_state=user_state, devices=devices, is_pro=is_pro)
+    current_devices = user_state.get('devices', [])
+    for d in current_devices:
+        if d.get('id') not in seen_ids:
+            connected_devices.append(d)
+            seen_ids.add(d.get('id'))
+
+    # Add historical devices from connection history (Bluetooth/WiFi)
+    for entry in history:
+        if entry.get('type') in ['iot_event', 'device_connect', 'network_event']:
+            details = entry.get('details', {})
+            dev_id = details.get('device_id') or details.get('id')
+            if dev_id and dev_id not in seen_ids:
+                connected_devices.append({
+                    'id': dev_id,
+                    'name': details.get('name') or details.get('device_name') or 'Historical Device',
+                    'type': details.get('type') or 'mobile',
+                    'os': details.get('os') or 'Unknown OS',
+                    'last_active': entry.get('timestamp'),
+                    'is_current': False,
+                    'source': 'history'
+                })
+                seen_ids.add(dev_id)
+
+    return render_template('devices.html', devices=connected_devices, user_state=user_state)
 
 @app.route('/dashboard/account')
 @login_required

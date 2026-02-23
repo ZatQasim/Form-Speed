@@ -180,16 +180,23 @@ document.getElementById('cloud-upload-input').onchange = async function(e) {
             method: 'POST',
             body: formData
         });
-        const data = await result.json();
-        if (data.success) {
-            loadFiles();
+        
+        const contentType = result.headers.get("content-type");
+        if (contentType && contentType.indexOf("application/json") !== -1) {
+            const data = await result.json();
+            if (data.success) {
+                loadFiles();
+                showNotification('Upload successful', 'success');
+            } else {
+                showNotification('Upload failed: ' + (data.error || 'Unknown error'), 'danger');
+            }
         } else {
-            alert('Upload failed: ' + (data.error || 'Unknown error'));
+            showNotification('Upload failed: Server returned an invalid response', 'danger');
         }
     } catch (err) {
-        alert('Upload failed: ' + err.message);
+        showNotification('Upload failed: ' + err.message, 'danger');
     } finally {
-        btn.textContent = 'Upload File';
+        btn.textContent = 'Upload';
         btn.disabled = false;
     }
 };
