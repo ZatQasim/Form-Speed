@@ -22,7 +22,7 @@
     "last_optimization": "2026-01-24T12:08:26.385386",
     "speed_sharing_guest": true,
     "speed_sharing_host": "Peer-Form-Speed-User",
-    "guest_access_until": "2026-03-22T06:58:22.217777",
+    "guest_access_until": "2026-03-25T11:57:34.000761",
     "optimization_improvement_ms": 0,
     "protected_since": "2026-01-29T03:37:39.129640",
     "optimization_strategy": "Direct Carrier Peering",
@@ -35,7 +35,8 @@
     "apn_configured": true,
     "apn_name": "form.speed.net",
     "vpn_connected_at": "2026-02-15T02:42:18.330914",
-    "assigned_ip": "10.8.0.3"
+    "assigned_ip": "10.8.0.3",
+    "incognito_enabled": true
   },
   "2": {
     "vpn_enabled": true,
