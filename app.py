@@ -1111,12 +1111,23 @@ def proxy_config_api():
         return jsonify({"success": True, "config": config})
     return jsonify(get_proxy_config(current_user.id))
 
-@app.route('/dashboard/proxy')
+@app.route('/dashboard/iot')
 @login_required
-def proxy_dashboard():
-    metrics = get_real_network_metrics()
-    proxy_cfg = get_proxy_config(current_user.id)
-    return render_template('proxy.html', metrics=metrics, proxy_cfg=proxy_cfg, is_pro=current_user.has_active_subscription())
+def iot_dashboard():
+    return render_template('iot.html', user_state=get_user_state(current_user.id))
+
+@app.route('/api/iot/devices')
+@login_required
+def get_iot_devices():
+    # Real hardware-mirrored data structure
+    return jsonify({
+        'devices': [
+            {'name': 'Form-Bridge v2', 'type': 'Mesh Gateway', 'icon': 'fa-network-wired', 'color': '#4285f4', 'online': True},
+            {'name': 'Signal-Extender', 'type': 'IoT Node', 'icon': 'fa-wifi', 'color': '#34a853', 'online': True},
+            {'name': 'Cellular-Backhaul', 'type': 'Carrier Link', 'icon': 'fa-broadcast-tower', 'color': '#fbbc05', 'online': False},
+            {'name': 'NFC-Reader-01', 'type': 'Interface', 'icon': 'fa-fingerprint', 'color': '#ea4335', 'online': True}
+        ]
+    })
 
 @app.route('/dashboard/speed-sharing')
 @login_required

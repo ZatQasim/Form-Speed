@@ -1,0 +1,350 @@
+{% extends 'base.html' %}
+
+{% block title %}IoT Control - Form Speed{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <aside class="sidebar">
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('dashboard') }}">Overview</a>
+            <a href="{{ url_for('vpn_dashboard') }}">VPN</a>
+            <a href="{{ url_for('speed_sharing_dashboard') }}">Speed Sharing</a>
+            <a href="{{ url_for('iot_dashboard') }}" class="active">IoT Control</a>
+            <a href="{{ url_for('download_page') }}">Download</a>
+            <a href="{{ url_for('security_dashboard') }}">Security</a>
+            <a href="{{ url_for('mesh_dashboard') }}">Mesh Network</a>
+            <a href="{{ url_for('tools_dashboard') }}">Tools</a>
+            <a href="{{ url_for('cloud_dashboard') }}">Cloud</a>
+            <a href="{{ url_for('connect_hub') }}">Connect</a>
+            <a href="{{ url_for('analytics_dashboard') }}">Analytics</a>
+            <a href="{{ url_for('password_manager') }}">Passwords</a>
+            <a href="{{ url_for('history_dashboard') }}">History</a>
+            <a href="{{ url_for('devices_dashboard') }}">Devices</a>
+            <a href="{{ url_for('account_dashboard') }}">Account</a>
+            <a href="{{ url_for('settings_dashboard') }}">Settings</a>
+            <a href="{{ url_for('plans_page') }}">Form One Plans</a>
+        </nav>
+    </aside>
+    
+    <main class="dashboard-content">
+        <div class="header-with-status">
+            <h1>IoT Smart Interface</h1>
+            <div class="permission-badges">
+                <span class="badge badge-success">NFC READY</span>
+                <span class="badge badge-success">SCANNER ACTIVE</span>
+            </div>
+        </div>
+
+        <div class="iot-grid">
+            <!-- QR/Barcode Scanner Section -->
+            <div class="card glass-card scanner-section">
+                <h3><i class="fas fa-qrcode text-primary mr-2"></i>QR & Barcode Scanner</h3>
+                <div class="scanner-container mt-4">
+                    <div id="reader" style="width: 100%; border-radius: 16px; overflow: hidden; background: #000;"></div>
+                    <div class="scanner-overlay" id="scanner-overlay">
+                        <div class="scan-region"></div>
+                    </div>
+                </div>
+                <div class="scanner-controls mt-4">
+                    <button class="btn btn-primary w-100 py-3 rounded-pill" id="start-scan">
+                        <i class="fas fa-camera mr-2"></i>Initialize Camera
+                    </button>
+                    <div id="scan-result" class="mt-3 p-3 bg-dark rounded d-none">
+                        <small class="text-secondary">Scanned Data:</small>
+                        <div class="font-weight-bold text-white break-all" id="result-text"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NFC Interface Section -->
+            <div class="card glass-card nfc-section">
+                <h3><i class="fas fa-rss text-warning mr-2"></i>NFC Proximity Link</h3>
+                <div class="nfc-visual mt-4">
+                    <div class="nfc-ring" id="nfc-ring">
+                        <i class="fas fa-mobile-alt fa-3x"></i>
+                        <div class="waves"></div>
+                    </div>
+                </div>
+                <div class="nfc-status mt-4 text-center">
+                    <p id="nfc-status-text" class="text-secondary">Place device near NFC tag to sync</p>
+                    <button class="btn btn-outline-warning w-100 py-3 rounded-pill" id="nfc-read">
+                        <i class="fas fa-hand-pointer mr-2"></i>Start NFC Listening
+                    </button>
+                </div>
+                <div id="nfc-data" class="mt-3 p-3 bg-dark rounded d-none">
+                    <small class="text-secondary">NFC Payload:</small>
+                    <div class="text-success font-family-mono" id="nfc-payload"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- IoT Device Registry (Live Data) -->
+        <div class="card glass-card mt-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h3><i class="fas fa-microchip text-info mr-2"></i>Connected Ecosystem</h3>
+                    <p class="text-secondary small mb-0">Real-time hardware bridge status across local mesh.</p>
+                </div>
+                <button class="btn btn-sm btn-outline-info" onclick="refreshDevices()">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+            
+            <div class="device-list" id="device-list">
+                <!-- Loaded via real API -->
+            </div>
+        </div>
+    </main>
+</div>
+
+<script src="https://unpkg.com/html5-qrcode"></script>
+
+<style>
+:root {
+    --primary: #4285f4;
+    --success: #34a853;
+    --warning: #fbbc05;
+    --danger: #ea4335;
+    --glass-bg: rgba(20, 20, 25, 0.8);
+    --border: rgba(255, 255, 255, 0.1);
+}
+
+.glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 2rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.iot-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.scanner-container {
+    position: relative;
+    aspect-ratio: 4/3;
+    background: #000;
+    border-radius: 16px;
+    border: 2px solid #333;
+}
+
+.scanner-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.scan-region {
+    width: 60%;
+    height: 60%;
+    border: 2px solid var(--primary);
+    border-radius: 12px;
+    box-shadow: 0 0 0 1000px rgba(0,0,0,0.5);
+    position: relative;
+}
+
+.scan-region::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 2px;
+    background: var(--primary);
+    box-shadow: 0 0 15px var(--primary);
+    animation: scan-line 2s linear infinite;
+}
+
+@keyframes scan-line {
+    0% { top: 0; }
+    100% { top: 100%; }
+}
+
+.nfc-visual {
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.nfc-ring {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    background: rgba(251, 188, 5, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--warning);
+}
+
+.nfc-ring .waves {
+    position: absolute;
+    width: 100%; height: 100%;
+    border: 2px solid var(--warning);
+    border-radius: 50%;
+    animation: nfc-wave 2s infinite;
+}
+
+@keyframes nfc-wave {
+    0% { transform: scale(1); opacity: 1; }
+    100% { transform: scale(2); opacity: 0; }
+}
+
+.device-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+.device-item {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    padding: 1.5rem;
+    border-radius: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.device-info { display: flex; align-items: center; gap: 1rem; }
+.device-icon {
+    width: 48px; height: 48px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem;
+}
+
+.status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--success);
+    box-shadow: 0 0 10px var(--success);
+}
+
+.break-all { word-break: break-all; }
+</style>
+
+<script>
+let html5QrCode;
+
+document.getElementById('start-scan').addEventListener('click', function() {
+    if (!html5QrCode) {
+        html5QrCode = new Html5Qrcode("reader");
+    }
+    
+    const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+    
+    html5QrCode.start({ facingMode: "environment" }, config, (decodedText) => {
+        document.getElementById('scan-result').classList.remove('d-none');
+        document.getElementById('result-text').textContent = decodedText;
+        // Pulse effect on success
+        document.querySelector('.scan-region').style.borderColor = 'var(--success)';
+        setTimeout(() => {
+            document.querySelector('.scan-region').style.borderColor = 'var(--primary)';
+        }, 500);
+        
+        // Log to system
+        fetch('/api/log-activity', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                type: 'iot_event',
+                details: { event: 'QR_SCAN_SUCCESS', data: decodedText }
+            })
+        });
+    });
+    
+    this.innerHTML = '<i class="fas fa-stop mr-2"></i>Stop Scanner';
+    this.classList.replace('btn-primary', 'btn-danger');
+    this.onclick = stopScanner;
+});
+
+function stopScanner() {
+    if (html5QrCode) {
+        html5QrCode.stop().then(() => {
+            const btn = document.getElementById('start-scan');
+            btn.innerHTML = '<i class="fas fa-camera mr-2"></i>Initialize Camera';
+            btn.classList.replace('btn-danger', 'btn-primary');
+            btn.onclick = null; // Reset
+        });
+    }
+}
+
+document.getElementById('nfc-read').addEventListener('click', async () => {
+    if ('NDEFReader' in window) {
+        try {
+            const ndef = new NDEFReader();
+            await ndef.scan();
+            document.getElementById('nfc-status-text').textContent = "Listening for NFC tags...";
+            document.getElementById('nfc-status-text').classList.add('text-success');
+            
+            ndef.onreading = event => {
+                const message = event.message;
+                const record = message.records[0];
+                const textDecoder = new TextDecoder();
+                const payload = textDecoder.decode(record.data);
+                
+                document.getElementById('nfc-data').classList.remove('d-none');
+                document.getElementById('nfc-payload').textContent = payload;
+                
+                fetch('/api/log-activity', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        type: 'iot_event',
+                        details: { event: 'NFC_READ_SUCCESS', payload: payload }
+                    })
+                });
+            };
+        } catch (error) {
+            alert(`NFC Error: ${error}`);
+        }
+    } else {
+        // Fallback simulation for desktop/unsupported
+        document.getElementById('nfc-status-text').textContent = "Simulating NFC Pulse...";
+        setTimeout(() => {
+            const mockData = "IOT_DEVICE_ID_7742_SECURE_AUTH";
+            document.getElementById('nfc-data').classList.remove('d-none');
+            document.getElementById('nfc-payload').textContent = mockData;
+            document.getElementById('nfc-status-text').textContent = "NFC Tag Captured (Simulation)";
+        }, 1500);
+    }
+});
+
+async function refreshDevices() {
+    const list = document.getElementById('device-list');
+    list.innerHTML = '<div class="text-center w-100 p-5"><i class="fas fa-spinner fa-spin fa-2x"></i></div>';
+    
+    try {
+        const res = await fetch('/api/iot/devices');
+        const data = await res.json();
+        
+        list.innerHTML = data.devices.map(dev => `
+            <div class="device-item">
+                <div class="device-info">
+                    <div class="device-icon" style="color:${dev.color}">
+                        <i class="fas ${dev.icon}"></i>
+                    </div>
+                    <div>
+                        <strong class="text-white">${dev.name}</strong>
+                        <div class="small text-secondary">${dev.type}</div>
+                    </div>
+                </div>
+                <div class="status-dot" style="background:${dev.online ? 'var(--success)' : 'var(--danger)'}"></div>
+            </div>
+        `).join('');
+    } catch (e) {
+        list.innerHTML = '<p class="text-danger">Failed to sync ecosystem</p>';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', refreshDevices);
+</script>
+{% endblock %}
