@@ -19,12 +19,56 @@ from datetime import datetime, timedelta
 import ssl
 
 # --- App Configuration ---
-app = Flask(__name__, static_folder='static', template_folder='templates')
-app.config['SECRET_KEY'] = os.environ.get('SESSION_SECRET', 'dev-secret-key')
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///form.db')
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app = Flask(__name__, static_folder="static", template_folder="templates")
+app.config["SECRET_KEY"] = os.environ.get("SESSION_SECRET", "dev-secret-key")
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///form.db")
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+@app.before_request
+def handle_incognito_privacy():
+    try:
+        if session.get("incognito_active"):
+            import logging
+            logging.getLogger("werkzeug").disabled = True
+            request.incognito = True
+        else:
+            import logging
+            logging.getLogger("werkzeug").disabled = False
+            request.incognito = False
+    except:
+        pass
+
+@app.after_request
+def purge_incognito_traces(response):
+    try:
+        if session.get("incognito_active"):
+            response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+            response.headers["Pragma"] = "no-cache"
+            response.headers["Expires"] = "0"
+            response.headers["X-Incognito-Hardened"] = "true"
+    except:
+        pass
+    return response
+
+@app.route("/api/incognito/toggle", methods=["POST"])
+@login_required
+def api_incognito_toggle():
+    try:
+        data = request.get_json()
+        enabled = data.get("enabled", False)
+        update_user_state(current_user.id, {"incognito_enabled": enabled})
+        session["incognito_active"] = enabled
+        return jsonify({"success": True, "enabled": enabled})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
 
 db = SQLAlchemy(app)
+  
+
+
+
+
+
 login_manager = LoginManager(app)
 if True:
     login_manager.login_view = 'login' # type: ignore
@@ -207,6 +251,33 @@ def get_network_info():
     except:
         return {'ip_address': 'Unknown', 'isp': 'Unknown', 'carrier': 'Unknown', 'city': 'Unknown', 'region': 'Unknown', 'country': 'Unknown', 'network_type': 'Unknown'}
 
+def log_activity(user_id, activity_type, details):
+      try:
+          # ABSOLUTE PRIVACY: If incognito is active for the current request, abort all logging
+          from flask import request
+          if hasattr(request, 'incognito') and request.incognito:
+              return
+      except:
+          pass
+      try:
+          path = 'device_client/cache/connection_history.json'
+          os.makedirs(os.path.dirname(path), exist_ok=True)
+          history = []
+          if os.path.exists(path):
+              with open(path, 'r') as f:
+                  history = json.load(f)
+          history.insert(0, {
+              'user_id': user_id,
+              'type': activity_type,
+              'timestamp': datetime.utcnow().isoformat(),
+              'details': details
+          })
+          history = history[:100]
+          with open(path, 'w') as f:
+              json.dump(history, f, indent=2)
+      except Exception as e:
+          print(f"Error logging activity: {e}")
+
 def get_real_network_metrics():
     latency = measure_latency()
     network_info = get_network_info()
@@ -259,13 +330,13 @@ class User(UserMixin, db.Model):
     totp_secret = db.Column(db.String(32))
     totp_enabled = db.Column(db.Boolean, default=False)
 
-    def set_password(self, password):
+def set_password(self, password):
         self.password_hash = generate_password_hash(password)
     
-    def check_password(self, password):
+def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-    def delete_account(self):
+def delete_account(self):
         # Remove from pro config
         pro_config = load_pro_config()
         pro_users = pro_config.get('pro_users', [])
@@ -282,7 +353,7 @@ class User(UserMixin, db.Model):
         db.session.delete(self)
         db.session.commit()
 
-    def has_active_subscription(self):
+def has_active_subscription(self):
         try:
             pro_config = load_pro_config()
             pro_users = pro_config.get('pro_users', [])
@@ -303,7 +374,7 @@ class User(UserMixin, db.Model):
         if self.trial_end and self.trial_end > datetime.utcnow(): return True
         return False
     
-    def get_benefits(self):
+def get_benefits(self):
         is_premier = (self.plan_tag == 'Premier')
         is_regular = (self.plan_tag == 'Regular')
         has_sub = self.has_active_subscription()
@@ -340,7 +411,51 @@ class PasswordEntry(db.Model):
     category = db.Column(db.String(50)) # 'password', 'token', 'information'
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+
+
+
+  
+
 # --- Routes and Views ---
+
+@app.route('/api/incognito/toggle', methods=['POST'])
+@login_required
+def api_incognito_toggle():
+      try:
+          data = request.get_json()
+          enabled = data.get('enabled', False)
+          update_user_state(current_user.id, {'incognito_enabled': enabled})
+          session['incognito_active'] = enabled
+          return jsonify({'success': True, 'enabled': enabled})
+      except Exception as e:
+          return jsonify({'success': False, 'error': str(e)}), 500
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 @app.route('/api/cloud/upload', methods=['POST'])
 @login_required
@@ -527,8 +642,6 @@ def sync_pro_users():
             db.session.commit()
         except Exception as e: 
             print(f"Sync ERROR: {str(e)}")
-
-@app.before_request
 def auto_sync_pro():
     if request.path and not request.path.startswith('/static'): 
         sync_pro_users()
@@ -1152,27 +1265,7 @@ def verify_hardware_access():
 def incognito_mode():
     return render_template('incognito.html', user_state=get_user_state(current_user.id))
 
-@app.route('/api/incognito/toggle', methods=['POST'])
-@login_required
-def api_incognito_toggle():
-    enabled = request.json.get('enabled', False)
-    # Real logic: Hardening security settings and enabling high-performance routing
-    updates = {
-        'incognito_enabled': enabled,
-        'security_enabled': enabled,
-        'route_optimization_enabled': enabled,
-        'vpn_enabled': enabled
-    }
-    update_user_state(current_user.id, updates)
-    
-    # Log the system permission access (Wi-Fi, Network State)
-    log_activity(current_user.id, 'security_alert', {
-        'event': 'Incognito Mode Hardening',
-        'status': 'Active' if enabled else 'Disabled',
-        'permissions': ['ACCESS_WIFI_STATE', 'CHANGE_WIFI_STATE', 'ACCESS_NETWORK_STATE']
-    })
-    
-    return jsonify({'success': True})
+
 
 @app.route('/dashboard/speed-sharing')
 @login_required
@@ -1502,56 +1595,7 @@ def api_vpn_optimize_route():
 def diagnostics_dashboard():
     return redirect(url_for('tools_dashboard'))
 
-def log_activity(user_id, activity_type, details):
-    try:
-        path = 'device_client/cache/connection_history.json'
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        history = []
-        if os.path.exists(path):
-            with open(path, 'r') as f:
-                history = json.load(f)
-        
-        history.insert(0, {
-            'user_id': user_id,
-            'type': activity_type,
-            'timestamp': datetime.utcnow().isoformat(),
-            'details': details
-        })
-        
-        # PRO-LEVEL: Background System Traffic for "Nearby Networks"
-        if activity_type == 'network_activity' and 'Interface Scan' in details.get('event', ''):
-            history.insert(1, {
-                'user_id': user_id,
-                'type': 'network_security',
-                'timestamp': (datetime.utcnow()).isoformat(),
-                'details': {'event': 'Nearby Network Detected', 'ssid': 'Public_WiFi_Secure', 'signal': 'Excellent', 'status': 'Monitored'}
-            })
-            history.insert(2, {
-                'user_id': user_id,
-                'type': 'network_security',
-                'timestamp': (datetime.utcnow()).isoformat(),
-                'details': {'event': 'Background Scan', 'ssid': 'Home_Sync_Guest', 'signal': 'Fair', 'status': 'Encrypted'}
-            })
-            history.insert(3, {
-                'user_id': user_id,
-                'type': 'security_alert',
-                'timestamp': (datetime.utcnow()).isoformat(),
-                'details': {'event': 'Secret Access Attempt', 'source': 'Background Process', 'target': 'Telemetry.local', 'action': 'Intercepted'}
-            })
-            history.insert(4, {
-                'user_id': user_id,
-                'type': 'bluetooth_activity',
-                'timestamp': (datetime.utcnow()).isoformat(),
-                'details': {'event': 'Nearby Bluetooth Beacon', 'id': 'BT_MESH_01', 'signal': '-58dBm'}
-            })
-        
-        # Keep last 100 entries
-        history = history[:100]
-        
-        with open(path, 'w') as f:
-            json.dump(history, f, indent=2)
-    except Exception as e:
-        print(f"Error logging activity: {e}")
+
 
 @app.route('/api/log-activity', methods=['POST'])
 @login_required
@@ -1933,7 +1977,9 @@ def search_query():
     results = []
     try:
         from openai import OpenAI
-        api_key = os.environ.get("OPENAI_API_KEY")
+
+  
+          api_key = os.environ.get("OPENAI_API_KEY")
         if api_key:
             client = OpenAI(api_key=api_key)
             # Use a broader prompt to get more realistic results
