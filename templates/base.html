@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>{% block title %}Form Speed{% endblock %}</title>
+    <title>{% block title %}F-Speed{% endblock %}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -147,7 +147,7 @@
                     if (!document.getElementById('sync-trigger')) {
                         const syncBtn = document.createElement('button');
                         syncBtn.id = 'sync-trigger';
-                        syncBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> Authorize System Scan';
+                        syncBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> Scan';
                         syncBtn.style.cssText = "position: fixed; bottom: 80px; right: 20px; z-index: 9999; background: #ea4335; color: white; border: none; padding: 12px 24px; border-radius: 30px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); animation: pulse 2s infinite;";
                         syncBtn.onclick = forceSync;
                         document.body.appendChild(syncBtn);
