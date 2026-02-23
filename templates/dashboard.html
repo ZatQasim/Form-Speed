@@ -10,7 +10,7 @@
             <a href="{{ url_for('vpn_dashboard') }}" {% if not current_user.has_active_subscription() %}class="locked"{% endif %}>VPN</a>
             <a href="{{ url_for('private_search_dashboard') }}" {% if not current_user.has_active_subscription() %}class="locked"{% endif %}>Private Search</a>
             <a href="{{ url_for('speed_sharing_dashboard') }}" {% if not current_user.has_active_subscription() %}class="locked"{% endif %}>Speed Sharing</a>
-            <a href="{{ url_for('proxy_dashboard') }}" {% if not current_user.has_active_subscription() %}class="locked"{% endif %}>Proxy</a>
+            <a href="{{ url_for('iot_dashboard') }}" {% if not current_user.has_active_subscription() %}class="locked"{% endif %}>IoT Control</a>
             <a href="{{ url_for('download_page_dashboard') }}">Download</a>
             <a href="{{ url_for('security_dashboard') }}" {% if not current_user.has_active_subscription() %}class="locked"{% endif %}>Security</a>
             <a href="{{ url_for('mesh_dashboard') }}" {% if not current_user.has_active_subscription() %}class="locked"{% endif %}>Mesh Network</a>
