@@ -10,6 +10,7 @@
             <a href="{{ url_for('vpn_dashboard') }}" {% if not current_user.has_active_subscription() %}class="locked"{% endif %}>VPN</a>
             <a href="{{ url_for('private_search_dashboard') }}" {% if not current_user.has_active_subscription() %}class="locked"{% endif %}>Private Search</a>
             <a href="{{ url_for('speed_sharing_dashboard') }}" {% if not current_user.has_active_subscription() %}class="locked"{% endif %}>Speed Sharing</a>
+            <a href="{{ url_for('incognito_mode') }}">Incognito Mode</a>
             <a href="{{ url_for('iot_dashboard') }}" {% if not current_user.has_active_subscription() %}class="locked"{% endif %}>IoT Control</a>
             <a href="{{ url_for('download_page_dashboard') }}">Download</a>
             <a href="{{ url_for('security_dashboard') }}" {% if not current_user.has_active_subscription() %}class="locked"{% endif %}>Security</a>
@@ -66,6 +67,7 @@
                         <span class="service-status">{% if user_state.speed_sharing_enabled %}Sharing {{ user_state.shared_bandwidth_mbps }} Mbps{% else %}Disabled{% endif %}</span>
                     </div>
                     <a href="{{ url_for('speed_sharing_dashboard') }}" class="btn btn-small {% if user_state.speed_sharing_enabled %}btn-secondary{% else %}btn-primary{% endif %}">
+            <a href="{{ url_for('incognito_mode') }}">Incognito Mode</a>
                         {% if user_state.speed_sharing_enabled %}Manage{% else %}Enable{% endif %}
                     </a>
                 </div>
@@ -150,6 +152,7 @@
                     <p>{% if user_state.vpn_enabled %}Currently connected{% else %}Secure your connection{% endif %}</p>
                 </a>
                 <a href="{{ url_for('speed_sharing_dashboard') }}" class="action-card">
+            <a href="{{ url_for('incognito_mode') }}">Incognito Mode</a>
                     <h3>Speed Sharing</h3>
                     <p>{% if user_state.speed_sharing_enabled %}Contributing to network{% else %}Share bandwidth with peers{% endif %}</p>
                 </a>

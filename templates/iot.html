@@ -9,6 +9,7 @@
             <a href="{{ url_for('dashboard') }}">Overview</a>
             <a href="{{ url_for('vpn_dashboard') }}">VPN</a>
             <a href="{{ url_for('speed_sharing_dashboard') }}">Speed Sharing</a>
+            <a href="{{ url_for('incognito_mode') }}">Incognito Mode</a>
             <a href="{{ url_for('iot_dashboard') }}" class="active">IoT Control</a>
             <a href="{{ url_for('download_page') }}">Download</a>
             <a href="{{ url_for('security_dashboard') }}">Security</a>
@@ -29,10 +30,6 @@
     <main class="dashboard-content">
         <div class="header-with-status">
             <h1>IoT Smart Interface</h1>
-            <div class="permission-badges">
-                <span class="badge badge-success">NFC READY</span>
-                <span class="badge badge-success">SCANNER ACTIVE</span>
-            </div>
         </div>
 
         <div class="iot-grid">

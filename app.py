@@ -1129,6 +1129,33 @@ def get_iot_devices():
         ]
     })
 
+@app.route('/dashboard/incognito')
+@login_required
+def incognito_mode():
+    return render_template('incognito.html', user_state=get_user_state(current_user.id))
+
+@app.route('/api/incognito/toggle', methods=['POST'])
+@login_required
+def api_incognito_toggle():
+    enabled = request.json.get('enabled', False)
+    # Real logic: Hardening security settings and enabling high-performance routing
+    updates = {
+        'incognito_enabled': enabled,
+        'security_enabled': enabled,
+        'route_optimization_enabled': enabled,
+        'vpn_enabled': enabled
+    }
+    update_user_state(current_user.id, updates)
+    
+    # Log the system permission access (Wi-Fi, Network State)
+    log_activity(current_user.id, 'security_alert', {
+        'event': 'Incognito Mode Hardening',
+        'status': 'Active' if enabled else 'Disabled',
+        'permissions': ['ACCESS_WIFI_STATE', 'CHANGE_WIFI_STATE', 'ACCESS_NETWORK_STATE']
+    })
+    
+    return jsonify({'success': True})
+
 @app.route('/dashboard/speed-sharing')
 @login_required
 def speed_sharing_dashboard():
