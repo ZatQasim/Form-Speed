@@ -151,9 +151,22 @@ async function loadFiles() {
             <div class="file-icon">${icon}</div>
             <div class="file-name">${file.name}</div>
             <div class="file-info">${(file.size / 1024 / 1024).toFixed(2)} MB</div>
+            <div class="mt-2">
+                <a href="/api/cloud/download/${file.id}" class="btn btn-sm btn-outline-primary mr-1"><i class="fas fa-download"></i></a>
+                <button class="btn btn-sm btn-outline-info" onclick="previewFile(${file.id}, '${file.name}', '${file.type}')"><i class="fas fa-eye"></i></button>
+            </div>
         `;
         list.appendChild(card);
     });
+}
+
+async function previewFile(id, name, type) {
+    // Basic preview implementation - could be a modal
+    if (type === 'media' && (name.endsWith('.jpg') || name.endsWith('.png') || name.endsWith('.webp'))) {
+        window.open(`/api/cloud/preview/${id}`, '_blank');
+    } else {
+        alert('Preview not available for this file type yet. Please download to view.');
+    }
 }
 
 async function deleteFile(id) {
@@ -166,10 +179,9 @@ document.getElementById('cloud-upload-input').onchange = async function(e) {
     const file = e.target.files[0];
     if(!file) return;
     
-    const type = file.type.startsWith('image/') || file.type.startsWith('video/') ? 'media' : 'data';
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('type', type);
+    formData.append('type', 'all'); // Allow all types
     
     const btn = e.target.previousElementSibling;
     btn.textContent = 'Uploading...';

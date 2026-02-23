@@ -469,6 +469,42 @@ def cloud_upload():
 
     return jsonify({'success': True, 'message': 'File uploaded successfully'})
 
+@app.route('/api/cloud/download/<int:file_id>')
+@login_required
+def download_cloud_file(file_id):
+    file_entry = CloudFile.query.filter_by(id=file_id, user_id=current_user.id).first()
+    if not file_entry:
+        return "File not found", 404
+    
+    file_path = os.path.join('storage', str(current_user.id), file_entry.filename)
+    if not os.path.exists(file_path):
+        return "File not found on disk", 404
+        
+    from flask import send_file
+    return send_file(file_path, as_attachment=True, download_name=file_entry.original_name)
+
+@app.route('/api/cloud/preview/<int:file_id>')
+@login_required
+def preview_cloud_file(file_id):
+    file_entry = CloudFile.query.filter_by(id=file_id, user_id=current_user.id).first()
+    if not file_entry:
+        return "File not found", 404
+    
+    file_path = os.path.join('storage', str(current_user.id), file_entry.filename)
+    if not os.path.exists(file_path):
+        return "File not found on disk", 404
+        
+    from flask import send_file
+    return send_file(file_path)
+
+@app.route('/api')
+@login_required
+def api_page():
+    # Simple deterministic API key based on user ID for now
+    import hashlib
+    api_key = hashlib.sha256(f"form-speed-{current_user.id}".encode()).hexdigest()[:32]
+    return render_template('api.html', api_key=api_key)
+
 @app.route('/api/cloud/files')
 @login_required
 def get_cloud_files():
