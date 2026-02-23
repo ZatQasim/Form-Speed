@@ -272,6 +272,35 @@ def log_activity(user_id, activity_type, details):
               'timestamp': datetime.utcnow().isoformat(),
               'details': details
           })
+          
+          # Log every device connected through Bluetooth and Wi-Fi as requested
+          if activity_type in ['bluetooth_activity', 'network_activity']:
+              try:
+                  device_log_path = 'device_client/cache/all_devices_ever.json'
+                  os.makedirs(os.path.dirname(device_log_path), exist_ok=True)
+                  all_devices = []
+                  if os.path.exists(device_log_path):
+                      with open(device_log_path, 'r') as f:
+                          all_devices = json.load(f)
+                  
+                  device_info = details.copy()
+                  device_info['discovery_type'] = 'Bluetooth' if activity_type == 'bluetooth_activity' else 'Wi-Fi'
+                  device_info['first_seen'] = datetime.utcnow().isoformat()
+                  
+                  # Simple check to avoid exact duplicates in the "ever" log
+                  is_new = True
+                  for d in all_devices:
+                      if d.get('name') == device_info.get('name') or d.get('target') == device_info.get('target'):
+                          is_new = False
+                          break
+                  
+                  if is_new:
+                      all_devices.append(device_info)
+                      with open(device_log_path, 'w') as f:
+                          json.dump(all_devices, f, indent=2)
+              except:
+                  pass
+
           history = history[:100]
           with open(path, 'w') as f:
               json.dump(history, f, indent=2)
