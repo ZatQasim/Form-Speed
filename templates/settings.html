@@ -13,7 +13,6 @@
             <a href="{{ url_for('iot_dashboard') }}">IoT Control</a>
             <a href="{{ url_for('download_page') }}">Download</a>
             <a href="{{ url_for('security_dashboard') }}">Security</a>
-            <a href="{{ url_for('mesh_dashboard') }}">Mesh Network</a>
             <a href="{{ url_for('tools_dashboard') }}">Tools</a>
             <a href="{{ url_for('cloud_dashboard') }}">Cloud</a>
             <a href="{{ url_for('connect_hub') }}">Connect</a>
@@ -77,7 +76,6 @@
                         {% if benefits.security_protection %}<div class="benefit-item active">Security Protection</div>{% endif %}
                         {% if benefits.route_optimization %}<div class="benefit-item active">Route Optimization</div>{% endif %}
                         {% if benefits.advanced_analytics %}<div class="benefit-item active">Advanced Analytics</div>{% endif %}
-                        {% if benefits.mesh_network %}<div class="benefit-item active">Mesh Network</div>{% endif %}
                     </div>
                 </div>
                 {% else %}

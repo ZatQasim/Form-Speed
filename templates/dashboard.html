@@ -14,7 +14,6 @@
             <a href="{{ url_for('iot_dashboard') }}" {% if not current_user.has_active_subscription() %}class="locked"{% endif %}>IoT Control</a>
             <a href="{{ url_for('download_page_dashboard') }}">Download</a>
             <a href="{{ url_for('security_dashboard') }}" {% if not current_user.has_active_subscription() %}class="locked"{% endif %}>Security</a>
-            <a href="{{ url_for('mesh_dashboard') }}" {% if not current_user.has_active_subscription() %}class="locked"{% endif %}>Mesh Network</a>
             <a href="{{ url_for('tools_dashboard') }}">Tools</a>
             <a href="{{ url_for('cloud_dashboard') }}">Cloud</a>
             <a href="{{ url_for('connect_hub_dashboard') }}">Connect</a>

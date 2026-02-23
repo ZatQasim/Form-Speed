@@ -13,7 +13,6 @@
             <a href="{{ url_for('iot_dashboard') }}" class="active">IoT Control</a>
             <a href="{{ url_for('download_page') }}">Download</a>
             <a href="{{ url_for('security_dashboard') }}">Security</a>
-            <a href="{{ url_for('mesh_dashboard') }}">Mesh Network</a>
             <a href="{{ url_for('tools_dashboard') }}">Tools</a>
             <a href="{{ url_for('cloud_dashboard') }}">Cloud</a>
             <a href="{{ url_for('connect_hub') }}">Connect</a>
@@ -87,7 +86,7 @@
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
                     <h3><i class="fas fa-microchip text-info mr-2"></i>Connected Ecosystem</h3>
-                    <p class="text-secondary small mb-0">Real-time hardware bridge status across local mesh.</p>
+                    <p class="text-secondary small mb-0">Real-time hardware bridge status across local network.</p>
                 </div>
                 <button class="btn btn-sm btn-outline-info" onclick="refreshDevices()">
                     <i class="fas fa-sync-alt"></i>

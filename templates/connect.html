@@ -10,7 +10,6 @@
             <a href="{{ url_for('incognito_mode') }}">Incognito Mode</a>
             <a href="{{ url_for('download_page') }}">Download</a>
             <a href="{{ url_for('security_dashboard') }}">Security</a>
-            <a href="{{ url_for('mesh_dashboard') }}">Mesh Network</a>
             <a href="{{ url_for('tools_dashboard') }}">Tools</a>
             <a href="{{ url_for('cloud_dashboard') }}">Cloud</a>
             <a href="{{ url_for('connect_hub') }}" class="active">Connect</a>
@@ -29,13 +28,13 @@
             <div class="card shadow border-0">
                 <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center py-3">
                     <h3 class="mb-0">Connect Hub</h3>
-                    <span class="badge bg-success">Mesh Mode Active</span>
+                    <span class="badge bg-success">Hub Mode Active</span>
                 </div>
                 <div class="card-body p-4 text-center" id="hubContainer">
                     <div id="permissionRequest">
                         <i class="fas fa-satellite-dish fa-5x mb-4 text-primary"></i>
                         <h2>Transform this Computer into a Hub</h2>
-                        <p class="lead">To route other devices through your mesh network, we need local access.</p>
+                        <p class="lead">To route other devices through your network, we need local access.</p>
                         <button class="btn btn-primary btn-lg mt-3" onclick="requestPermissions()">
                             <i class="fas fa-shield-alt mr-2"></i> Connect
                         </button>
@@ -61,7 +60,7 @@
                             </div>
                             <div class="col-md-4">
                                 <div class="card bg-light p-3">
-                                    <h6 class="text-info"><i class="fas fa-project-diagram mr-1"></i> Mesh Hops</h6>
+                                    <h6 class="text-info"><i class="fas fa-project-diagram mr-1"></i>Network Hops</h6>
                                     <div class="h4 mb-0" id="meshHops">--</div>
                                 </div>
                             </div>
@@ -78,7 +77,7 @@
                                         <div class="badge badge-pill badge-primary" id="proximityScore">Proximity: --</div>
                                     </div>
                                     <div class="d-flex justify-content-center gap-2">
-                                        <button class="btn btn-success px-4" onclick="handleDevice('Accept')">Authorize Mesh Link</button>
+                                        <button class="btn btn-success px-4" onclick="handleDevice('Accept')">Authorize Link</button>
                                         <button class="btn btn-outline-danger ml-2" onclick="handleDevice('Deny')">Ignore</button>
                                     </div>
                                 </div>
@@ -95,7 +94,7 @@
                             <div class="row text-left">
                                 <div class="col-md-4">
                                     <p class="mb-1"><small class="text-muted">Status</small></p>
-                                    <p><strong><span class="badge badge-success">Active Mesh Hub</span></strong></p>
+                                    <p><strong><span class="badge badge-success">Active Hub</span></strong></p>
                                     <p class="mb-1"><small class="text-muted">Device Name</small></p>
                                     <p><strong id="connectedDeviceName">--</strong></p>
                                 </div>
@@ -246,7 +245,7 @@ function handleDevice(action) {
                 }, 3000);
             }, 2000);
         
-        alert(`Mesh link established with ${deviceName}. Direct Form APN configuration pushed.`);
+        alert(`Link established with ${deviceName}. Direct Form APN configuration pushed.`);
     } else {
         alert("Device connection denied.");
         document.getElementById('deviceFound').classList.add('d-none');

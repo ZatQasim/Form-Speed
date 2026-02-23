@@ -38,7 +38,7 @@
                 <a href="{{ url_for('logout') }}" class="btn btn-outline">Log out</a>
             {% else %}
                 <a href="{{ url_for('login') }}">Sign in</a>
-                <a href="{{ url_for('signup') }}" class="btn btn-primary">Get Started</a>
+                <a href="{{ url_for('signup') }}" class="btn btn-primary">Sign up</a>
             {% endif %}
         </div>
     </nav>
@@ -71,11 +71,13 @@
                 const banner = document.getElementById('connection-banner');
                 const bannerText = document.getElementById('banner-text');
                 if (banner && bannerText) {
-                    if (data.active || data.vpn_enabled) {
+                    if (data.active || data.vpn_enabled || data.hub_active) {
                         banner.classList.remove('d-none');
                         // LIVE SYSTEM MODE: Actual real-time text sync
                         if (data.mode) {
                             bannerText.textContent = `Connected (${data.mode})`;
+                        } else if (data.hub_active) {
+                            bannerText.textContent = "Hub Mode Active";
                         } else {
                             bannerText.textContent = "Connected";
                         }
