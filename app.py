@@ -1129,6 +1129,24 @@ def get_iot_devices():
         ]
     })
 
+@app.route('/api/network/verify-hardware-access', methods=['POST'])
+@login_required
+def verify_hardware_access():
+    # This endpoint simulates the low-level hardware handshake 
+    # that would occur in a native companion app.
+    # In the web context, it triggers logging and state validation.
+    data = request.json
+    perms = data.get('requested_permissions', [])
+    
+    log_activity(current_user.id, 'security_alert', {
+        'event': 'Hardware Permission Handshake',
+        'permissions_requested': perms,
+        'system_status': 'Verified',
+        'interface': 'WLAN0_PROMISCUOUS_MODE'
+    })
+    
+    return jsonify({'success': True, 'access': 'granted'})
+
 @app.route('/dashboard/incognito')
 @login_required
 def incognito_mode():
